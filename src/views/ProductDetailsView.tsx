@@ -72,6 +72,10 @@ export default function ProductDetailsView({
   // QA Answer boxes states
   const [answerTexts, setAnswerTexts] = React.useState<Record<string, string>>({});
 
+  // State variables for review star-filter & Q&A search query
+  const [selectedStarFilter, setSelectedStarFilter] = React.useState<number | null>(null);
+  const [qaSearchQuery, setQaSearchQuery] = React.useState('');
+
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewTitle.trim() || !reviewText.trim()) return;
@@ -99,19 +103,30 @@ export default function ProductDetailsView({
     setAnswerTexts({ ...answerTexts, [qaId]: '' });
   };
 
-  // Filter dynamic review records
-  const productReviews = reviews.filter((r) => r.productId === product.id);
-  const productQas = qas.filter((q) => q.productId === product.id);
+  // Filter dynamic review records for the current product
+  const rawProductReviews = reviews.filter((r) => r.productId === product.id);
+  const productReviews = selectedStarFilter !== null
+    ? rawProductReviews.filter((r) => r.rating === selectedStarFilter)
+    : rawProductReviews;
+
+  // Filter and search active product Q&As
+  const rawProductQas = qas.filter((q) => q.productId === product.id);
+  const productQas = qaSearchQuery.trim()
+    ? rawProductQas.filter((qa) => 
+        qa.question.toLowerCase().includes(qaSearchQuery.toLowerCase()) || 
+        (qa.answer && qa.answer.toLowerCase().includes(qaSearchQuery.toLowerCase()))
+      )
+    : rawProductQas;
 
   // Dynamic pricing
   const finalPrice = product.isElite && currentUser.isElite 
     ? Math.round(product.price * 0.9) 
     : product.price;
 
-  // Calculate percentages
+  // Calculate percentages based on raw unfiltered reviews count
   const ratingDistribution = [5, 4, 3, 2, 1].map((stars) => {
-    const matchingCount = productReviews.filter((r) => r.rating === stars).length;
-    const pct = productReviews.length > 0 ? (matchingCount / productReviews.length) * 100 : 0;
+    const matchingCount = rawProductReviews.filter((r) => r.rating === stars).length;
+    const pct = rawProductReviews.length > 0 ? (matchingCount / rawProductReviews.length) * 100 : 0;
     return { stars, count: matchingCount, pct };
   });
 
@@ -278,7 +293,7 @@ export default function ProductDetailsView({
           </div>
 
           {/* Rating aggregate panel */}
-          <div className="flex flex-col sm:flex-row gap-6 rounded-2xl border border-slate-100 p-5 bg-white">
+          <div className="flex flex-col sm:flex-row gap-6 rounded-2xl border border-slate-100 p-5 bg-white shadow-sm">
             <div className="text-center sm:border-r sm:border-slate-100 sm:pr-8 flex flex-col justify-center">
               <span className="text-5xl font-black text-slate-800 tracking-tight">{product.rating.toFixed(1)}</span>
               <span className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-mono">Out of 5</span>
@@ -289,20 +304,49 @@ export default function ProductDetailsView({
               </div>
             </div>
 
-            {/* Progress Bars */}
+            {/* Progress Bars (Interactive for Star Filtering) */}
             <div className="flex-1 space-y-2">
-              {ratingDistribution.map((tier) => (
-                <div key={tier.stars} className="flex items-center gap-3 text-xs">
-                  <span className="font-mono text-slate-400 w-3">{tier.stars}</span>
-                  <Star className="h-3.5 w-3.5 text-amber-400 fill-current" />
-                  <div className="h-2 flex-1 rounded-full bg-slate-100 overflow-hidden">
-                    <div className="h-full bg-amber-400 rounded-full" style={{ width: `${tier.pct}%` }}></div>
-                  </div>
-                  <span className="font-mono text-slate-400 w-5 text-right">{tier.count}</span>
-                </div>
-              ))}
+              {ratingDistribution.map((tier) => {
+                const isSelected = selectedStarFilter === tier.stars;
+                return (
+                  <button
+                    id={`filter-star-tier-${tier.stars}`}
+                    key={tier.stars}
+                    onClick={() => setSelectedStarFilter(isSelected ? null : tier.stars)}
+                    className={`w-full flex items-center gap-3 text-xs transition-all p-1.5 rounded-xl cursor-pointer ${
+                      isSelected 
+                        ? 'bg-amber-50/70 border border-amber-200 shadow-xs scale-102' 
+                        : 'hover:bg-slate-50 border border-transparent'
+                    }`}
+                    title={`Click to filter by ${tier.stars} stars`}
+                  >
+                    <span className="font-mono text-slate-400 w-3 text-left">{tier.stars}</span>
+                    <Star className={`h-3.5 w-3.5 ${isSelected ? 'text-amber-500 fill-amber-500' : 'text-amber-400 fill-current'}`} />
+                    <div className="h-2 flex-1 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-full bg-amber-400 rounded-full" style={{ width: `${tier.pct}%` }}></div>
+                    </div>
+                    <span className="font-mono text-slate-400 w-5 text-right font-semibold">{tier.count}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
+
+          {/* Active Star Filter Indicator */}
+          {selectedStarFilter !== null && (
+            <div id="active-star-filter-indicator" className="flex items-center justify-between bg-amber-50/75 border border-amber-200 rounded-xl p-3 text-xs animate-fade-in shadow-xs">
+              <span className="text-amber-900 font-medium">
+                Showing only <strong>{selectedStarFilter}-Star</strong> reviews
+              </span>
+              <button
+                id="reset-star-filter-btn"
+                onClick={() => setSelectedStarFilter(null)}
+                className="text-[10px] font-bold text-amber-700 bg-white border border-amber-200 rounded-lg px-2.5 py-1 hover:bg-amber-100 transition-colors shadow-2xs cursor-pointer"
+              >
+                Clear Filter
+              </button>
+            </div>
+          )}
 
           {/* List of Reviews */}
           <div className="space-y-4">
@@ -400,9 +444,34 @@ export default function ProductDetailsView({
 
         {/* Q&A SEGMENT (right 5 cols) */}
         <section id="details-qna-panel" className="lg:col-span-5 space-y-6">
-          <div className="border-b border-slate-50 pb-3">
+          <div className="border-b border-slate-50 pb-3 flex flex-col gap-1">
             <h3 className="text-lg font-bold text-slate-900 tracking-tight">Active Q&A Forum</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Peer-to-peer specification clarifications</p>
+            <p className="text-xs text-slate-400">Peer-to-peer specification clarifications</p>
+          </div>
+
+          {/* Q&A Real-time Search input */}
+          <div className="space-y-1.5 bg-slate-50/50 rounded-xl p-3 border border-slate-100">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Filter Thread</span>
+            <input
+              id="qa-search-input"
+              type="text"
+              placeholder="Type keywords (e.g. cable, warranty, setup)..."
+              value={qaSearchQuery}
+              onChange={(e) => setQaSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+            />
+            {qaSearchQuery.trim() && (
+              <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1">
+                <span>Found {productQas.length} relevant questions</span>
+                <button
+                  id="qa-clear-search-btn"
+                  onClick={() => setQaSearchQuery('')}
+                  className="font-bold text-teal-600 hover:text-teal-700 cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
+            )}
           </div>
 
           {/* List of Questions */}
@@ -419,12 +488,18 @@ export default function ProductDetailsView({
                   </div>
 
                   {qa.answer ? (
-                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 ml-4.5 space-y-1">
+                    <div className="bg-slate-50/70 rounded-xl p-3 border border-slate-100 ml-4.5 space-y-1.5 relative overflow-hidden">
+                      <span className="absolute top-0 right-0 text-[7px] font-bold tracking-widest text-white uppercase bg-teal-600 px-1.5 py-0.5 rounded-bl-lg">
+                        Vetted Reply
+                      </span>
                       <p className="text-xs text-slate-600 leading-relaxed">
                         <span className="font-bold text-slate-800 mr-1">A:</span>{qa.answer}
                       </p>
-                      <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider">
-                        Answered by <span className="font-bold text-teal-600">{qa.answeredBy}</span>
+                      <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                        <span>Answered by</span>
+                        <span className="font-bold text-teal-600 inline-flex items-center gap-0.5 bg-teal-50 px-1.5 py-0.5 rounded-full">
+                          {qa.answeredBy}
+                        </span>
                       </p>
                     </div>
                   ) : (

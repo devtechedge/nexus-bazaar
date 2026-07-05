@@ -36,9 +36,11 @@ export default function SearchView({
   // Filters State
   const [selectedBrand, setSelectedBrand] = React.useState('All');
   const [selectedRating, setSelectedRating] = React.useState(0);
-  const [priceTier, setPriceTier] = React.useState('All'); // 'All', 'under100', '100to300', '300to500', 'over500'
+  const [minPrice, setMinPrice] = React.useState(0);
+  const [maxPrice, setMaxPrice] = React.useState(1500);
+  const [inStockOnly, setInStockOnly] = React.useState(false);
   const [eliteOnly, setEliteOnly] = React.useState(false);
-  const [sortBy, setSortBy] = React.useState('relevant'); // 'relevant', 'price-asc', 'price-desc', 'rating-desc'
+  const [sortBy, setSortBy] = React.useState('relevant'); // 'relevant', 'price-asc', 'price-desc', 'rating-desc', 'stock-desc', 'reviews-desc'
 
   const categories = ['All', 'Electronics', 'Wearables', 'Workspace', 'Accessories'];
 
@@ -55,7 +57,9 @@ export default function SearchView({
     setSelectedCategory('All');
     setSelectedBrand('All');
     setSelectedRating(0);
-    setPriceTier('All');
+    setMinPrice(0);
+    setMaxPrice(1500);
+    setInStockOnly(false);
     setEliteOnly(false);
     setSortBy('relevant');
   };
@@ -95,12 +99,12 @@ export default function SearchView({
       list = list.filter((p) => p.rating >= selectedRating);
     }
 
-    // Price Tier
-    if (priceTier !== 'All') {
-      if (priceTier === 'under100') list = list.filter((p) => p.price < 100);
-      else if (priceTier === '100to300') list = list.filter((p) => p.price >= 100 && p.price <= 300);
-      else if (priceTier === '300to500') list = list.filter((p) => p.price >= 300 && p.price <= 500);
-      else if (priceTier === 'over500') list = list.filter((p) => p.price > 500);
+    // Price Filter
+    list = list.filter((p) => p.price >= minPrice && p.price <= maxPrice);
+
+    // In Stock Only
+    if (inStockOnly) {
+      list = list.filter((p) => p.stock > 0);
     }
 
     // Sorting
@@ -110,10 +114,14 @@ export default function SearchView({
       list.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'rating-desc') {
       list.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === 'stock-desc') {
+      list.sort((a, b) => b.stock - a.stock);
+    } else if (sortBy === 'reviews-desc') {
+      list.sort((a, b) => b.reviewsCount - a.reviewsCount);
     }
 
     return list;
-  }, [products, searchQuery, selectedCategory, selectedBrand, eliteOnly, selectedRating, priceTier, sortBy]);
+  }, [products, searchQuery, selectedCategory, selectedBrand, eliteOnly, selectedRating, minPrice, maxPrice, inStockOnly, sortBy]);
 
   return (
     <div id="search-view-container" className="pb-16">
@@ -200,28 +208,44 @@ export default function SearchView({
 
           {/* Price Range Filter */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-600">Price Interval</label>
-            <div className="space-y-1.5">
-              {[
-                { label: 'All prices', value: 'All' },
-                { label: 'Under $100', value: 'under100' },
-                { label: '$100 to $300', value: '100to300' },
-                { label: '$300 to $500', value: '300to500' },
-                { label: 'Over $500', value: 'over500' },
-              ].map((tier) => (
-                <label key={tier.value} className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer hover:text-slate-900">
-                  <input
-                    id={`filter-price-${tier.value}`}
-                    type="radio"
-                    name="priceTier"
-                    value={tier.value}
-                    checked={priceTier === tier.value}
-                    onChange={() => setPriceTier(tier.value)}
-                    className="h-3.5 w-3.5 border-slate-300 text-teal-600 focus:ring-teal-500"
-                  />
-                  <span>{tier.label}</span>
-                </label>
-              ))}
+            <label className="text-xs font-bold text-slate-600 block">Price Thresholds</label>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <span className="text-[9px] text-slate-400 font-bold uppercase block">Min ($)</span>
+                <input
+                  id="filter-min-price-input"
+                  type="number"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(Math.max(0, Number(e.target.value)))}
+                  className="w-full rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[9px] text-slate-400 font-bold uppercase block">Max ($)</span>
+                <input
+                  id="filter-max-price-input"
+                  type="number"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(Math.max(minPrice, Number(e.target.value)))}
+                  className="w-full rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                />
+              </div>
+            </div>
+            
+            {/* Range slider visual */}
+            <input
+              id="price-range-slider"
+              type="range"
+              min="0"
+              max="1500"
+              step="50"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Math.max(minPrice, Number(e.target.value)))}
+              className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-teal-600"
+            />
+            <div className="flex justify-between text-[9px] text-slate-400 font-mono">
+              <span>$0</span>
+              <span>$1,500</span>
             </div>
           </div>
 
@@ -243,6 +267,27 @@ export default function SearchView({
                 </label>
               ))}
             </div>
+          </div>
+
+          {/* Stock Availability Toggle */}
+          <div className="flex items-center justify-between border-t border-slate-50 pt-4">
+            <div className="leading-none">
+              <label className="text-xs font-bold text-slate-700">In Stock Only</label>
+              <p className="text-[10px] text-slate-400 mt-0.5">Exclude sold out</p>
+            </div>
+            <button
+              id="filter-stock-toggle"
+              onClick={() => setInStockOnly(!inStockOnly)}
+              className={`relative inline-flex h-5.5 w-10 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
+                inStockOnly ? 'bg-teal-600' : 'bg-slate-200'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4.5 w-4.5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                  inStockOnly ? 'translate-x-4.5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Elite Toggle */}
@@ -288,6 +333,8 @@ export default function SearchView({
                   <option value="price-asc">Price: Low to High</option>
                   <option value="price-desc">Price: High to Low</option>
                   <option value="rating-desc">Highest Rated</option>
+                  <option value="stock-desc">Available Stock</option>
+                  <option value="reviews-desc">Most Reviewed</option>
                 </select>
                 <ArrowUpDown className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400 pointer-events-none" />
               </div>

@@ -441,6 +441,25 @@ export default function CartCheckoutView({
                 </div>
               </div>
 
+              {appliedPromo && (
+                <div id="cart-promo-breakdown-banner" className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 text-[11px] text-emerald-800 space-y-1 animate-fade-in shadow-2xs">
+                  <span className="font-bold uppercase tracking-wider text-[9px] text-emerald-600 font-mono block">Voucher Calculation Ledger</span>
+                  <div className="flex justify-between text-slate-500">
+                    <span>Subtotal before Promo</span>
+                    <span className="font-mono">${subtotal}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span>Savings ({appliedPromo.code})</span>
+                    <span className="font-mono">-${discountAmount}</span>
+                  </div>
+                  <div className="border-t border-emerald-100/40 my-1"></div>
+                  <div className="flex justify-between font-bold text-emerald-900">
+                    <span>Discounted Subtotal</span>
+                    <span className="font-mono">${subtotal - discountAmount}</span>
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-baseline justify-between pt-1">
                 <span className="text-sm font-bold text-slate-800">Estimated Total</span>
                 <span id="summary-total" className="text-xl font-black text-slate-900 font-mono">${subtotal - discountAmount + shippingCost}</span>
@@ -712,6 +731,25 @@ export default function CartCheckoutView({
                     <span id="recap-tax" className="font-mono text-slate-700 font-semibold">${taxAmount}</span>
                   </div>
                 </div>
+
+                {appliedPromo && (
+                  <div id="recap-promo-breakdown-banner" className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 text-[11px] text-emerald-800 space-y-1 animate-fade-in shadow-2xs">
+                    <span className="font-bold uppercase tracking-wider text-[9px] text-emerald-600 font-mono block">Voucher Calculation Ledger</span>
+                    <div className="flex justify-between text-slate-500">
+                      <span>Subtotal before Promo</span>
+                      <span className="font-mono">${subtotal}</span>
+                    </div>
+                    <div className="flex justify-between font-semibold">
+                      <span>Savings ({appliedPromo.code})</span>
+                      <span className="font-mono">-${discountAmount}</span>
+                    </div>
+                    <div className="border-t border-emerald-100/40 my-1"></div>
+                    <div className="flex justify-between font-bold text-emerald-900">
+                      <span>Discounted Subtotal</span>
+                      <span className="font-mono">${subtotal - discountAmount}</span>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex items-baseline justify-between pt-3">
                   <span className="text-sm font-bold text-slate-800">Final Charged Total</span>

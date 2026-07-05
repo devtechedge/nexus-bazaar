@@ -27,6 +27,8 @@ import CartCheckoutView from './views/CartCheckoutView';
 import SellerView from './views/SellerView';
 import AdminView from './views/AdminView';
 import OrdersView from './views/OrdersView';
+import WishlistView from './views/WishlistView';
+import ConciergeChatbot from './components/ConciergeChatbot';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
 
 export default function App() {
@@ -48,7 +50,7 @@ export default function App() {
   });
 
   // 3. Routing views
-  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders'>('storefront');
+  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist'>('storefront');
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
 
   // 4. Shared filters search inputs
@@ -440,6 +442,9 @@ export default function App() {
             onAddProduct={handleAddProduct}
             onUpdateProduct={handleUpdateProduct}
             onDeleteProduct={handleDeleteProduct}
+            promoCodes={dbState.promoCodes}
+            onAddPromoCode={handleAddPromoCode}
+            onRemovePromoCode={handleRemovePromoCode}
           />
         );
       case 'admin':
@@ -458,6 +463,17 @@ export default function App() {
             orders={dbState.orders}
             currentUser={currentUser}
             onUpdateOrderStatus={handleUpdateOrderStatus}
+          />
+        );
+      case 'wishlist':
+        return (
+          <WishlistView
+            products={dbState.products}
+            wishlist={wishlist}
+            onRemoveFromWishlist={handleRemoveFromWishlist}
+            onMoveToCart={handleMoveToCart}
+            onViewDetails={(p) => { setSelectedProduct(p); setActiveView('details'); }}
+            setActiveView={setActiveView}
           />
         );
       default:
@@ -527,6 +543,9 @@ export default function App() {
           © 2026 NexusBazaar LLC. Built completely in TypeScript & Tailwind. No real-world currency transitions occur.
         </div>
       </footer>
+
+      {/* GLOBAL CONCIERGE CHATBOT ASSISTANT (Feature #9) */}
+      {currentUser.role === 'buyer' && <ConciergeChatbot />}
 
     </div>
   );
