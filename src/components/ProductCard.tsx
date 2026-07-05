@@ -4,8 +4,9 @@
  */
 
 import React from 'react';
-import { Heart, ShoppingCart, Star, Crown, Sparkles, Flame } from 'lucide-react';
+import { Heart, ShoppingCart, Star, Crown, Sparkles, Flame, Eye, Scan, Compass } from 'lucide-react';
 import { Product } from '../lib/db';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ProductCardProps {
   key?: any;
@@ -25,6 +26,8 @@ export default function ProductCard({
   isWishlisted,
   isEliteUser,
 }: ProductCardProps) {
+  const [isHovered, setIsHovered] = React.useState(false);
+
   // Apply a 10% discount on Elite items for Elite members
   const finalPrice = product.isElite && isEliteUser 
     ? Math.round(product.price * 0.9) 
@@ -35,20 +38,104 @@ export default function ProductCard({
   const isStaffPick = product.rating >= 4.6 && product.reviewsCount === 1;
   const isLowStock = product.stock > 0 && product.stock <= 5;
 
+  // Generate dynamic seed diagnostic details for hover scan simulation
+  const hoverSpecs = React.useMemo(() => {
+    switch (product.category) {
+      case 'Electronics':
+        return ['SENSORS_OK', 'ANC_LEVEL: 35dB', 'CORE_CLK: 120MHz', 'LATENCY: 1.2ms'];
+      case 'Wearables':
+        return ['ECG_STABLE', 'SPO2_LOCK: 99%', 'T_COEFF: -0.05', 'BATT_RATE: 1.0%'];
+      case 'Workspace':
+        return ['CAD_MATCHED', 'TDP_LIMIT: 45W', 'RGB_INDEX: Curated', 'STRESS: Zero'];
+      default:
+        return ['SEAM_SECURE', 'MAT_FIBER: 100%', 'TENSILE: 180N', 'FLEX_INDEX: Elite'];
+    }
+  }, [product.category]);
+
   return (
     <div 
       id={`product-card-${product.id}`}
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-slate-200"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Product Image & Badges */}
-      <div id={`image-container-${product.id}`} className="relative aspect-video w-full overflow-hidden bg-slate-50">
+      <div id={`image-container-${product.id}`} className="relative aspect-video w-full overflow-hidden bg-slate-900">
         <img
           id={`product-img-${product.id}`}
           src={product.image}
           alt={product.name}
-          className="h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+          className={`h-full w-full object-cover object-center transition-all duration-700 ${
+            isHovered ? 'scale-110 opacity-40 blur-[1px]' : 'scale-100 opacity-100'
+          }`}
         />
         
+        {/* Hover Simulation Overlay (Feature #7) */}
+        <AnimatePresence>
+          {isHovered && product.stock > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-20 flex flex-col justify-between p-3 bg-slate-950/85 text-teal-400 font-mono text-[9px]"
+            >
+              {/* Scan grid effect */}
+              <div className="absolute inset-0 pointer-events-none opacity-10 bg-[radial-gradient(#14b8a6_1px,transparent_1px)] [background-size:12px_12px]" />
+              
+              {/* Sweeping scan line */}
+              <motion.div
+                initial={{ y: 0 }}
+                animate={{ y: 140 }}
+                transition={{
+                  repeat: Infinity,
+                  repeatType: 'reverse',
+                  duration: 2.2,
+                  ease: 'easeInOut'
+                }}
+                className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-teal-400 to-transparent shadow-[0_0_8px_#14b8a6] pointer-events-none"
+              />
+
+              {/* Top Tech Telemetry Status Row */}
+              <div className="flex justify-between items-center relative z-10 border-b border-teal-900/30 pb-1.5 bg-slate-950/40 p-1 rounded">
+                <span className="flex items-center gap-1">
+                  <Scan className="h-3 w-3 text-teal-400 animate-pulse" />
+                  <span className="text-teal-300 font-bold uppercase tracking-wider">Active Holographic Scan</span>
+                </span>
+                <span className="animate-ping h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              </div>
+
+              {/* Tech Specs Block */}
+              <div className="my-auto space-y-1 relative z-10 px-1">
+                {hoverSpecs.map((spec, index) => (
+                  <motion.div
+                    key={spec}
+                    initial={{ x: -10, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center gap-1.5 bg-slate-900/50 rounded py-0.5 px-1 border border-teal-950"
+                  >
+                    <span className="h-1 w-1 rounded-full bg-teal-500" />
+                    <span>{spec}</span>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Bottom control telemetry */}
+              <div className="flex justify-between items-center relative z-10 border-t border-teal-900/30 pt-1.5 bg-slate-950/40 p-1 rounded">
+                <span className="text-[8px] text-teal-500">ZOOM: 300% (MACRO_REV2)</span>
+                <button
+                  type="button"
+                  onClick={() => onViewDetails(product)}
+                  className="flex items-center gap-1 text-xs font-bold text-teal-300 hover:text-white bg-teal-900/40 px-2 py-0.5 rounded border border-teal-700/50 transition-all cursor-pointer active:scale-95"
+                >
+                  <Eye className="h-3 w-3" />
+                  <span>Inspect Spec</span>
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Wishlist Button */}
         <button
           id={`wishlist-btn-${product.id}`}
@@ -56,7 +143,7 @@ export default function ProductCard({
             e.stopPropagation();
             onToggleWishlist(product);
           }}
-          className={`absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-all hover:scale-110 active:scale-95 ${
+          className={`absolute right-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm shadow-sm transition-all hover:scale-110 active:scale-95 ${
             isWishlisted ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500'
           }`}
           title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
@@ -112,7 +199,7 @@ export default function ProductCard({
 
         {/* Out of Stock overlay */}
         {product.stock <= 0 && (
-          <div id={`outofstock-overlay-${product.id}`} className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs">
+          <div id={`outofstock-overlay-${product.id}`} className="absolute inset-0 z-10 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs">
             <span className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white">
               Sold Out
             </span>

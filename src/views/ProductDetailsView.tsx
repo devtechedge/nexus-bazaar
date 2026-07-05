@@ -5,22 +5,12 @@
 
 import React from 'react';
 import { 
-  ArrowLeft, 
-  Heart, 
-  ShoppingCart, 
-  Star, 
-  Crown, 
-  MessageSquare, 
-  HelpCircle,
-  Clock,
-  UserCheck,
-  Sparkles,
-  Cpu,
-  Send,
-  Eye,
-  Settings
+  ArrowLeft, Heart, ShoppingCart, Star, Crown, MessageSquare, HelpCircle,
+  Clock, UserCheck, Sparkles, Cpu, Send, Eye, Settings, Sliders, Play, 
+  Square, Volume2, Info, GitBranch, GitCommit, GitMerge, AlertTriangle, Disc
 } from 'lucide-react';
 import { Product, Review, QA, User, UserRole } from '../lib/db';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface ProductDetailsViewProps {
   product: Product;
@@ -49,9 +39,17 @@ export default function ProductDetailsView({
   onAddQuestion,
   onAddAnswer,
 }: ProductDetailsViewProps) {
+  // Feature #6: Immersive Editorial Lookbook layout mode toggle
+  const [editorialMode, setEditorialMode] = React.useState(false);
+
+  // Specifications Tabs Panel
+  // 'parametric' | 'revision' | 'audio' | 'hologram'
+  const [techTab, setTechTab] = React.useState<'parametric' | 'revision' | 'audio' | 'hologram'>('parametric');
+
   // Image Hover Zoom effect
   const [zoomStyle, setZoomStyle] = React.useState<React.CSSProperties>({ transform: 'scale(1)' });
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (editorialMode) return; // Keep clean in editorial mode
     const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
@@ -73,7 +71,7 @@ export default function ProductDetailsView({
   const holoCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   React.useEffect(() => {
-    if (!holoEnabled) return;
+    if (!holoEnabled || techTab !== 'hologram') return;
     const canvas = holoCanvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -90,7 +88,7 @@ export default function ProductDetailsView({
       const cy = h / 2;
 
       // Scanlines & Grid background
-      ctx.strokeStyle = 'rgba(15, 23, 42, 0.05)';
+      ctx.strokeStyle = 'rgba(20, 184, 166, 0.05)';
       ctx.lineWidth = 0.5;
       for (let i = 0; i < w; i += 25) {
         ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
@@ -101,7 +99,7 @@ export default function ProductDetailsView({
 
       // Projection Beam Glow
       const beamGrad = ctx.createLinearGradient(cx, h, cx, cy - 10);
-      let coreColor = 'rgba(6, 182, 212, '; // cyan
+      let coreColor = 'rgba(20, 184, 166, '; // cyan/teal
       if (holoColor === 'amber') coreColor = 'rgba(245, 158, 11, ';
       if (holoColor === 'emerald') coreColor = 'rgba(16, 185, 129, ';
 
@@ -236,9 +234,295 @@ export default function ProductDetailsView({
     return () => {
       cancelAnimationFrame(animId);
     };
-  }, [holoEnabled, holoColor, holoRotSpeed, holoBeamDensity, holoNoise]);
+  }, [holoEnabled, holoColor, holoRotSpeed, holoBeamDensity, holoNoise, techTab]);
 
-  // Live Counter-Offer Bidding Bartering Engine (Feature #21)
+  // ---------------------------------------------------------------------------
+  // FEATURE #2: DYNAMIC PARAMETRIC SIZING MATRIX
+  // ---------------------------------------------------------------------------
+  // Range states change depending on category
+  const isWearableCategory = product.category === 'Wearables' || product.category === 'Accessories';
+  const [param1, setParam1] = React.useState(isWearableCategory ? 38 : 75); // Wrist circumference (mm) or Desk depth (cm)
+  const [param2, setParam2] = React.useState(isWearableCategory ? 190 : 160); // Strap length (mm) or Desk width (cm)
+  const parametricCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+
+  // Compute ergonomic alignment ratio
+  const parametricFitRatio = React.useMemo(() => {
+    if (isWearableCategory) {
+      // Optimal wrist for watch (38mm size) is around 170mm wrist, optimal strap is 185mm
+      const wristDev = Math.abs(param1 - 38);
+      const strapDev = Math.abs(param2 - 190);
+      return Math.max(50, Math.round(100 - (wristDev * 0.5) - (strapDev * 0.3)));
+    } else {
+      // Workspace: monitor needs depth >= 60cm, width >= 120cm
+      const depthShortfall = Math.max(0, 65 - param1);
+      const widthShortfall = Math.max(0, 110 - param2);
+      return Math.max(40, Math.round(100 - (depthShortfall * 1.5) - (widthShortfall * 0.8)));
+    }
+  }, [param1, param2, isWearableCategory]);
+
+  React.useEffect(() => {
+    if (techTab !== 'parametric') return;
+    const canvas = parametricCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const w = canvas.width;
+    const h = canvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+
+    // Draw blueprint graph mesh
+    ctx.strokeStyle = 'rgba(20, 184, 166, 0.08)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 15) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let y = 0; y < h; y += 15) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+
+    if (isWearableCategory) {
+      // Draw wrist/strap schematic
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.3)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 45 + (param1 * 0.15), 0, Math.PI * 2); // Wrist ellipse
+      ctx.stroke();
+
+      // Draw watch body strap wrap
+      ctx.strokeStyle = parametricFitRatio > 85 ? '#14b8a6' : '#eab308';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 48 + (param2 * 0.1), -Math.PI / 1.5, Math.PI / 1.5);
+      ctx.stroke();
+
+      // Core anchor watch block
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(cx - 15, cy - 20, 30, 40);
+      ctx.strokeStyle = '#14b8a6';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(cx - 15, cy - 20, 30, 40);
+    } else {
+      // Draw Desk surface bounding layout
+      ctx.fillStyle = 'rgba(100, 116, 139, 0.1)';
+      const deskW = param2 * 1.1;
+      const deskH = param1 * 1.1;
+      ctx.fillRect(cx - deskW/2, cy - deskH/2, deskW, deskH);
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.4)';
+      ctx.strokeRect(cx - deskW/2, cy - deskH/2, deskW, deskH);
+
+      // Draw item footprint footprint (e.g. keycraft or ultrawide)
+      const itemW = product.id === 'prod_3' ? 140 : 60; // Curved monitor wide footprint
+      const itemH = 30;
+      ctx.fillStyle = 'rgba(20, 184, 166, 0.2)';
+      ctx.fillRect(cx - itemW/2, cy - itemH/2, itemW, itemH);
+      
+      ctx.strokeStyle = parametricFitRatio > 85 ? '#14b8a6' : '#ef4444';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(cx - itemW/2, cy - itemH/2, itemW, itemH);
+    }
+  }, [param1, param2, techTab, isWearableCategory, parametricFitRatio, product.id]);
+
+  // ---------------------------------------------------------------------------
+  // FEATURE #4: CHRONOLOGICAL HARDWARE VERSIONING CONTROL
+  // ---------------------------------------------------------------------------
+  // Git branch nodes list
+  const revisionNodes = [
+    { id: 'v1.0.0-beta', tag: 'REV-1.0', title: 'Baseline Concept Board', desc: 'FR4 substrate layout, dual-layer traces, legacy firmware bootloader. Low-speed polling rate.', date: 'Dec 12, 2025', author: 'Systems Lead <design@nexusbazaar.com>' },
+    { id: 'v1.1.0-rev2', tag: 'REV-1.5', title: 'Acoustic Capacitive Buffering', desc: 'Upgraded gold capacitors, added acoustic dampening silicon liners. Mitigated ripple resonance.', date: 'Feb 05, 2026', author: 'Acoustic Eng <systems@nexusbazaar.com>' },
+    { id: 'v2.0.0-rc1', tag: 'ACTIVE', title: 'Production Ship Core', desc: 'Aerospace grade titanium structure, low-latency firmware v1.4.2 pre-loaded. Perfect mechanical clearance.', date: 'May 10, 2026', author: 'Manufacturing Lead <production@nexusbazaar.com>' },
+    { id: 'v2.1.0-nightly', tag: 'EXPERIMENTAL', title: 'Developer active Overclock', desc: 'Beta branch enabling 8000Hz polling rate and active telemetry reporting streams. Requires self-flash.', date: 'July 01, 2026', author: 'DevOps Lead <beta@nexusbazaar.com>' }
+  ];
+  const [activeRevNode, setActiveRevNode] = React.useState('v2.0.0-rc1');
+  const selectedRevision = revisionNodes.find((r) => r.id === activeRevNode) || revisionNodes[2];
+
+  // ---------------------------------------------------------------------------
+  // FEATURE #9: SPATIAL AUDIO EQUIPMENT DEMO SIMULATOR (WEB AUDIO API)
+  // ---------------------------------------------------------------------------
+  const [audioPlaying, setAudioPlaying] = React.useState(false);
+  const [audioDistance, setAudioDistance] = React.useState(35);
+  const [audioAbsorption, setAudioAbsorption] = React.useState(40);
+  const [audioDelay, setAudioDelay] = React.useState(25);
+
+  const audioContextRef = React.useRef<AudioContext | null>(null);
+  const oscNodesRef = React.useRef<OscillatorNode[]>([]);
+  const filterNodeRef = React.useRef<BiquadFilterNode | null>(null);
+  const gainNodeRef = React.useRef<GainNode | null>(null);
+  const delayNodeRef = React.useRef<DelayNode | null>(null);
+  const delayGainRef = React.useRef<GainNode | null>(null);
+  const analyserRef = React.useRef<AnalyserNode | null>(null);
+  const audioCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+
+  // Manage Web Audio API instantiations
+  React.useEffect(() => {
+    return () => {
+      // Cleanup audio nodes on unmount
+      cleanupSynth();
+    };
+  }, []);
+
+  const cleanupSynth = () => {
+    oscNodesRef.current.forEach((osc) => {
+      try { osc.stop(); } catch(e){}
+    });
+    oscNodesRef.current = [];
+    if (audioContextRef.current) {
+      try {
+        audioContextRef.current.close();
+      } catch(e){}
+      audioContextRef.current = null;
+    }
+    setAudioPlaying(false);
+  };
+
+  const handleToggleAudioSim = async () => {
+    if (audioPlaying) {
+      cleanupSynth();
+      return;
+    }
+
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) {
+        alert('Web Audio API not supported on this device.');
+        return;
+      }
+      
+      const ctx = new AudioContextClass();
+      audioContextRef.current = ctx;
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
+      // Create Analyser for waveform feedback
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyserRef.current = analyser;
+
+      // Polyphonic warm pad (Major chord based on A)
+      const baseFreq = product.id === 'prod_1' ? 220 : 110; // High headphones frequency or deeper monitor rumble
+      const freqs = [baseFreq, baseFreq * 1.25, baseFreq * 1.5, baseFreq * 1.875];
+      
+      const oscillators = freqs.map((f) => {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, ctx.currentTime);
+        return osc;
+      });
+      oscNodesRef.current = oscillators;
+
+      // Lowpass Filter simulating air absorption / wall material
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(10000 - (audioAbsorption * 90), ctx.currentTime);
+      filterNodeRef.current = filter;
+
+      // Feedback Echo Delay Loop
+      const delay = ctx.createDelay();
+      delay.delayTime.setValueAtTime((audioDelay / 100) * 0.8, ctx.currentTime);
+      delayNodeRef.current = delay;
+
+      const delayGain = ctx.createGain();
+      delayGain.gain.setValueAtTime(0.4, ctx.currentTime);
+      delayGainRef.current = delayGain;
+
+      // Master output attenuator linked to Distance
+      const gainNode = ctx.createGain();
+      const distanceFactor = Math.max(0.01, 1 - (audioDistance / 100));
+      gainNode.gain.setValueAtTime(distanceFactor * 0.12, ctx.currentTime);
+      gainNodeRef.current = gainNode;
+
+      // Wire connections path
+      oscillators.forEach((osc) => osc.connect(filter));
+      filter.connect(gainNode);
+
+      // Delay feedback loop
+      gainNode.connect(delay);
+      delay.connect(delayGain);
+      delayGain.connect(gainNode);
+
+      gainNode.connect(analyser);
+      analyser.connect(ctx.destination);
+
+      oscillators.forEach((osc) => osc.start());
+      setAudioPlaying(true);
+    } catch (err) {
+      console.error('Audio node routing failed', err);
+    }
+  };
+
+  // Adjust parameters on active audio graph in real-time
+  React.useEffect(() => {
+    if (!audioPlaying) return;
+    const ctx = audioContextRef.current;
+    if (!ctx) return;
+
+    if (filterNodeRef.current) {
+      const freq = Math.max(100, 10000 - (audioAbsorption * 90));
+      filterNodeRef.current.frequency.setTargetAtTime(freq, ctx.currentTime, 0.1);
+    }
+    if (gainNodeRef.current) {
+      const atten = Math.max(0.005, 1 - (audioDistance / 100));
+      gainNodeRef.current.gain.setTargetAtTime(atten * 0.12, ctx.currentTime, 0.1);
+    }
+    if (delayNodeRef.current) {
+      const delayTime = Math.max(0, (audioDelay / 100) * 0.8);
+      delayNodeRef.current.delayTime.setTargetAtTime(delayTime, ctx.currentTime, 0.2);
+    }
+  }, [audioDistance, audioAbsorption, audioDelay, audioPlaying]);
+
+  // Oscilloscope drawing animation loop
+  React.useEffect(() => {
+    if (!audioPlaying || techTab !== 'audio') return;
+    const canvas = audioCanvasRef.current;
+    const analyser = analyserRef.current;
+    if (!canvas || !analyser) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animId: number;
+
+    const drawOscilloscope = () => {
+      const w = canvas.width;
+      const h = canvas.height;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteTimeDomainData(dataArray);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = '#14b8a6'; // teal wave
+      ctx.lineWidth = 1.5;
+
+      ctx.beginPath();
+      const sliceWidth = w / bufferLength;
+      let x = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * h) / 2;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        x += sliceWidth;
+      }
+      ctx.stroke();
+
+      // Bounding acoustics frame
+      ctx.strokeStyle = 'rgba(20, 184, 166, 0.08)';
+      ctx.strokeRect(4, 4, w - 8, h - 8);
+
+      animId = requestAnimationFrame(drawOscilloscope);
+    };
+
+    drawOscilloscope();
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [audioPlaying, techTab]);
+
+  // ---------------------------------------------------------------------------
+  // ORIGINAL PERSISTED STATE HOOKS (Reviews, Bidding, sentiment etc.)
+  // ---------------------------------------------------------------------------
+  // Live Counter-Offer Bidding Bartering Engine
   const [userBid, setUserBid] = React.useState<string>('');
   const [biddingMessages, setBiddingMessages] = React.useState<{ sender: 'merchant' | 'user'; text: string; time: string }[]>([
     { sender: 'merchant', text: `Greetings Pathfinder. Our current listing rate for this gear is $${product.price} credits. Would you like to offer a custom credit bid?`, time: '12:00' }
@@ -278,7 +562,6 @@ export default function ProductDetailsView({
         const discountPercent = Math.round(((product.price - bidValue) / product.price) * 100);
         
         try {
-          // Import/execute direct to localStorage to keep it consistent
           const stored = localStorage.getItem('nexus_bazaar_simulated_db');
           if (stored) {
             const parsed = JSON.parse(stored);
@@ -307,7 +590,7 @@ export default function ProductDetailsView({
   const [reviewText, setReviewText] = React.useState('');
   const [reviewSuccess, setReviewSuccess] = React.useState(false);
 
-  // Real-time keyword sentiment heuristics (Feature #14)
+  // Real-time sentiment keyword tagger (Feature #14)
   const computedSentiment = React.useMemo(() => {
     if (!reviewText.trim()) return null;
     const lower = reviewText.toLowerCase();
@@ -333,7 +616,7 @@ export default function ProductDetailsView({
   // QA Answer boxes states
   const [answerTexts, setAnswerTexts] = React.useState<Record<string, string>>({});
 
-  // State variables for review star-filter & Q&A search query
+  // Review star filter & Q&A search query
   const [selectedStarFilter, setSelectedStarFilter] = React.useState<number | null>(null);
   const [qaSearchQuery, setQaSearchQuery] = React.useState('');
 
@@ -364,13 +647,12 @@ export default function ProductDetailsView({
     setAnswerTexts({ ...answerTexts, [qaId]: '' });
   };
 
-  // Filter dynamic review records for the current product
+  // Filter lists
   const rawProductReviews = reviews.filter((r) => r.productId === product.id);
   const productReviews = selectedStarFilter !== null
     ? rawProductReviews.filter((r) => r.rating === selectedStarFilter)
     : rawProductReviews;
 
-  // Filter and search active product Q&As
   const rawProductQas = qas.filter((q) => q.productId === product.id);
   const productQas = qaSearchQuery.trim()
     ? rawProductQas.filter((qa) => 
@@ -379,12 +661,10 @@ export default function ProductDetailsView({
       )
     : rawProductQas;
 
-  // Dynamic pricing
   const finalPrice = product.isElite && currentUser.isElite 
     ? Math.round(product.price * 0.9) 
     : product.price;
 
-  // Calculate percentages based on raw unfiltered reviews count
   const ratingDistribution = [5, 4, 3, 2, 1].map((stars) => {
     const matchingCount = rawProductReviews.filter((r) => r.rating === stars).length;
     const pct = rawProductReviews.length > 0 ? (matchingCount / rawProductReviews.length) * 100 : 0;
@@ -392,24 +672,50 @@ export default function ProductDetailsView({
   });
 
   return (
-    <div id="product-details-container" className="pb-16 space-y-12 animate-fade-in">
+    <div id="product-details-view" className={`pb-16 space-y-12 transition-all duration-500 rounded-3xl ${
+      editorialMode 
+        ? 'bg-slate-950 text-slate-100 p-8 sm:p-12 border border-slate-900 shadow-2xl font-serif' 
+        : 'bg-transparent text-slate-800 font-sans'
+    }`}>
       
-      {/* Back button */}
-      <button
-        id="details-back-btn"
-        onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-teal-600 uppercase tracking-wider transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span>Return to Listing</span>
-      </button>
+      {/* Back button & IMMERSIVE EDITORIAL LAYOUT TOGGLE (Feature #6) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100/10 pb-4">
+        <button
+          id="details-back-btn"
+          onClick={() => { cleanupSynth(); onBack(); }}
+          className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+            editorialMode ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-teal-600'
+          }`}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Return to Listing</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setEditorialMode(!editorialMode)}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all cursor-pointer ${
+            editorialMode 
+              ? 'bg-slate-900 border-teal-800 text-teal-400 hover:text-white shadow-lg' 
+              : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          <Settings className={`h-4 w-4 ${editorialMode ? 'animate-spin' : ''}`} />
+          <span>{editorialMode ? 'Standard Layout Mode' : 'Immersive Editorial Lookbook'}</span>
+        </button>
+      </div>
 
       {/* PRIMARY COLUMN GRID */}
       <div id="details-main-grid" className="grid gap-8 md:grid-cols-2">
         
-        {/* LEFT COLUMN: Zoomable Image Card & Holographic AR Projection Sandbox */}
+        {/* LEFT COLUMN: Zoomable Image Card */}
         <div className="space-y-6">
-          <div id="details-image-card" className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm p-4 flex flex-col justify-center">
+          <div 
+            id="details-image-card" 
+            className={`overflow-hidden rounded-2xl border transition-all p-4 flex flex-col justify-center ${
+              editorialMode ? 'border-slate-800 bg-slate-900' : 'border-slate-100 bg-white shadow-sm'
+            }`}
+          >
             <div 
               id="zoom-image-frame"
               onMouseMove={handleMouseMove}
@@ -431,116 +737,440 @@ export default function ProductDetailsView({
                 </div>
               )}
             </div>
-            <p className="text-[10px] text-center text-slate-400 mt-3 font-mono">
-              Hover or slide cursor over image to zoom and inspect quality details
-            </p>
+            {!editorialMode && (
+              <p className="text-[10px] text-center text-slate-400 mt-3 font-mono">
+                Hover or slide cursor over image to zoom and inspect quality details
+              </p>
+            )}
           </div>
 
-          {/* HOLOGRAPHIC AR PROJECTION SANDBOX (Feature #20) */}
-          <div id="holo-ar-sandbox" className="rounded-2xl border border-slate-200 bg-slate-900 text-white p-5 space-y-4 shadow-xl relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Sparkles className="h-4 w-4 text-cyan-400 animate-spin" style={{ animationDuration: '4s' }} />
-                AR Projection Node
+          {/* -------------------------------------------------------------
+              ADVANCED SPECIFICATIONS / DIAGNOSTIC SCHEMATICS COMPONENT DECK
+             ------------------------------------------------------------- */}
+          <div className={`rounded-2xl border p-5 space-y-5 shadow-xl relative overflow-hidden ${
+            editorialMode ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-slate-50'
+          }`}>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/50 pb-3 gap-2">
+              <span className="text-[10px] font-bold font-mono text-teal-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Cpu className="h-4 w-4 animate-pulse" />
+                Advanced Cargo Diagnostics
               </span>
-              <button
-                type="button"
-                onClick={() => setHoloEnabled(!holoEnabled)}
-                className={`px-3 py-1 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
-                  holoEnabled ? 'bg-cyan-500 hover:bg-cyan-600 text-slate-900 shadow-md shadow-cyan-500/20' : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
-                }`}
-              >
-                {holoEnabled ? 'Online (Click to Shut Down)' : 'Activate Hologram'}
-              </button>
+              
+              {/* Tab options for Cargo Diagnostics */}
+              <div className="flex flex-wrap gap-1">
+                <button
+                  type="button"
+                  onClick={() => setTechTab('parametric')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'parametric' 
+                      ? 'bg-teal-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Sizing Matrix
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('revision')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'revision' 
+                      ? 'bg-teal-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Hardware Revisions
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('audio')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'audio' 
+                      ? 'bg-teal-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Spatial Audio
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('hologram')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'hologram' 
+                      ? 'bg-teal-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  3D AR Model
+                </button>
+              </div>
             </div>
 
-            {holoEnabled ? (
-              <div className="space-y-4">
-                <div className="relative rounded-xl border border-slate-800 bg-slate-950/80 p-1 flex justify-center items-center h-[240px]">
-                  <canvas ref={holoCanvasRef} width={340} height={230} className="w-full h-[230px] block" />
-                  
-                  {/* Visual controls overlays */}
-                  <div className="absolute top-3 left-3 text-[9px] font-mono text-slate-500 flex flex-col gap-0.5 pointer-events-none">
-                    <span>GRID: LOCK_SECURE</span>
-                    <span>BEAMS: {holoBeamDensity * 4} PTS</span>
-                    <span>CYCLES: {holoRotSpeed.toFixed(1)}Hz</span>
+            <AnimatePresence mode="wait">
+              
+              {/* FEATURE #2: DYNAMIC PARAMETRIC SIZING MATRIX PANEL */}
+              {techTab === 'parametric' && (
+                <motion.div
+                  key="tab-parametric"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Enter raw material measurements below instead of generic standard size guidelines to preview fit constraints on our schematic matrix vector scan.
+                  </p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Interactive inputs */}
+                    <div className="space-y-3.5 bg-slate-950 p-3 rounded-xl border border-slate-800 text-[10px] text-slate-300 font-mono">
+                      {isWearableCategory ? (
+                        <>
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between">
+                              <span>Wrist Circumference</span>
+                              <span className="text-teal-400 font-bold">{param1}mm</span>
+                            </div>
+                            <input
+                              type="range" min="20" max="60" value={param1}
+                              onChange={(e) => setParam1(Number(e.target.value))}
+                              className="w-full accent-teal-400 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between">
+                              <span>Strap Adjustment Range</span>
+                              <span className="text-teal-400 font-bold">{param2}mm</span>
+                            </div>
+                            <input
+                              type="range" min="130" max="240" value={param2}
+                              onChange={(e) => setParam2(Number(e.target.value))}
+                              className="w-full accent-teal-400 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between">
+                              <span>Desk depth clearance</span>
+                              <span className="text-teal-400 font-bold">{param1}cm</span>
+                            </div>
+                            <input
+                              type="range" min="40" max="110" value={param1}
+                              onChange={(e) => setParam1(Number(e.target.value))}
+                              className="w-full accent-teal-400 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between">
+                              <span>Desk horizontal width</span>
+                              <span className="text-teal-400 font-bold">{param2}cm</span>
+                            </div>
+                            <input
+                              type="range" min="80" max="240" value={param2}
+                              onChange={(e) => setParam2(Number(e.target.value))}
+                              className="w-full accent-teal-400 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      <div className="border-t border-slate-800 pt-2 flex justify-between items-center text-[11px] font-bold">
+                        <span>Ergonomic Match Fit:</span>
+                        <span className={parametricFitRatio > 85 ? 'text-teal-400' : 'text-amber-400 animate-pulse'}>
+                          {parametricFitRatio}% Accurate Sizing
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Schematic vector Canvas */}
+                    <div className="relative rounded-xl border border-slate-800 bg-slate-950 p-1 flex justify-center items-center h-[140px]">
+                      <canvas ref={parametricCanvasRef} width={180} height={130} className="w-full h-full block" />
+                      <span className="absolute bottom-1 right-2 text-[7px] text-slate-500 font-mono">SCHEM_REF: FIT_SAMP</span>
+                    </div>
                   </div>
 
-                  <div className="absolute top-3 right-3 flex flex-col gap-1.5">
-                    <button 
-                      type="button"
-                      onClick={() => setHoloColor('cyan')}
-                      className={`h-4 w-4 rounded-full bg-cyan-400 border-2 transition-all cursor-pointer ${holoColor === 'cyan' ? 'border-white scale-110' : 'border-transparent'}`}
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => setHoloColor('amber')}
-                      className={`h-4 w-4 rounded-full bg-amber-500 border-2 transition-all cursor-pointer ${holoColor === 'amber' ? 'border-white scale-110' : 'border-transparent'}`}
-                    />
-                    <button 
-                      type="button"
-                      onClick={() => setHoloColor('emerald')}
-                      className={`h-4 w-4 rounded-full bg-emerald-500 border-2 transition-all cursor-pointer ${holoColor === 'emerald' ? 'border-white scale-110' : 'border-transparent'}`}
-                    />
+                  {/* Fit analysis message */}
+                  <div className={`p-3 rounded-xl border font-mono text-[10px] leading-relaxed ${
+                    parametricFitRatio > 85 
+                      ? 'bg-teal-950/40 border-teal-800/50 text-teal-400' 
+                      : 'bg-amber-950/40 border-amber-800/50 text-amber-400 animate-pulse'
+                  }`}>
+                    <div className="flex gap-2 items-start">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                      <span>
+                        {isWearableCategory 
+                          ? (parametricFitRatio > 85 
+                              ? '✓ ERGONOMIC BALANCE SECURED: Adjusted strap nodes wrap wrist bones within nominal blood-flow tolerances.'
+                              : '⚠ EXCESS OVERLAP DETECTED: Selected strap circumference may result in physical overhang of core bezel.')
+                          : (parametricFitRatio > 85
+                              ? '✓ WORKSPACE FOOTPRINT CONFIRMED: Desktop workspace handles physical curves of item without overhang conflict.'
+                              : '⚠ PHYSICAL CLEARANCE CONFLICT: Desk depth is insufficient for curves of monitor box. Avoid wall contact.')}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* FEATURE #4: CHRONOLOGICAL HARDWARE VERSIONING TIMELINE */}
+              {techTab === 'revision' && (
+                <motion.div
+                  key="tab-revision"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Trace the physical design changes, electrical substrate layouts, and preloaded firmware revision commits of this hardware in our chronological timeline tree.
+                  </p>
+
+                  {/* Visual Git Branch Line Map */}
+                  <div className="relative rounded-xl bg-slate-950 p-3 border border-slate-800 h-[65px] flex items-center justify-between">
+                    <div className="absolute left-6 right-6 h-0.5 bg-slate-800 z-0" />
+                    
+                    {revisionNodes.map((node) => {
+                      const isActive = activeRevNode === node.id;
+                      return (
+                        <button
+                          key={node.id}
+                          type="button"
+                          onClick={() => setActiveRevNode(node.id)}
+                          className="relative z-10 flex flex-col items-center group cursor-pointer"
+                        >
+                          <div className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                            isActive 
+                              ? 'bg-teal-500 border-teal-300 scale-110 shadow-[0_0_8px_#14b8a6]' 
+                              : 'bg-slate-900 border-slate-700 hover:border-slate-500'
+                          }`}>
+                            <GitCommit className={`h-3 w-3 ${isActive ? 'text-slate-950' : 'text-slate-400'}`} />
+                          </div>
+                          <span className={`text-[8px] font-mono font-bold mt-1 uppercase ${
+                            isActive ? 'text-teal-400' : 'text-slate-500'
+                          }`}>
+                            {node.tag}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
 
-                  <div className="absolute bottom-3 left-3 text-[10px] font-bold font-mono text-cyan-400 uppercase tracking-widest bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-800/30">
-                    {product.name.split(' ')[0]} 3D Matrix Model
-                  </div>
-                </div>
+                  {/* Revision Specs Panel */}
+                  <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 font-mono text-[10px] text-slate-300 space-y-2">
+                    <div className="flex justify-between items-center border-b border-slate-800 pb-1.5">
+                      <span className="font-bold text-teal-400 text-[11px]">{selectedRevision.title}</span>
+                      <span className="text-[8px] bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">{selectedRevision.id}</span>
+                    </div>
 
-                {/* Sliders panel */}
-                <div className="grid grid-cols-3 gap-3 pt-1">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold font-mono text-slate-400 block uppercase">Rot. Speed</label>
-                    <input 
-                      type="range" min="0.2" max="3" step="0.1" value={holoRotSpeed} 
-                      onChange={(e) => setHoloRotSpeed(Number(e.target.value))}
-                      className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
-                    />
+                    <p className="text-slate-400 leading-relaxed text-[10.5px]">
+                      {selectedRevision.desc}
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-2 text-[9px] text-slate-500 border-t border-slate-800 pt-2">
+                      <div>REVISION DATE: <span className="text-slate-400 font-bold">{selectedRevision.date}</span></div>
+                      <div className="text-right">ARCHITECT: <span className="text-slate-400 font-bold">{selectedRevision.author}</span></div>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold font-mono text-slate-400 block uppercase">Beam Density</label>
-                    <input 
-                      type="range" min="1" max="5" step="1" value={holoBeamDensity} 
-                      onChange={(e) => setHoloBeamDensity(Number(e.target.value))}
-                      className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
-                    />
+                </motion.div>
+              )}
+
+              {/* FEATURE #9: SPATIAL AUDIO EQUIPMENT DEMO SIMULATOR */}
+              {techTab === 'audio' && (
+                <motion.div
+                  key="tab-audio"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Initialize our real-time spatial synthesizer demo model to inspect the acoustic characteristics, echo bounce feedback, and frequency dampening bounds of this unit.
+                  </p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Audio Synthesis knobs */}
+                    <div className="space-y-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-300">
+                      
+                      <button
+                        type="button"
+                        onClick={handleToggleAudioSim}
+                        className={`w-full py-2 rounded-lg text-xs font-bold uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          audioPlaying 
+                            ? 'bg-red-950 text-red-400 border border-red-800 shadow-[0_0_8px_rgba(239,68,68,0.25)] animate-pulse' 
+                            : 'bg-teal-600 hover:bg-teal-500 text-white shadow-md'
+                        }`}
+                      >
+                        {audioPlaying ? <Square className="h-3.5 w-3.5 fill-current" /> : <Play className="h-3.5 w-3.5 fill-current" />}
+                        <span>{audioPlaying ? 'Disable Audio Space' : 'Active Acoustic Beam'}</span>
+                      </button>
+
+                      <div className="space-y-1.5 pt-2">
+                        <div className="flex justify-between">
+                          <span>Acoustic Distance (m)</span>
+                          <span className="text-teal-400 font-bold">{audioDistance}m</span>
+                        </div>
+                        <input
+                          type="range" min="1" max="100" value={audioDistance}
+                          onChange={(e) => setAudioDistance(Number(e.target.value))}
+                          className="w-full accent-teal-400 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between">
+                          <span>Material Wall Absorption</span>
+                          <span className="text-teal-400 font-bold">{audioAbsorption}%</span>
+                        </div>
+                        <input
+                          type="range" min="1" max="100" value={audioAbsorption}
+                          onChange={(e) => setAudioAbsorption(Number(e.target.value))}
+                          className="w-full accent-teal-400 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between">
+                          <span>Echo Delay (Feedback Loop)</span>
+                          <span className="text-teal-400 font-bold">{audioDelay}%</span>
+                        </div>
+                        <input
+                          type="range" min="0" max="100" value={audioDelay}
+                          onChange={(e) => setAudioDelay(Number(e.target.value))}
+                          className="w-full accent-teal-400 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                    </div>
+
+                    {/* Real-time Oscilloscope canvas */}
+                    <div className="relative rounded-xl border border-slate-800 bg-slate-950 p-2 flex flex-col justify-between h-[180px]">
+                      <div className="text-[8px] font-mono text-slate-500 flex justify-between">
+                        <span>TELEM_STREAM: MONO_OUT</span>
+                        <span className={audioPlaying ? 'text-teal-400 animate-pulse' : ''}>
+                          {audioPlaying ? '✓ ACTIVE OSCILLATOR' : 'STREAM STANDBY'}
+                        </span>
+                      </div>
+                      
+                      {audioPlaying ? (
+                        <canvas ref={audioCanvasRef} width={180} height={100} className="w-full h-[100px] block" />
+                      ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center text-slate-600 gap-1">
+                          <Disc className="h-6 w-6 text-slate-700 animate-spin-slow" />
+                          <span className="text-[8px] font-mono uppercase font-bold text-center">Waveform standby</span>
+                        </div>
+                      )}
+
+                      <span className="text-[7px] text-slate-500 font-mono text-right">FREQ_OUTFLOW: SWEEP_SAW</span>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold font-mono text-slate-400 block uppercase">Glitch Factor</label>
-                    <input 
-                      type="range" min="0" max="4" step="1" value={holoNoise} 
-                      onChange={(e) => setHoloNoise(Number(e.target.value))}
-                      className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
-                    />
+                </motion.div>
+              )}
+
+              {/* HOLOGRAPHIC AR PROJECTION SANDBOX (Feature #20) */}
+              {techTab === 'hologram' && (
+                <motion.div
+                  key="tab-hologram"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="flex justify-between items-center bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+                    <span className="text-[9px] font-mono text-slate-400">STATUS: HOLO_AR_NODE</span>
+                    <button
+                      type="button"
+                      onClick={() => setHoloEnabled(!holoEnabled)}
+                      className={`px-3 py-1 rounded-full text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                        holoEnabled ? 'bg-cyan-500 hover:bg-cyan-600 text-slate-900 shadow-md' : 'bg-slate-800 text-slate-400'
+                      }`}
+                    >
+                      {holoEnabled ? 'Shutdown Projection' : 'Activate Hologram'}
+                    </button>
                   </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 rounded-xl border border-dashed border-slate-800 bg-slate-950/20 text-center space-y-2">
-                <Cpu className="h-8 w-8 text-slate-700 animate-pulse" />
-                <p className="text-xs font-semibold text-slate-400">Tactile Dimension Projection Node Offline</p>
-                <p className="text-[10px] text-slate-600 max-w-xs px-4">
-                  Boot up the simulated quantum wireframe projection device to inspect exact mechanical and structural schematics.
-                </p>
-              </div>
-            )}
+
+                  {holoEnabled ? (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="relative rounded-xl border border-slate-800 bg-slate-950/85 p-1 flex justify-center items-center h-[180px]">
+                        <canvas ref={holoCanvasRef} width={220} height={170} className="w-full h-full block" />
+                        
+                        <div className="absolute top-2 right-2 flex flex-col gap-1">
+                          <button 
+                            type="button"
+                            onClick={() => setHoloColor('cyan')}
+                            className={`h-3 w-3 rounded-full bg-cyan-400 border transition-all cursor-pointer ${holoColor === 'cyan' ? 'border-white' : 'border-transparent'}`}
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setHoloColor('amber')}
+                            className={`h-3 w-3 rounded-full bg-amber-500 border transition-all cursor-pointer ${holoColor === 'amber' ? 'border-white' : 'border-transparent'}`}
+                          />
+                          <button 
+                            type="button"
+                            onClick={() => setHoloColor('emerald')}
+                            className={`h-3 w-3 rounded-full bg-emerald-500 border transition-all cursor-pointer ${holoColor === 'emerald' ? 'border-white' : 'border-transparent'}`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-400">
+                        <div className="space-y-1">
+                          <label className="block uppercase text-[8px]">Rotation Speed</label>
+                          <input 
+                            type="range" min="0.2" max="3" step="0.1" value={holoRotSpeed} 
+                            onChange={(e) => setHoloRotSpeed(Number(e.target.value))}
+                            className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block uppercase text-[8px]">Projection Beams</label>
+                          <input 
+                            type="range" min="1" max="5" step="1" value={holoBeamDensity} 
+                            onChange={(e) => setHoloBeamDensity(Number(e.target.value))}
+                            className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block uppercase text-[8px]">Glitch Noise</label>
+                          <input 
+                            type="range" min="0" max="4" step="1" value={holoNoise} 
+                            onChange={(e) => setHoloNoise(Number(e.target.value))}
+                            className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="py-8 text-center rounded-xl border border-dashed border-slate-800 bg-slate-950/20 text-slate-500">
+                      <Cpu className="h-6 w-6 text-slate-700 mx-auto animate-pulse" />
+                      <p className="text-[10px] font-mono uppercase font-bold mt-1">Projection Node Offline</p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+            </AnimatePresence>
           </div>
         </div>
 
-        {/* RIGHT: DETAILS CONTROLS */}
+        {/* RIGHT COLUMN: DETAILS CONTROLS */}
         <div id="details-controls-card" className="flex flex-col justify-between space-y-6">
           <div className="space-y-4">
             {/* Category and brand path */}
-            <div className="flex items-center gap-2 text-xs font-mono text-slate-400 uppercase tracking-widest leading-none">
+            <div className={`flex items-center gap-2 text-xs font-mono uppercase tracking-widest leading-none ${
+              editorialMode ? 'text-slate-400' : 'text-slate-400'
+            }`}>
               <span>{product.brand}</span>
               <span>/</span>
               <span className="text-teal-600 font-bold">{product.category}</span>
             </div>
 
             {/* Title */}
-            <h2 id="details-product-title" className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+            <h2 id="details-product-title" className={`text-3xl font-black tracking-tight leading-tight ${
+              editorialMode ? 'text-white text-4xl' : 'text-slate-900'
+            }`}>
               {product.name}
             </h2>
 
@@ -554,29 +1184,35 @@ export default function ProductDetailsView({
                   />
                 ))}
               </div>
-              <span className="text-xs font-bold text-slate-700">{product.rating.toFixed(1)}</span>
+              <span className="text-xs font-bold">{product.rating.toFixed(1)}</span>
               <span className="text-xs text-slate-400">({productReviews.length} Verified Reviewers)</span>
             </div>
 
             {/* Description */}
-            <p className="text-sm text-slate-500 leading-relaxed pt-2">
+            <p className={`text-sm leading-relaxed pt-2 ${
+              editorialMode ? 'text-slate-300 italic text-base font-light' : 'text-slate-500'
+            }`}>
               {product.description}
             </p>
 
-            {/* Specs Specs list */}
-            <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 space-y-2">
-              <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Specifications Log</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
-                <div className="flex justify-between"><span className="text-slate-400">Manufacturer</span><span className="font-semibold text-slate-700">{product.brand}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Stock Available</span><span className={`font-semibold ${product.stock <= 3 ? 'text-red-500' : 'text-slate-700'}`}>{product.stock} units</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Category segment</span><span className="font-semibold text-slate-700">{product.category}</span></div>
-                <div className="flex justify-between"><span className="text-slate-400">Merchant</span><span className="font-semibold text-teal-600">{product.sellerName}</span></div>
+            {/* Specs list */}
+            {!editorialMode && (
+              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 space-y-2">
+                <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Specifications Log</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                  <div className="flex justify-between"><span className="text-slate-400">Manufacturer</span><span className="font-semibold text-slate-700">{product.brand}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Stock Available</span><span className={`font-semibold ${product.stock <= 3 ? 'text-red-500' : 'text-slate-700'}`}>{product.stock} units</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Category segment</span><span className="font-semibold text-slate-700">{product.category}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-400">Merchant</span><span className="font-semibold text-teal-600">{product.sellerName}</span></div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Pricing Box & Call-To-Action */}
-          <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+          <div className={`rounded-2xl border p-5 shadow-sm space-y-4 ${
+            editorialMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-white'
+          }`}>
             <div className="flex items-end justify-between">
               <div>
                 <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider mb-1">Pricing Ledger</span>
@@ -588,7 +1224,7 @@ export default function ProductDetailsView({
                   </div>
                 ) : (
                   <div className="flex items-baseline gap-2">
-                    <span id="details-price-tag" className="text-3xl font-black text-slate-800">${product.price}</span>
+                    <span id="details-price-tag" className={`text-3xl font-black ${editorialMode ? 'text-white' : 'text-slate-800'}`}>{`$${product.price}`}</span>
                     {product.isElite && !currentUser.isElite && (
                       <span className="text-[10px] text-amber-600 font-medium">Join Elite to save 10%!</span>
                     )}
@@ -597,7 +1233,7 @@ export default function ProductDetailsView({
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider">Logistics Class</span>
-                <span className="text-xs font-bold text-slate-700">Priority Hub Delivery</span>
+                <span className="text-xs font-bold text-slate-400">Priority Hub Delivery</span>
               </div>
             </div>
 
@@ -608,8 +1244,8 @@ export default function ProductDetailsView({
                 onClick={() => onToggleWishlist(product)}
                 className={`flex h-12 w-12 items-center justify-center rounded-xl border transition-all ${
                   isWishlisted 
-                    ? 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100' 
-                    : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:text-slate-600'
+                    ? 'border-rose-100 bg-rose-50/50 text-rose-500 hover:bg-rose-100' 
+                    : 'border-slate-200 bg-transparent text-slate-400 hover:border-slate-300 hover:text-slate-600'
                 }`}
                 title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
               >
@@ -623,7 +1259,7 @@ export default function ProductDetailsView({
                 disabled={product.stock <= 0}
                 className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-bold text-white shadow-sm transition-all ${
                   product.stock > 0
-                    ? 'bg-teal-600 hover:bg-teal-700 active:scale-[0.98]'
+                    ? 'bg-teal-600 hover:bg-teal-700 active:scale-[0.98] cursor-pointer'
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                 }`}
               >
@@ -634,8 +1270,10 @@ export default function ProductDetailsView({
           </div>
 
           {/* LIVE COUNTER-OFFER BIDDING BARTERING ENGINE (Feature #21) */}
-          <div id="bidding-barter-engine" className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-4 shadow-sm">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+          <div id="bidding-barter-engine" className={`rounded-2xl border p-5 space-y-4 shadow-sm ${
+            editorialMode ? 'border-slate-800 bg-slate-900/60' : 'border-slate-200 bg-slate-50'
+          }`}>
+            <div className="flex items-center justify-between border-b border-slate-200/50 pb-2.5">
               <span className="text-[10px] font-bold font-mono text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                 <Cpu className="h-4 w-4 text-teal-600 animate-pulse" />
                 Live AI Merchant Haggling Node
@@ -646,13 +1284,13 @@ export default function ProductDetailsView({
             </div>
 
             {/* Chat Messages Panel */}
-            <div className="h-[150px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 space-y-3 font-sans text-xs">
+            <div className="h-[150px] overflow-y-auto rounded-xl border border-slate-200/50 bg-white/5 p-3 space-y-3 font-sans text-xs">
               {biddingMessages.map((msg, i) => (
                 <div key={i} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
                   <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
                     msg.sender === 'user' 
-                      ? 'bg-teal-600 text-white rounded-tr-none' 
-                      : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200/50'
+                      ? 'bg-teal-600 text-white rounded-tr-none font-sans' 
+                      : 'bg-slate-800 text-slate-200 rounded-tl-none border border-slate-700/50 font-sans'
                   }`}>
                     {msg.text}
                   </div>
@@ -671,7 +1309,7 @@ export default function ProductDetailsView({
                     value={userBid}
                     onChange={(e) => setUserBid(e.target.value)}
                     placeholder="Enter credit offer..."
-                    className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-6 pr-3 text-xs text-slate-800 outline-none transition-all focus:border-teal-500"
+                    className="w-full rounded-xl border border-slate-200/40 bg-white/5 py-2 pl-6 pr-3 text-xs text-slate-200 outline-none transition-all focus:border-teal-500 focus:bg-white/10"
                   />
                 </div>
                 <button
@@ -682,17 +1320,17 @@ export default function ProductDetailsView({
                 </button>
               </form>
             ) : (
-              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-center space-y-2">
-                <p className="text-xs font-bold text-emerald-800 flex items-center justify-center gap-1">
+              <div className="rounded-xl bg-emerald-950/40 border border-emerald-800/50 p-3 text-center space-y-2">
+                <p className="text-xs font-bold text-emerald-400 flex items-center justify-center gap-1">
                   <UserCheck className="h-4 w-4" /> Bidding Settlement Reached!
                 </p>
-                <p className="text-[10px] text-emerald-600">
+                <p className="text-[10px] text-emerald-500">
                   Your offer of <span className="font-bold">${negotiatedPrice} credits</span> was approved. Use promo code:
                 </p>
-                <div className="inline-block bg-white border border-emerald-300 rounded-lg px-3 py-1 font-mono font-black text-xs text-emerald-700 tracking-wider shadow-xs animate-pulse">
+                <div className="inline-block bg-slate-900 border border-emerald-500 rounded-lg px-3 py-1 font-mono font-black text-xs text-emerald-400 tracking-wider shadow-xs animate-pulse">
                   {forgedVoucherCode}
                 </div>
-                <p className="text-[9px] text-slate-400">
+                <p className="text-[9px] text-slate-400 mt-1">
                   Voucher has been forged in the system registry. Enter it at checkout to claim!
                 </p>
               </div>
@@ -704,19 +1342,21 @@ export default function ProductDetailsView({
       </div>
 
       {/* DISCUSSIONS & REVIEWS DUAL TABS */}
-      <div id="details-discussions-grid" className="grid gap-8 lg:grid-cols-12 border-t border-slate-100 pt-10">
+      <div id="details-discussions-grid" className="grid gap-8 lg:grid-cols-12 border-t border-slate-200/20 pt-10">
         
         {/* REVIEWS SEGMENT (left 7 cols) */}
         <section id="details-reviews-panel" className="lg:col-span-7 space-y-6">
-          <div className="border-b border-slate-50 pb-3">
-            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Verified Buyer Review Logs</h3>
+          <div className="border-b border-slate-100/15 pb-3">
+            <h3 className="text-lg font-bold tracking-tight">Verified Buyer Review Logs</h3>
             <p className="text-xs text-slate-400 mt-0.5">Sourced from decentralized audit-validated purchases</p>
           </div>
 
           {/* Rating aggregate panel */}
-          <div className="flex flex-col sm:flex-row gap-6 rounded-2xl border border-slate-100 p-5 bg-white shadow-sm">
-            <div className="text-center sm:border-r sm:border-slate-100 sm:pr-8 flex flex-col justify-center">
-              <span className="text-5xl font-black text-slate-800 tracking-tight">{product.rating.toFixed(1)}</span>
+          <div className={`flex flex-col sm:flex-row gap-6 rounded-2xl border p-5 ${
+            editorialMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-100 bg-white shadow-sm'
+          }`}>
+            <div className="text-center sm:border-r sm:border-slate-200/10 sm:pr-8 flex flex-col justify-center">
+              <span className="text-5xl font-black tracking-tight">{product.rating.toFixed(1)}</span>
               <span className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-mono">Out of 5</span>
               <div className="flex justify-center text-amber-400 mt-2">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -736,14 +1376,14 @@ export default function ProductDetailsView({
                     onClick={() => setSelectedStarFilter(isSelected ? null : tier.stars)}
                     className={`w-full flex items-center gap-3 text-xs transition-all p-1.5 rounded-xl cursor-pointer ${
                       isSelected 
-                        ? 'bg-amber-50/70 border border-amber-200 shadow-xs scale-102' 
-                        : 'hover:bg-slate-50 border border-transparent'
+                        ? 'bg-amber-950/35 border border-amber-800/40 shadow-xs scale-102' 
+                        : 'hover:bg-slate-800 border border-transparent text-slate-400'
                     }`}
                     title={`Click to filter by ${tier.stars} stars`}
                   >
                     <span className="font-mono text-slate-400 w-3 text-left">{tier.stars}</span>
                     <Star className={`h-3.5 w-3.5 ${isSelected ? 'text-amber-500 fill-amber-500' : 'text-amber-400 fill-current'}`} />
-                    <div className="h-2 flex-1 rounded-full bg-slate-100 overflow-hidden">
+                    <div className="h-2 flex-1 rounded-full bg-slate-800 overflow-hidden">
                       <div className="h-full bg-amber-400 rounded-full" style={{ width: `${tier.pct}%` }}></div>
                     </div>
                     <span className="font-mono text-slate-400 w-5 text-right font-semibold">{tier.count}</span>
@@ -755,14 +1395,14 @@ export default function ProductDetailsView({
 
           {/* Active Star Filter Indicator */}
           {selectedStarFilter !== null && (
-            <div id="active-star-filter-indicator" className="flex items-center justify-between bg-amber-50/75 border border-amber-200 rounded-xl p-3 text-xs animate-fade-in shadow-xs">
-              <span className="text-amber-900 font-medium">
+            <div id="active-star-filter-indicator" className="flex items-center justify-between bg-amber-950/40 border border-amber-800/50 rounded-xl p-3 text-xs animate-fade-in text-amber-300">
+              <span>
                 Showing only <strong>{selectedStarFilter}-Star</strong> reviews
               </span>
               <button
                 id="reset-star-filter-btn"
                 onClick={() => setSelectedStarFilter(null)}
-                className="text-[10px] font-bold text-amber-700 bg-white border border-amber-200 rounded-lg px-2.5 py-1 hover:bg-amber-100 transition-colors shadow-2xs cursor-pointer"
+                className="text-[10px] font-bold text-amber-200 bg-slate-900 border border-amber-800 rounded-lg px-2.5 py-1 hover:bg-amber-900 transition-colors cursor-pointer"
               >
                 Clear Filter
               </button>
@@ -773,10 +1413,12 @@ export default function ProductDetailsView({
           <div className="space-y-4">
             {productReviews.length > 0 ? (
               productReviews.map((rev) => (
-                <div id={`review-item-${rev.id}`} key={rev.id} className="rounded-2xl border border-slate-50 bg-white/50 p-5 space-y-2">
+                <div id={`review-item-${rev.id}`} key={rev.id} className={`rounded-2xl border p-5 space-y-2 ${
+                  editorialMode ? 'border-slate-800 bg-slate-900/20' : 'border-slate-50 bg-white/50'
+                }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-800">{rev.userName}</span>
+                      <span className="text-xs font-bold">{rev.userName}</span>
                       <span className="inline-flex items-center gap-0.5 text-[9px] font-mono text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">
                         <UserCheck className="h-2.5 w-2.5" />
                         <span>Verified Buyer</span>
@@ -791,8 +1433,8 @@ export default function ProductDetailsView({
                     ))}
                   </div>
 
-                  <h4 className="text-xs font-bold text-slate-800">{rev.title}</h4>
-                  <p className="text-xs text-slate-500 leading-relaxed">{rev.text}</p>
+                  <h4 className="text-xs font-bold">{rev.title}</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">{rev.text}</p>
                 </div>
               ))
             ) : (
@@ -801,17 +1443,19 @@ export default function ProductDetailsView({
           </div>
 
           {/* Create Review Form */}
-          <form id="add-review-form" onSubmit={handleReviewSubmit} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5 space-y-4">
-            <h4 className="text-sm font-bold text-slate-800">Publish Client Evaluation</h4>
+          <form id="add-review-form" onSubmit={handleReviewSubmit} className={`rounded-2xl border p-5 space-y-4 ${
+            editorialMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-100 bg-slate-50/50'
+          }`}>
+            <h4 className="text-sm font-bold">Publish Client Evaluation</h4>
             
             {reviewSuccess && (
-              <div id="review-success-banner" className="rounded-lg bg-emerald-50 p-3 text-xs font-medium text-emerald-800 border border-emerald-100 animate-fade-in">
+              <div id="review-success-banner" className="rounded-lg bg-emerald-950/40 text-emerald-400 p-3 text-xs font-medium border border-emerald-800">
                 ✓ Evaluation logs committed successfully to the local cache!
               </div>
             )}
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-600">Metric Score:</span>
+              <span className="text-xs font-bold text-slate-400">Metric Score:</span>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((stars) => (
                   <button
@@ -819,7 +1463,7 @@ export default function ProductDetailsView({
                     key={stars}
                     type="button"
                     onClick={() => setReviewRating(stars)}
-                    className={`text-lg transition-colors ${stars <= reviewRating ? 'text-amber-400' : 'text-slate-200 hover:text-amber-300'}`}
+                    className={`text-lg transition-colors cursor-pointer ${stars <= reviewRating ? 'text-amber-400' : 'text-slate-700 hover:text-amber-300'}`}
                   >
                     ★
                   </button>
@@ -828,7 +1472,7 @@ export default function ProductDetailsView({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Headline</label>
+              <label className="text-xs font-bold text-slate-400">Headline</label>
               <input
                 id="review-title-input"
                 type="text"
@@ -836,12 +1480,12 @@ export default function ProductDetailsView({
                 placeholder="e.g. Exceptional response, solid craftsmanship"
                 value={reviewTitle}
                 onChange={(e) => setReviewTitle(e.target.value)}
-                className="w-full rounded-xl border border-slate-100 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                className="w-full rounded-xl border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-600">Evaluation Body</label>
+              <label className="text-xs font-bold text-slate-400">Evaluation Body</label>
               <textarea
                 id="review-text-input"
                 required
@@ -849,14 +1493,14 @@ export default function ProductDetailsView({
                 placeholder="Share your detailed assessment of product ergonomics, latency, design, etc..."
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                className="w-full rounded-xl border border-slate-100 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                className="w-full rounded-xl border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
               ></textarea>
               
               {/* Dynamic Sentiment AI Tagger */}
               {computedSentiment && (
                 <div 
                   id="evaluation-sentiment-ticker" 
-                  className={`mt-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold tracking-wide transition-all duration-300 animate-fade-in flex items-center justify-between ${computedSentiment.color}`}
+                  className={`mt-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold tracking-wide transition-all duration-300 flex items-center justify-between ${computedSentiment.color}`}
                 >
                   <span>{computedSentiment.label}</span>
                   <span className="opacity-60 text-[8px] font-mono">LIVE AI FEED</span>
@@ -867,7 +1511,7 @@ export default function ProductDetailsView({
             <button
               id="submit-review-btn"
               type="submit"
-              className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors"
+              className="rounded-xl bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors cursor-pointer"
             >
               Commit Evaluation
             </button>
@@ -876,21 +1520,23 @@ export default function ProductDetailsView({
 
         {/* Q&A SEGMENT (right 5 cols) */}
         <section id="details-qna-panel" className="lg:col-span-5 space-y-6">
-          <div className="border-b border-slate-50 pb-3 flex flex-col gap-1">
-            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Active Q&A Forum</h3>
+          <div className="border-b border-slate-100/10 pb-3 flex flex-col gap-1">
+            <h3 className="text-lg font-bold tracking-tight">Active Q&A Forum</h3>
             <p className="text-xs text-slate-400">Peer-to-peer specification clarifications</p>
           </div>
 
           {/* Q&A Real-time Search input */}
-          <div className="space-y-1.5 bg-slate-50/50 rounded-xl p-3 border border-slate-100">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Filter Thread</span>
+          <div className={`rounded-xl p-3 border ${
+            editorialMode ? 'border-slate-800 bg-slate-900/30' : 'border-slate-100 bg-slate-50/50'
+          }`}>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block mb-1">Filter Thread</span>
             <input
               id="qa-search-input"
               type="text"
               placeholder="Type keywords (e.g. cable, warranty, setup)..."
               value={qaSearchQuery}
               onChange={(e) => setQaSearchQuery(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+              className="w-full rounded-lg border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
             />
             {qaSearchQuery.trim() && (
               <div className="flex justify-between items-center text-[10px] text-slate-400 mt-1">
@@ -910,26 +1556,28 @@ export default function ProductDetailsView({
           <div className="space-y-4">
             {productQas.length > 0 ? (
               productQas.map((qa) => (
-                <div id={`qa-item-${qa.id}`} key={qa.id} className="rounded-2xl border border-slate-100 bg-white p-4 space-y-3 shadow-xs">
+                <div id={`qa-item-${qa.id}`} key={qa.id} className={`rounded-2xl border p-4 space-y-3 shadow-xs ${
+                  editorialMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-100 bg-white'
+                }`}>
                   <div className="space-y-1">
                     <div className="flex items-center gap-1 text-teal-600">
                       <HelpCircle className="h-3.5 w-3.5 shrink-0" />
-                      <span className="text-xs font-bold text-slate-800">{qa.question}</span>
+                      <span className="text-xs font-bold">{qa.question}</span>
                     </div>
-                    <p className="text-[9px] font-mono text-slate-400 pl-4.5">Asked by {qa.askedBy} • {qa.date}</p>
+                    <p className="text-[9px] font-mono text-slate-500 pl-4.5">Asked by {qa.askedBy} • {qa.date}</p>
                   </div>
 
                   {qa.answer ? (
-                    <div className="bg-slate-50/70 rounded-xl p-3 border border-slate-100 ml-4.5 space-y-1.5 relative overflow-hidden">
+                    <div className="bg-slate-800/45 rounded-xl p-3 border border-slate-800 ml-4.5 space-y-1.5 relative overflow-hidden">
                       <span className="absolute top-0 right-0 text-[7px] font-bold tracking-widest text-white uppercase bg-teal-600 px-1.5 py-0.5 rounded-bl-lg">
                         Vetted Reply
                       </span>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        <span className="font-bold text-slate-800 mr-1">A:</span>{qa.answer}
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        <span className="font-bold mr-1">A:</span>{qa.answer}
                       </p>
-                      <p className="text-[9px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                      <p className="text-[9px] font-mono text-slate-500 uppercase tracking-wider flex items-center gap-1">
                         <span>Answered by</span>
-                        <span className="font-bold text-teal-600 inline-flex items-center gap-0.5 bg-teal-50 px-1.5 py-0.5 rounded-full">
+                        <span className="font-bold text-teal-400 inline-flex items-center gap-0.5 bg-teal-950 px-1.5 py-0.5 rounded-full">
                           {qa.answeredBy}
                         </span>
                       </p>
@@ -945,18 +1593,18 @@ export default function ProductDetailsView({
                             placeholder="Write seller/admin answer..."
                             value={answerTexts[qa.id] || ''}
                             onChange={(e) => setAnswerTexts({ ...answerTexts, [qa.id]: e.target.value })}
-                            className="flex-1 rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                            className="flex-1 rounded-lg border border-slate-700/30 bg-white/5 px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-teal-500"
                           />
                           <button
                             id={`qa-submit-answer-${qa.id}`}
                             onClick={() => handleAnswerSubmit(qa.id)}
-                            className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 text-xs font-bold shadow-xs transition-colors"
+                            className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 text-xs font-bold shadow-xs transition-colors cursor-pointer"
                           >
                             Reply
                           </button>
                         </div>
                       ) : (
-                        <p className="text-[10px] text-slate-400 italic">Pending vendor response...</p>
+                        <p className="text-[10px] text-slate-500 italic">Pending vendor response...</p>
                       )}
                     </div>
                   )}
@@ -968,11 +1616,13 @@ export default function ProductDetailsView({
           </div>
 
           {/* Ask Question Form */}
-          <form id="add-question-form" onSubmit={handleQuestionSubmit} className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5 space-y-3">
-            <h4 className="text-sm font-bold text-slate-800">Register Specification Query</h4>
+          <form id="add-question-form" onSubmit={handleQuestionSubmit} className={`rounded-2xl border p-5 space-y-3 ${
+            editorialMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-100 bg-slate-50/50'
+          }`}>
+            <h4 className="text-sm font-bold">Register Specification Query</h4>
             
             {questionSuccess && (
-              <div id="question-success-banner" className="rounded-lg bg-emerald-50 p-3 text-xs font-medium text-emerald-800 border border-emerald-100 animate-fade-in">
+              <div id="question-success-banner" className="rounded-lg bg-emerald-950/40 text-emerald-400 p-3 text-xs font-medium border border-emerald-800">
                 ✓ Query submitted and awaiting response logs!
               </div>
             )}
@@ -985,14 +1635,14 @@ export default function ProductDetailsView({
                 placeholder="e.g. Does this package contain a spare cable?"
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
-                className="w-full rounded-xl border border-slate-100 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                className="w-full rounded-xl border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
               />
             </div>
 
             <button
               id="submit-question-btn"
               type="submit"
-              className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors"
+              className="rounded-xl bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors cursor-pointer"
             >
               Enquire Spec
             </button>
