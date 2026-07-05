@@ -13,7 +13,12 @@ import {
   MessageSquare, 
   HelpCircle,
   Clock,
-  UserCheck
+  UserCheck,
+  Sparkles,
+  Cpu,
+  Send,
+  Eye,
+  Settings
 } from 'lucide-react';
 import { Product, Review, QA, User, UserRole } from '../lib/db';
 
@@ -57,6 +62,243 @@ export default function ProductDetailsView({
   };
   const handleMouseLeave = () => {
     setZoomStyle({ transform: 'scale(1)' });
+  };
+
+  // Holographic AR Product Preview Sandbox (Feature #20)
+  const [holoEnabled, setHoloEnabled] = React.useState(false);
+  const [holoColor, setHoloColor] = React.useState<'cyan' | 'amber' | 'emerald'>('cyan');
+  const [holoRotSpeed, setHoloRotSpeed] = React.useState(1);
+  const [holoBeamDensity, setHoloBeamDensity] = React.useState(2);
+  const [holoNoise, setHoloNoise] = React.useState(2);
+  const holoCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+
+  React.useEffect(() => {
+    if (!holoEnabled) return;
+    const canvas = holoCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let angle = 0;
+    let animId: number;
+
+    const renderHolo = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+
+      // Scanlines & Grid background
+      ctx.strokeStyle = 'rgba(15, 23, 42, 0.05)';
+      ctx.lineWidth = 0.5;
+      for (let i = 0; i < w; i += 25) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
+      }
+      for (let i = 0; i < h; i += 20) {
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke();
+      }
+
+      // Projection Beam Glow
+      const beamGrad = ctx.createLinearGradient(cx, h, cx, cy - 10);
+      let coreColor = 'rgba(6, 182, 212, '; // cyan
+      if (holoColor === 'amber') coreColor = 'rgba(245, 158, 11, ';
+      if (holoColor === 'emerald') coreColor = 'rgba(16, 185, 129, ';
+
+      beamGrad.addColorStop(0, `${coreColor}0.02)`);
+      beamGrad.addColorStop(0.5, `${coreColor}0.06)`);
+      beamGrad.addColorStop(1, `${coreColor}0.15)`);
+      ctx.fillStyle = beamGrad;
+      ctx.beginPath();
+      ctx.moveTo(cx - 80, h);
+      ctx.lineTo(cx + 80, h);
+      ctx.lineTo(cx + 120, cy - 30);
+      ctx.lineTo(cx - 120, cy - 30);
+      ctx.closePath();
+      ctx.fill();
+
+      // Draw particle dust streams
+      ctx.fillStyle = `${coreColor}0.4)`;
+      for (let p = 0; p < holoBeamDensity * 4; p++) {
+        const px = cx + Math.sin(p * 23.4 + angle) * 70;
+        const py = (h - ((angle * 12 + p * 35) % h));
+        ctx.fillRect(px, py, 1.5, 1.5);
+      }
+
+      // Draw Rotating 3D Wireframe depending on product category/type
+      ctx.strokeStyle = `${coreColor}0.85)`;
+      ctx.lineWidth = 1.5;
+
+      const scale = 50;
+      const pts: [number, number, number][] = [];
+
+      // Generate geometric shapes based on categories
+      const isSquare = product.category === 'Workspace';
+      const isSphere = product.category === 'Electronics' || product.category === 'Wearables';
+
+      if (isSquare) {
+        // Wireframe Cube/Monitor Box
+        const d = 0.8;
+        const cpts: [number, number, number][] = [
+          [-d, -d, -d], [d, -d, -d], [d, d, -d], [-d, d, -d],
+          [-d, -d, d], [d, -d, d], [d, d, d], [-d, d, d],
+        ];
+        cpts.forEach(([ex, ey, ez]) => {
+          const radY = angle;
+          const radX = 0.4;
+          let x1 = ex * Math.cos(radY) - ez * Math.sin(radY);
+          let z1 = ex * Math.sin(radY) + ez * Math.cos(radY);
+          let y2 = ey * Math.cos(radX) - z1 * Math.sin(radX);
+          let z2 = ey * Math.sin(radX) + z1 * Math.cos(radX);
+          pts.push([x1, y2, z2]);
+        });
+
+        const edges = [
+          [0,1], [1,2], [2,3], [3,0],
+          [4,5], [5,6], [6,7], [7,4],
+          [0,4], [1,5], [2,6], [3,7]
+        ];
+        edges.forEach(([u, v]) => {
+          ctx.beginPath();
+          ctx.moveTo(cx + pts[u][0] * scale, cy + pts[u][1] * scale);
+          ctx.lineTo(cx + pts[v][0] * scale, cy + pts[v][1] * scale);
+          ctx.stroke();
+        });
+      } else if (isSphere) {
+        // Futuristic sphere/gyroscope rings
+        const steps = 16;
+        for (let r = 0; r < 3; r++) {
+          ctx.beginPath();
+          const radOffset = r * Math.PI / 3;
+          for (let s = 0; s <= steps; s++) {
+            const stepAng = (s / steps) * Math.PI * 2;
+            let ex = Math.cos(stepAng);
+            let ey = Math.sin(stepAng) * Math.cos(radOffset);
+            let ez = Math.sin(stepAng) * Math.sin(radOffset);
+
+            const radY = angle * (1 + r * 0.2);
+            let x1 = ex * Math.cos(radY) - ez * Math.sin(radY);
+
+            const screenX = cx + x1 * scale * 1.1;
+            const screenY = cy + ey * scale * 1.1;
+            if (s === 0) ctx.moveTo(screenX, screenY);
+            else ctx.lineTo(screenX, screenY);
+          }
+          ctx.stroke();
+        }
+      } else {
+        // Pyramid crystal shape
+        const d = 1.0;
+        const pyrPts: [number, number, number][] = [
+          [0, -d, 0], // apex
+          [-d, d, -d], [d, d, -d], [d, d, d], [-d, d, d] // base
+        ];
+        pyrPts.forEach(([ex, ey, ez]) => {
+          const radY = angle;
+          let x1 = ex * Math.cos(radY) - ez * Math.sin(radY);
+          let z1 = ex * Math.sin(radY) + ez * Math.cos(radY);
+          pts.push([x1, ey, z1]);
+        });
+
+        const edges = [
+          [0, 1], [0, 2], [0, 3], [0, 4],
+          [1, 2], [2, 3], [3, 4], [4, 1]
+        ];
+        edges.forEach(([u, v]) => {
+          ctx.beginPath();
+          ctx.moveTo(cx + pts[u][0] * scale, cy + pts[u][1] * scale);
+          ctx.lineTo(cx + pts[v][0] * scale, cy + pts[v][1] * scale);
+          ctx.stroke();
+        });
+      }
+
+      // Scanline static overlay
+      if (holoNoise > 0) {
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.02 * holoNoise})`;
+        for (let i = 0; i < h; i += 4) {
+          if (Math.random() > 0.5) {
+            ctx.fillRect(0, i, w, 1);
+          }
+        }
+      }
+
+      // Core anchor circle
+      ctx.strokeStyle = `${coreColor}0.1)`;
+      ctx.beginPath();
+      ctx.arc(cx, cy, scale * 1.3, 0, Math.PI * 2);
+      ctx.stroke();
+
+      angle += 0.012 * holoRotSpeed;
+      animId = requestAnimationFrame(renderHolo);
+    };
+
+    renderHolo();
+    return () => {
+      cancelAnimationFrame(animId);
+    };
+  }, [holoEnabled, holoColor, holoRotSpeed, holoBeamDensity, holoNoise]);
+
+  // Live Counter-Offer Bidding Bartering Engine (Feature #21)
+  const [userBid, setUserBid] = React.useState<string>('');
+  const [biddingMessages, setBiddingMessages] = React.useState<{ sender: 'merchant' | 'user'; text: string; time: string }[]>([
+    { sender: 'merchant', text: `Greetings Pathfinder. Our current listing rate for this gear is $${product.price} credits. Would you like to offer a custom credit bid?`, time: '12:00' }
+  ]);
+  const [bidStatus, setBidStatus] = React.useState<'idle' | 'rejected' | 'negotiating' | 'accepted'>('idle');
+  const [negotiatedPrice, setNegotiatedPrice] = React.useState<number | null>(null);
+  const [forgedVoucherCode, setForgedVoucherCode] = React.useState<string | null>(null);
+
+  const handlePlaceBid = (e: React.FormEvent) => {
+    e.preventDefault();
+    const bidValue = Math.round(parseFloat(userBid));
+    if (isNaN(bidValue) || bidValue <= 0) return;
+
+    const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nextMsgs = [...biddingMessages, { sender: 'user' as const, text: `I offer $${bidValue} credits.`, time: timeString }];
+    setBiddingMessages(nextMsgs);
+    setUserBid('');
+
+    setTimeout(() => {
+      const ratio = bidValue / product.price;
+      let replyText = '';
+      if (ratio < 0.65) {
+        replyText = `Friction detected. $${bidValue} credits is below our regional logistics clearance threshold. Request denied. Please raise your bid above 70% of list rate.`;
+        setBidStatus('rejected');
+      } else if (ratio >= 0.65 && ratio < 0.88) {
+        const counterVal = Math.round(product.price * 0.88);
+        replyText = `We appreciate your merchant spirit. However, we cannot authorize such a low rate. We can meet you at $${counterVal} credits as an ultimate settlement rate. Submit that rate to unlock!`;
+        setBidStatus('negotiating');
+        setNegotiatedPrice(counterVal);
+      } else {
+        replyText = `Offer approved! $${bidValue} is within our legal dispatch parameters. We have forged an exclusive, temporary promo voucher for you. Type it in checkout to claim this rate!`;
+        setBidStatus('accepted');
+        setNegotiatedPrice(bidValue);
+
+        // Forge the custom promo code in local db state
+        const customCode = `BID_${product.id.substring(5).toUpperCase()}_${Math.floor(10 + Math.random() * 90)}`;
+        const discountPercent = Math.round(((product.price - bidValue) / product.price) * 100);
+        
+        try {
+          // Import/execute direct to localStorage to keep it consistent
+          const stored = localStorage.getItem('nexus_bazaar_simulated_db');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (!parsed.promoCodes.find((p: any) => p.code === customCode)) {
+              parsed.promoCodes.push({
+                code: customCode,
+                discountPercent,
+                description: `Haggled offer for ${product.name} (Save ${discountPercent}%)`,
+                requiresElite: false
+              });
+              localStorage.setItem('nexus_bazaar_simulated_db', JSON.stringify(parsed));
+            }
+          }
+          setForgedVoucherCode(customCode);
+        } catch (err) {
+          console.error("Bidding db sync failed", err);
+        }
+      }
+      setBiddingMessages((prev) => [...prev, { sender: 'merchant' as const, text: replyText, time: timeString }]);
+    }, 1000);
   };
 
   // Add Review Form state
@@ -165,32 +407,126 @@ export default function ProductDetailsView({
       {/* PRIMARY COLUMN GRID */}
       <div id="details-main-grid" className="grid gap-8 md:grid-cols-2">
         
-        {/* LEFT: ZOOMABLE IMAGE WRAPPER */}
-        <div id="details-image-card" className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm p-4 flex flex-col justify-center">
-          <div 
-            id="zoom-image-frame"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-50 cursor-zoom-in"
-          >
-            <img
-              id="details-product-img"
-              src={product.image}
-              alt={product.name}
-              style={zoomStyle}
-              className="h-full w-full object-cover transition-transform duration-100"
-            />
-            
-            {product.isElite && (
-              <div className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-amber-500/95 backdrop-blur-sm px-3 py-1.5 text-xs font-black text-white shadow-md">
-                <Crown className="h-4 w-4" />
-                <span>ELITE SELECTION</span>
+        {/* LEFT COLUMN: Zoomable Image Card & Holographic AR Projection Sandbox */}
+        <div className="space-y-6">
+          <div id="details-image-card" className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm p-4 flex flex-col justify-center">
+            <div 
+              id="zoom-image-frame"
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              className="relative aspect-video w-full overflow-hidden rounded-xl bg-slate-50 cursor-zoom-in"
+            >
+              <img
+                id="details-product-img"
+                src={product.image}
+                alt={product.name}
+                style={zoomStyle}
+                className="h-full w-full object-cover transition-transform duration-100"
+              />
+              
+              {product.isElite && (
+                <div className="absolute left-4 top-4 flex items-center gap-1 rounded-full bg-amber-500/95 backdrop-blur-sm px-3 py-1.5 text-xs font-black text-white shadow-md">
+                  <Crown className="h-4 w-4" />
+                  <span>ELITE SELECTION</span>
+                </div>
+              )}
+            </div>
+            <p className="text-[10px] text-center text-slate-400 mt-3 font-mono">
+              Hover or slide cursor over image to zoom and inspect quality details
+            </p>
+          </div>
+
+          {/* HOLOGRAPHIC AR PROJECTION SANDBOX (Feature #20) */}
+          <div id="holo-ar-sandbox" className="rounded-2xl border border-slate-200 bg-slate-900 text-white p-5 space-y-4 shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-cyan-400 animate-spin" style={{ animationDuration: '4s' }} />
+                AR Projection Node
+              </span>
+              <button
+                type="button"
+                onClick={() => setHoloEnabled(!holoEnabled)}
+                className={`px-3 py-1 rounded-full text-[10px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                  holoEnabled ? 'bg-cyan-500 hover:bg-cyan-600 text-slate-900 shadow-md shadow-cyan-500/20' : 'bg-slate-800 hover:bg-slate-700 text-slate-400'
+                }`}
+              >
+                {holoEnabled ? 'Online (Click to Shut Down)' : 'Activate Hologram'}
+              </button>
+            </div>
+
+            {holoEnabled ? (
+              <div className="space-y-4">
+                <div className="relative rounded-xl border border-slate-800 bg-slate-950/80 p-1 flex justify-center items-center h-[240px]">
+                  <canvas ref={holoCanvasRef} width={340} height={230} className="w-full h-[230px] block" />
+                  
+                  {/* Visual controls overlays */}
+                  <div className="absolute top-3 left-3 text-[9px] font-mono text-slate-500 flex flex-col gap-0.5 pointer-events-none">
+                    <span>GRID: LOCK_SECURE</span>
+                    <span>BEAMS: {holoBeamDensity * 4} PTS</span>
+                    <span>CYCLES: {holoRotSpeed.toFixed(1)}Hz</span>
+                  </div>
+
+                  <div className="absolute top-3 right-3 flex flex-col gap-1.5">
+                    <button 
+                      type="button"
+                      onClick={() => setHoloColor('cyan')}
+                      className={`h-4 w-4 rounded-full bg-cyan-400 border-2 transition-all cursor-pointer ${holoColor === 'cyan' ? 'border-white scale-110' : 'border-transparent'}`}
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setHoloColor('amber')}
+                      className={`h-4 w-4 rounded-full bg-amber-500 border-2 transition-all cursor-pointer ${holoColor === 'amber' ? 'border-white scale-110' : 'border-transparent'}`}
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setHoloColor('emerald')}
+                      className={`h-4 w-4 rounded-full bg-emerald-500 border-2 transition-all cursor-pointer ${holoColor === 'emerald' ? 'border-white scale-110' : 'border-transparent'}`}
+                    />
+                  </div>
+
+                  <div className="absolute bottom-3 left-3 text-[10px] font-bold font-mono text-cyan-400 uppercase tracking-widest bg-cyan-950/80 px-2 py-0.5 rounded-md border border-cyan-800/30">
+                    {product.name.split(' ')[0]} 3D Matrix Model
+                  </div>
+                </div>
+
+                {/* Sliders panel */}
+                <div className="grid grid-cols-3 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold font-mono text-slate-400 block uppercase">Rot. Speed</label>
+                    <input 
+                      type="range" min="0.2" max="3" step="0.1" value={holoRotSpeed} 
+                      onChange={(e) => setHoloRotSpeed(Number(e.target.value))}
+                      className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold font-mono text-slate-400 block uppercase">Beam Density</label>
+                    <input 
+                      type="range" min="1" max="5" step="1" value={holoBeamDensity} 
+                      onChange={(e) => setHoloBeamDensity(Number(e.target.value))}
+                      className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[9px] font-bold font-mono text-slate-400 block uppercase">Glitch Factor</label>
+                    <input 
+                      type="range" min="0" max="4" step="1" value={holoNoise} 
+                      onChange={(e) => setHoloNoise(Number(e.target.value))}
+                      className="w-full accent-cyan-400 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 rounded-xl border border-dashed border-slate-800 bg-slate-950/20 text-center space-y-2">
+                <Cpu className="h-8 w-8 text-slate-700 animate-pulse" />
+                <p className="text-xs font-semibold text-slate-400">Tactile Dimension Projection Node Offline</p>
+                <p className="text-[10px] text-slate-600 max-w-xs px-4">
+                  Boot up the simulated quantum wireframe projection device to inspect exact mechanical and structural schematics.
+                </p>
               </div>
             )}
           </div>
-          <p className="text-[10px] text-center text-slate-400 mt-3 font-mono">
-            Hover or slide cursor over image to zoom and inspect quality details
-          </p>
         </div>
 
         {/* RIGHT: DETAILS CONTROLS */}
@@ -295,6 +631,72 @@ export default function ProductDetailsView({
                 <span>{product.stock > 0 ? 'Commit to Cart' : 'Currently Out of Stock'}</span>
               </button>
             </div>
+          </div>
+
+          {/* LIVE COUNTER-OFFER BIDDING BARTERING ENGINE (Feature #21) */}
+          <div id="bidding-barter-engine" className="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-4 shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+              <span className="text-[10px] font-bold font-mono text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Cpu className="h-4 w-4 text-teal-600 animate-pulse" />
+                Live AI Merchant Haggling Node
+              </span>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-teal-100 text-teal-800 uppercase">
+                Active Session
+              </span>
+            </div>
+
+            {/* Chat Messages Panel */}
+            <div className="h-[150px] overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 space-y-3 font-sans text-xs">
+              {biddingMessages.map((msg, i) => (
+                <div key={i} className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+                    msg.sender === 'user' 
+                      ? 'bg-teal-600 text-white rounded-tr-none' 
+                      : 'bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200/50'
+                  }`}>
+                    {msg.text}
+                  </div>
+                  <span className="text-[8px] text-slate-400 font-mono mt-0.5 px-1">{msg.time}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Bid Input form */}
+            {bidStatus !== 'accepted' ? (
+              <form onSubmit={handlePlaceBid} className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 font-mono">$</span>
+                  <input
+                    type="number"
+                    value={userBid}
+                    onChange={(e) => setUserBid(e.target.value)}
+                    placeholder="Enter credit offer..."
+                    className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-6 pr-3 text-xs text-slate-800 outline-none transition-all focus:border-teal-500"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-slate-800 text-white px-4 py-2 text-xs font-bold uppercase tracking-wider hover:bg-slate-900 transition-colors flex items-center gap-1 cursor-pointer"
+                >
+                  <Send className="h-3.5 w-3.5" /> Submit Bid
+                </button>
+              </form>
+            ) : (
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-center space-y-2">
+                <p className="text-xs font-bold text-emerald-800 flex items-center justify-center gap-1">
+                  <UserCheck className="h-4 w-4" /> Bidding Settlement Reached!
+                </p>
+                <p className="text-[10px] text-emerald-600">
+                  Your offer of <span className="font-bold">${negotiatedPrice} credits</span> was approved. Use promo code:
+                </p>
+                <div className="inline-block bg-white border border-emerald-300 rounded-lg px-3 py-1 font-mono font-black text-xs text-emerald-700 tracking-wider shadow-xs animate-pulse">
+                  {forgedVoucherCode}
+                </div>
+                <p className="text-[9px] text-slate-400">
+                  Voucher has been forged in the system registry. Enter it at checkout to claim!
+                </p>
+              </div>
+            )}
           </div>
 
         </div>

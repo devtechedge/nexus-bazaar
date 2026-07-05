@@ -15,7 +15,13 @@ import {
   ShoppingCart,
   AlertCircle,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  Leaf,
+  Fingerprint,
+  PenTool,
+  Activity,
+  Info,
+  Sparkles
 } from 'lucide-react';
 import { Product, PromoCode, User, OrderItem, Order } from '../lib/db';
 
@@ -59,6 +65,17 @@ export default function CartCheckoutView({
   const [cardNumber, setCardNumber] = React.useState('');
   const [cardExpiry, setCardExpiry] = React.useState('');
   const [cardCvv, setCardCvv] = React.useState('');
+
+  // Quantum Eco Routing Optimizer State (Feature #22)
+  const [ecoRoute, setEcoRoute] = React.useState<'drone' | 'maglev' | 'hyperloop'>('maglev');
+
+  // Biometric Signature Auth Pad State (Feature #23)
+  const [isSigned, setIsSigned] = React.useState(false);
+  const [signaturePoints, setSignaturePoints] = React.useState<{ x: number; y: number; pressure: number }[]>([]);
+  const [isDrawing, setIsDrawing] = React.useState(false);
+  const [biometricScore, setBiometricScore] = React.useState<number | null>(null);
+  const [signError, setSignError] = React.useState<string | null>(null);
+  const sigCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
 
   // Shipping Method
   const [shippingMethod, setShippingMethod] = React.useState<'standard' | 'express'>('standard');
@@ -124,6 +141,12 @@ export default function CartCheckoutView({
     return Math.round((subtotal * appliedPromo.discountPercent) / 100);
   }, [appliedPromo, subtotal]);
 
+  // Quantum Eco Routing Green Discount (5% on choosing lowest-impact 'drone' route)
+  const greenDiscount = React.useMemo(() => {
+    if (ecoRoute !== 'drone') return 0;
+    return Math.round(subtotal * 0.05);
+  }, [ecoRoute, subtotal]);
+
   // Shipping rules
   // - Elite users get standard and express shipping upgraded to $0!
   // - Standard is free on orders over $150
@@ -144,13 +167,132 @@ export default function CartCheckoutView({
   }, [shippingState]);
 
   const taxAmount = React.useMemo(() => {
-    const taxableSubtotal = Math.max(0, subtotal - discountAmount);
+    const taxableSubtotal = Math.max(0, subtotal - discountAmount - greenDiscount);
     return Number((taxableSubtotal * taxRate).toFixed(2));
-  }, [subtotal, discountAmount, taxRate]);
+  }, [subtotal, discountAmount, greenDiscount, taxRate]);
 
   const totalAmount = React.useMemo(() => {
-    return Number((subtotal - discountAmount + shippingCost + taxAmount).toFixed(2));
-  }, [subtotal, discountAmount, shippingCost, taxAmount]);
+    return Number((subtotal - discountAmount - greenDiscount + shippingCost + taxAmount).toFixed(2));
+  }, [subtotal, discountAmount, greenDiscount, shippingCost, taxAmount]);
+
+  // Canvas Signature event listeners (Feature #23)
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    setIsDrawing(true);
+    setSignError(null);
+    const pos = getCoordinates(e);
+    if (pos) {
+      setSignaturePoints([pos]);
+      drawPoint(pos.x, pos.y, pos.pressure, true);
+    }
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const pos = getCoordinates(e);
+    if (pos) {
+      setSignaturePoints((prev) => [...prev, pos]);
+      drawPoint(pos.x, pos.y, pos.pressure, false);
+    }
+  };
+
+  const endDrawing = () => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    setIsSigned(true);
+    // Generate a simulated biometric match score!
+    setBiometricScore(Math.round(88 + Math.random() * 11));
+  };
+
+  const clearSignature = () => {
+    const canvas = sigCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Draw grid lines on clear
+        drawGrid(canvas, ctx);
+      }
+    }
+    setSignaturePoints([]);
+    setIsSigned(false);
+    setBiometricScore(null);
+    setSignError(null);
+  };
+
+  const getCoordinates = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    
+    let clientX = 0;
+    let clientY = 0;
+    let pressure = 0.5;
+
+    if ('touches' in e) {
+      if (e.touches.length === 0) return null;
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+      pressure = e.touches[0].force || 0.5;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+      pressure = 0.6; // constant mouse pressure
+    }
+
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top,
+      pressure
+    };
+  };
+
+  const drawPoint = (x: number, y: number, pressure: number, isStart: boolean) => {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.strokeStyle = '#0d9488'; // teal-600
+    ctx.lineWidth = pressure * 6 + 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (isStart) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    } else {
+      // Draw line to current point from previous
+      if (signaturePoints.length > 0) {
+        const last = signaturePoints[signaturePoints.length - 1];
+        ctx.beginPath();
+        ctx.moveTo(last.x, last.y);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+    }
+  };
+
+  const drawGrid = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+    ctx.strokeStyle = 'rgba(13, 148, 136, 0.05)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < canvas.width; i += 20) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 20) {
+      ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke();
+    }
+  };
+
+  // Draw grid initially
+  React.useEffect(() => {
+    const canvas = sigCanvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        drawGrid(canvas, ctx);
+      }
+    }
+  }, [activeStep]);
 
   // Promo code validation
   const handleApplyPromo = (e: React.FormEvent) => {
@@ -194,6 +336,15 @@ export default function CartCheckoutView({
       alert('Please fill out all billing and payment fields completely.');
       return;
     }
+
+    if (!isSigned) {
+      setSignError("Biometric Signature authorization required to commit this ledger transaction. Please trace your authorization below.");
+      const el = document.getElementById('biometric-auth-pad');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    setSignError(null);
 
     // Map to db transaction item
     const items: OrderItem[] = cartItems.map(item => ({
@@ -774,6 +925,137 @@ export default function CartCheckoutView({
               </div>
             </div>
 
+            {/* 2B. QUANTUM ECO ROUTING OPTIMIZER (Feature #22) */}
+            <div id="eco-routing-card" className="rounded-2xl border border-teal-100 bg-teal-950 text-white p-5 space-y-4 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 pointer-events-none opacity-10">
+                <Leaf className="h-24 w-24 text-teal-400" />
+              </div>
+
+              <div className="flex items-center justify-between border-b border-teal-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <Leaf className="h-4 w-4 text-emerald-400" />
+                  <span className="text-xs font-bold font-mono tracking-wider uppercase text-emerald-400">Quantum Eco Routing Optimizer</span>
+                </div>
+                <span className="rounded bg-emerald-950 px-2 py-0.5 text-[8px] font-bold font-mono text-emerald-300 border border-emerald-800">
+                  REAL-TIME EMISSIONS MODEL
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Determine the optimal shipping vector. Select the **Solar Drone Cargo** system to offset logistical carbon emissions and trigger a **5% Green Discount** on your total.
+              </p>
+
+              {/* Dynamic Animated Vector Pathway Map */}
+              <div className="relative h-[110px] rounded-xl bg-slate-950/80 border border-teal-900/40 p-2 overflow-hidden">
+                <svg className="w-full h-full" viewBox="0 0 400 100">
+                  {/* Grid lines */}
+                  <g stroke="rgba(20, 184, 166, 0.05)" strokeWidth="0.5">
+                    <line x1="0" y1="25" x2="400" y2="25" />
+                    <line x1="0" y1="50" x2="400" y2="50" />
+                    <line x1="0" y1="75" x2="400" y2="75" />
+                    <line x1="100" y1="0" x2="100" y2="100" />
+                    <line x1="200" y1="0" x2="200" y2="100" />
+                    <line x1="300" y1="0" x2="300" y2="100" />
+                  </g>
+
+                  {/* Nodes */}
+                  <circle cx="40" cy="50" r="4" fill="#0d9488" className="animate-ping" style={{ animationDuration: '3s' }} />
+                  <circle cx="40" cy="50" r="3" fill="#0d9488" />
+                  <text x="35" y="38" fill="#14b8a6" fontSize="7" fontFamily="monospace">AUSTIN_HUB</text>
+
+                  <circle cx="360" cy="50" r="4" fill="#0d9488" />
+                  <text x="325" y="38" fill="#14b8a6" fontSize="7" fontFamily="monospace">RECIPIENT_NODE</text>
+
+                  {/* Vector tracks */}
+                  {/* Drone track: Arc */}
+                  <path 
+                    d="M 40,50 Q 200,5 360,50" 
+                    fill="none" 
+                    stroke={ecoRoute === 'drone' ? '#34d399' : 'rgba(52, 211, 153, 0.15)'} 
+                    strokeWidth={ecoRoute === 'drone' ? '2' : '1'} 
+                    strokeDasharray="4 3" 
+                  />
+                  {/* Mag-lev track: Straight Line */}
+                  <line 
+                    x1="40" y1="50" x2="360" y2="50" 
+                    stroke={ecoRoute === 'maglev' ? '#38bdf8' : 'rgba(56, 189, 248, 0.15)'} 
+                    strokeWidth={ecoRoute === 'maglev' ? '2' : '1'} 
+                    strokeDasharray="5 5" 
+                  />
+                  {/* Hyperloop track: Downward arc */}
+                  <path 
+                    d="M 40,50 Q 200,95 360,50" 
+                    fill="none" 
+                    stroke={ecoRoute === 'hyperloop' ? '#fbbf24' : 'rgba(251, 191, 36, 0.15)'} 
+                    strokeWidth={ecoRoute === 'hyperloop' ? '2' : '1'} 
+                    strokeDasharray="6 2" 
+                  />
+
+                  {/* Moving pulse indicator along chosen track */}
+                  {ecoRoute === 'drone' && (
+                    <circle r="4" fill="#34d399">
+                      <animateMotion dur="4s" repeatCount="indefinite" path="M 40,50 Q 200,5 360,50" />
+                    </circle>
+                  )}
+                  {ecoRoute === 'maglev' && (
+                    <circle r="4" fill="#38bdf8">
+                      <animateMotion dur="3s" repeatCount="indefinite" path="M 40,50 L 360,50" />
+                    </circle>
+                  )}
+                  {ecoRoute === 'hyperloop' && (
+                    <circle r="4" fill="#fbbf24">
+                      <animateMotion dur="2s" repeatCount="indefinite" path="M 40,50 Q 200,95 360,50" />
+                    </circle>
+                  )}
+                </svg>
+
+                <div className="absolute bottom-2 left-3 text-[8px] font-mono text-slate-400 flex items-center gap-2">
+                  <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Solar Drone</span>
+                  <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-sky-400"></span> Mag-lev</span>
+                  <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-amber-400"></span> Undersea Loop</span>
+                </div>
+              </div>
+
+              {/* Selector buttons */}
+              <div className="grid grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setEcoRoute('drone')}
+                  className={`rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                    ecoRoute === 'drone' ? 'border-emerald-500 bg-emerald-950 text-emerald-100 shadow-sm' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <span className="text-[10px] font-bold block leading-none flex items-center gap-1">
+                    Solar Drone
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  </span>
+                  <span className="text-[8px] text-emerald-400 font-mono block mt-1">-14kg CO₂ (Save 5%)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEcoRoute('maglev')}
+                  className={`rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                    ecoRoute === 'maglev' ? 'border-sky-500 bg-sky-950 text-sky-100 shadow-sm' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <span className="text-[10px] font-bold block leading-none">Mag-lev Rail</span>
+                  <span className="text-[8px] text-sky-300 font-mono block mt-1">+2.4kg CO₂ (Neutral)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setEcoRoute('hyperloop')}
+                  className={`rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                    ecoRoute === 'hyperloop' ? 'border-amber-500 bg-amber-950 text-amber-100 shadow-sm' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <span className="text-[10px] font-bold block leading-none">Hyperloop</span>
+                  <span className="text-[8px] text-amber-400 font-mono block mt-1">+8.2kg CO₂ (High)</span>
+                </button>
+              </div>
+            </div>
+
             {/* 3. SIMULATED PAYMENT CARD */}
             <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
               <div className="flex items-center gap-2 font-bold text-slate-800 text-sm border-b border-slate-50 pb-3">
@@ -830,6 +1112,82 @@ export default function CartCheckoutView({
               </div>
             </div>
 
+            {/* 4. BIOMETRIC SIGNATURE AUTH PAD (Feature #23) */}
+            <div id="biometric-auth-pad" className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+                <div className="flex items-center gap-2 font-bold text-slate-800 text-sm">
+                  <Fingerprint className="h-4 w-4 text-teal-600 animate-pulse" />
+                  <span>Biometric Dispatch Signature Pad</span>
+                </div>
+                <span className="text-[9px] font-mono font-bold bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">
+                  TRANSACTION_SECURE_M2
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-400 leading-normal">
+                Nexus security laws require a digital biometric signature log to authorize final goods dispatch. Use your cursor or touch screen to trace your signature inside the matrix grid below.
+              </p>
+
+              {/* Signature Canvas Grid */}
+              <div className="relative border border-slate-200 rounded-xl bg-slate-50 overflow-hidden h-[150px] cursor-crosshair">
+                <canvas
+                  ref={sigCanvasRef}
+                  width={400}
+                  height={150}
+                  className="w-full h-[150px] block"
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={endDrawing}
+                  onMouseLeave={endDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={endDrawing}
+                />
+
+                {/* Status Indicator overlay */}
+                <div className="absolute top-2.5 right-2.5 flex items-center gap-1 text-[9px] font-mono bg-white/90 backdrop-blur-xs px-2 py-0.5 rounded border border-slate-200/50">
+                  <Activity className={`h-3 w-3 ${isDrawing ? 'text-teal-600 animate-pulse' : 'text-slate-400'}`} />
+                  <span>{isDrawing ? 'SENSORS_RECORDING' : isSigned ? 'SIGNATURE_LOCKED' : 'SENSORS_STANDBY'}</span>
+                </div>
+
+                {/* Guide Text */}
+                {!isSigned && !isDrawing && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-slate-400 space-y-1">
+                    <PenTool className="h-5 w-5 text-slate-300 animate-bounce" />
+                    <span className="text-[10px] font-bold font-mono uppercase tracking-wider">Trace Signature Here</span>
+                  </div>
+                )}
+              </div>
+
+              {signError && (
+                <div className="rounded-xl bg-rose-50 border border-rose-100 p-3 text-[10px] text-rose-700 font-medium animate-shake">
+                  {signError}
+                </div>
+              )}
+
+              {/* Action and feedback row */}
+              <div className="flex items-center justify-between">
+                <div>
+                  {isSigned && biometricScore && (
+                    <div className="text-[10px] font-mono text-teal-600 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-teal-600 animate-bounce" />
+                      <div>
+                        <span className="font-bold">Biometric Match: {biometricScore}%</span>
+                        <span className="text-slate-400 block text-[8px]">Index: HIGHER_TRUST_RATING_VERIFIED</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={clearSignature}
+                  className="text-[10px] font-bold font-mono text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors cursor-pointer"
+                >
+                  Clear Signature
+                </button>
+              </div>
+            </div>
+
           </div>
 
           {/* Right Column: Calculations & Submit (4 cols) */}
@@ -871,6 +1229,12 @@ export default function CartCheckoutView({
                     <span>Sales Tax ({ (taxRate * 100).toFixed(2) }%)</span>
                     <span id="recap-tax" className="font-mono text-slate-700 font-semibold">${taxAmount}</span>
                   </div>
+                  {greenDiscount > 0 && (
+                    <div className="flex justify-between text-emerald-600 font-medium animate-fade-in">
+                      <span>Green Route Offset (5%)</span>
+                      <span id="recap-green-discount" className="font-mono font-bold">-${greenDiscount}</span>
+                    </div>
+                  )}
                 </div>
 
                 {appliedPromo && (
