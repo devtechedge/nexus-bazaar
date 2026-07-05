@@ -1,0 +1,6 @@
+{
+  "name": "NexusBazaar",
+  "description": "A multi-role (Buyer, Seller, Admin) e-commerce marketplace featuring mock SQL ledger, role-based controls, cart, wishlist, Q&A, reviews, product listings, and dynamic invoices.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

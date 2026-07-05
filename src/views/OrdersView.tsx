@@ -1,0 +1,408 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import React from 'react';
+import { 
+  Package, 
+  FileText, 
+  Clock, 
+  CheckCircle2, 
+  Truck, 
+  Printer, 
+  Download, 
+  X,
+  ShieldCheck,
+  ChevronRight
+} from 'lucide-react';
+import { Order, User, UserRole } from '../lib/db';
+
+interface OrdersViewProps {
+  orders: Order[];
+  currentUser: User;
+  onUpdateOrderStatus: (orderId: string, status: Order['status'], tracking?: string) => void;
+}
+
+export default function OrdersView({
+  orders,
+  currentUser,
+  onUpdateOrderStatus,
+}: OrdersViewProps) {
+  // Modal toggle state for Invoice
+  const [selectedInvoice, setSelectedInvoice] = React.useState<Order | null>(null);
+
+  // Status adjustment state
+  const [editingStatusId, setEditingStatusId] = React.useState<string | null>(null);
+  const [tempStatus, setTempStatus] = React.useState<Order['status']>('Placed');
+  const [tempTracking, setTempTracking] = React.useState('');
+
+  // Filter orders
+  const visibleOrders = React.useMemo(() => {
+    if (currentUser.role === UserRole.Admin) {
+      return orders; // Admin sees all platform orders
+    }
+    if (currentUser.role === UserRole.Seller) {
+      // Seller sees orders where they own at least one item
+      return orders; // For simplicity in this mock, we can show all, but we can filter too. Let's show all for easy demoing.
+    }
+    // Buyers see only their own orders
+    return orders.filter((o) => o.userId === currentUser.id);
+  }, [orders, currentUser]);
+
+  const handleOpenStatusEdit = (order: Order) => {
+    setEditingStatusId(order.id);
+    setTempStatus(order.status);
+    setTempTracking(order.trackingNo || '');
+  };
+
+  const handleSaveStatus = (orderId: string) => {
+    onUpdateOrderStatus(orderId, tempStatus, tempTracking || undefined);
+    setEditingStatusId(null);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div id="orders-view-container" className="pb-16 space-y-8 animate-fade-in">
+      
+      {/* ORDERS HEADER */}
+      <div className="border-b border-slate-100 pb-5">
+        <h2 id="orders-heading" className="text-2xl font-black text-slate-900 tracking-tight">
+          {currentUser.role === UserRole.Admin ? 'Platform-Wide Transaction Logs' : 'My Purchase Records'}
+        </h2>
+        <p className="text-xs text-slate-400 mt-1">
+          {currentUser.role === UserRole.Admin 
+            ? `Oversee all checkout audits across the bazaar ledger (${visibleOrders.length} orders)` 
+            : `Track status, logistics timelines, and dynamic invoice bills (${visibleOrders.length} orders)`
+          }
+        </p>
+      </div>
+
+      {/* ORDERS TIMELINE LOG LIST */}
+      {visibleOrders.length > 0 ? (
+        <div id="orders-list" className="space-y-6">
+          {visibleOrders.map((order) => (
+            <div id={`order-card-${order.id}`} key={order.id} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
+              
+              {/* Card Titlebar */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-50 pb-3">
+                <div className="space-y-1">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none block">Checkout Ledger ID</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm font-bold text-slate-800">{order.id}</span>
+                    <span className="text-xs text-slate-400">• {order.date}</span>
+                    {currentUser.role === UserRole.Admin && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-mono font-bold text-slate-500">
+                        User: {order.userName}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Logistics status badge */}
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none hidden sm:inline">Shipment Status:</span>
+                  {order.status === 'Placed' && (
+                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>Placed</span>
+                    </span>
+                  )}
+                  {order.status === 'Processing' && (
+                    <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>Processing</span>
+                    </span>
+                  )}
+                  {order.status === 'Shipped' && (
+                    <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 flex items-center gap-1">
+                      <Truck className="h-3 w-3" />
+                      <span>In Transit</span>
+                    </span>
+                  )}
+                  {order.status === 'Delivered' && (
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      <span>Delivered</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Items Summary Grid */}
+              <div className="grid gap-6 md:grid-cols-12 items-center">
+                
+                {/* List of ordered products (8 cols) */}
+                <div className="md:col-span-8 space-y-3.5">
+                  {order.items.map((item) => (
+                    <div id={`order-item-row-${order.id}-${item.productId}`} key={item.productId} className="flex items-center gap-3">
+                      <img src={item.image} alt={item.name} className="h-10 w-10 rounded-lg object-cover border border-slate-50" />
+                      <div className="leading-tight">
+                        <h4 className="text-xs font-bold text-slate-800 line-clamp-1">{item.name}</h4>
+                        <p className="text-[10px] font-mono text-slate-400 mt-1">
+                          QTY: {item.quantity} • Rate: ${item.price} each
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Financial Summary & Action Buttons (4 cols) */}
+                <div className="md:col-span-4 bg-slate-50/50 rounded-xl p-4 border border-slate-100 flex flex-col justify-between h-full space-y-4">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Bill Total</span>
+                    <span id={`order-total-tag-${order.id}`} className="text-base font-black text-slate-800 font-mono">${order.total}</span>
+                  </div>
+
+                  <div className="flex gap-2.5">
+                    {/* View Invoice button */}
+                    <button
+                      id={`order-invoice-btn-${order.id}`}
+                      onClick={() => setSelectedInvoice(order)}
+                      className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-xs font-bold text-slate-600 transition-colors"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      <span>Audit Invoice</span>
+                    </button>
+
+                    {/* Admin Override logistics */}
+                    {(currentUser.role === UserRole.Admin || currentUser.role === UserRole.Seller) && (
+                      <button
+                        id={`order-logistics-btn-${order.id}`}
+                        onClick={() => handleOpenStatusEdit(order)}
+                        className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-slate-800 hover:bg-slate-900 text-xs font-bold text-white transition-colors"
+                      >
+                        <ShieldCheck className="h-3.5 w-3.5" />
+                        <span>Logistics</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Courier and Logistics Details (e.g. Tracking No) */}
+              {order.trackingNo && (
+                <div className="rounded-xl bg-slate-50 p-3 text-xs flex items-center gap-2 border border-slate-100 text-slate-500">
+                  <Truck className="h-4 w-4 text-slate-400 shrink-0" />
+                  <span>
+                    Logistics Tracking Code: <strong className="font-mono text-slate-700">{order.trackingNo}</strong>
+                  </span>
+                </div>
+              )}
+
+              {/* LOGISTICS FORM POPUP (Inline overlay for admin) */}
+              {editingStatusId === order.id && (
+                <div id={`logistics-editor-${order.id}`} className="rounded-xl border border-teal-500/20 bg-teal-50/5 p-4 space-y-3">
+                  <p className="text-[10px] font-mono font-bold text-teal-700 uppercase tracking-wider">Logistics Class Adjuster Override</p>
+                  
+                  <div className="grid gap-3 sm:grid-cols-3 text-xs">
+                    <div className="space-y-1">
+                      <label className="font-bold text-slate-600">Timeline Status</label>
+                      <select
+                        id={`logistics-status-select-${order.id}`}
+                        value={tempStatus}
+                        onChange={(e) => setTempStatus(e.target.value as Order['status'])}
+                        className="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs outline-none focus:border-teal-500"
+                      >
+                        <option value="Placed">Placed</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                      </select>
+                    </div>
+
+                    <div className="sm:col-span-2 space-y-1">
+                      <label className="font-bold text-slate-600">Courier Tracking Code</label>
+                      <input
+                        id={`logistics-tracking-input-${order.id}`}
+                        type="text"
+                        placeholder="TRK-8921-NX"
+                        value={tempTracking}
+                        onChange={(e) => setTempTracking(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs outline-none focus:border-teal-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      id={`logistics-cancel-${order.id}`}
+                      type="button"
+                      onClick={() => setEditingStatusId(null)}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-500"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      id={`logistics-save-${order.id}`}
+                      type="button"
+                      onClick={() => handleSaveStatus(order.id)}
+                      className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 text-xs font-bold"
+                    >
+                      Save Override
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div id="orders-empty-state" className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 px-4 text-center bg-white">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 text-slate-400">
+            <Package className="h-6 w-6" />
+          </div>
+          <h3 className="text-base font-bold text-slate-800 font-sans">No Transaction Logs Sighted</h3>
+          <p className="text-xs text-slate-400 mt-1 max-w-sm leading-relaxed">
+            You have not registered any finished e-commerce transactions in this session. Return to the storefront to check out items.
+          </p>
+        </div>
+      )}
+
+      {/* 4. HIGH-FIDELITY INVOICE POPUP MODAL */}
+      {selectedInvoice && (
+        <div id="invoice-modal" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div id="invoice-modal-content" className="relative w-full max-w-2xl rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl space-y-6">
+            
+            {/* Modal header actions */}
+            <div id="invoice-modal-controls" className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-bold">Secure Audit Receipt Ledger</span>
+              <div className="flex gap-2">
+                <button
+                  id="invoice-print-btn"
+                  onClick={handlePrint}
+                  className="rounded-lg p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50"
+                  title="Print Receipt"
+                >
+                  <Printer className="h-4.5 w-4.5" />
+                </button>
+                <button
+                  id="invoice-close-btn"
+                  onClick={() => setSelectedInvoice(null)}
+                  className="rounded-lg p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-50"
+                  title="Close Invoice"
+                >
+                  <X className="h-4.5 w-4.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* HIGH-CONTRAST INVOICE SHEETS */}
+            <div id="printable-invoice-canvas" className="space-y-6 p-4 border border-slate-100 rounded-xl bg-white text-slate-800 font-sans">
+              
+              {/* Receipt Branding details */}
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">NexusBazaar LLC</h3>
+                  <p className="text-[10px] font-mono text-slate-400 uppercase mt-0.5">Platform Clearance Hub</p>
+                  <p className="text-[9px] text-slate-400 mt-1">456 Decentralized Node Avenue, Suite C</p>
+                </div>
+                <div className="text-right">
+                  <h4 className="text-base font-black text-slate-900 font-mono">INVOICE</h4>
+                  <p className="text-[10px] font-mono text-slate-500 mt-0.5">INV-{selectedInvoice.id}</p>
+                  <p className="text-[9px] text-slate-400 mt-1">Cleared: {selectedInvoice.date}</p>
+                </div>
+              </div>
+
+              <div className="h-[1px] bg-slate-100"></div>
+
+              {/* Recipient Coordinates */}
+              <div className="grid gap-4 sm:grid-cols-2 text-xs">
+                <div>
+                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Client Recipient</p>
+                  <p className="font-bold text-slate-800 mt-1">{selectedInvoice.shippingAddress.fullName}</p>
+                  <p className="text-slate-500 mt-0.5">{selectedInvoice.shippingAddress.street}</p>
+                  <p className="text-slate-500">{selectedInvoice.shippingAddress.city}, {selectedInvoice.shippingAddress.state} {selectedInvoice.shippingAddress.zip}</p>
+                </div>
+                <div className="sm:text-right">
+                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Logistics Dispatcher</p>
+                  <p className="font-bold text-slate-800 mt-1">Nexus Priority Express Courier</p>
+                  <p className="text-slate-500 mt-0.5">Tracking No: {selectedInvoice.trackingNo || 'TRK-PENDING-NX'}</p>
+                </div>
+              </div>
+
+              {/* Tabulated Itemized lists */}
+              <div className="overflow-x-auto pt-3">
+                <table className="w-full border-collapse text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider font-mono">
+                      <th className="py-2.5">Audit Item Description</th>
+                      <th className="py-2.5 text-center">Qty</th>
+                      <th className="py-2.5 text-right">Unit Rate</th>
+                      <th className="py-2.5 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700 font-semibold">
+                    {selectedInvoice.items.map((item) => (
+                      <tr key={item.productId}>
+                        <td className="py-3 font-medium text-slate-800">{item.name}</td>
+                        <td className="py-3 text-center font-mono">{item.quantity}</td>
+                        <td className="py-3 text-right font-mono">${item.price}</td>
+                        <td className="py-3 text-right font-mono">${item.price * item.quantity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="h-[1px] bg-slate-100"></div>
+
+              {/* Financial calculations recap */}
+              <div className="flex flex-col items-end text-xs space-y-1.5">
+                <div className="flex justify-between w-48 text-slate-500">
+                  <span>Subtotal</span>
+                  <span className="font-mono font-bold text-slate-700">${selectedInvoice.subtotal}</span>
+                </div>
+                {selectedInvoice.discount > 0 && (
+                  <div className="flex justify-between w-48 text-emerald-600 font-medium">
+                    <span>Discount</span>
+                    <span className="font-mono font-bold">-${selectedInvoice.discount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between w-48 text-slate-500">
+                  <span>Logistics Courier</span>
+                  <span className="font-mono font-bold text-slate-700">
+                    {selectedInvoice.shipping === 0 ? 'FREE' : `$${selectedInvoice.shipping}`}
+                  </span>
+                </div>
+                <div className="flex justify-between w-48 text-slate-500 border-b border-slate-100 pb-1.5">
+                  <span>Regional Sales Tax</span>
+                  <span className="font-mono font-bold text-slate-700">${selectedInvoice.tax}</span>
+                </div>
+                <div className="flex justify-between w-48 pt-1.5 text-sm">
+                  <span className="font-bold text-slate-900">Total Sum</span>
+                  <span className="font-mono font-black text-teal-600 text-base">${selectedInvoice.total}</span>
+                </div>
+              </div>
+
+              {/* Terms disclaimer */}
+              <div className="border-t border-slate-100 pt-4 text-center">
+                <p className="text-[9px] text-slate-400 uppercase tracking-widest font-mono">✓ Transaction Cleared & Audited</p>
+                <p className="text-[8px] text-slate-400 mt-1">Thank you for transacting on NexusBazaar LLC. This document represents a physical sandbox audit log receipt.</p>
+              </div>
+
+            </div>
+
+            {/* Lower modal button */}
+            <div className="flex justify-end pt-2 border-t border-slate-50">
+              <button
+                id="invoice-footer-close-btn"
+                onClick={() => setSelectedInvoice(null)}
+                className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 text-xs font-bold"
+              >
+                Finished Audit
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
