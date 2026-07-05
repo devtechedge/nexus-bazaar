@@ -84,6 +84,12 @@ export default function SellerView({
   const [image, setImage] = React.useState('');
   const [isElite, setIsElite] = React.useState(false);
 
+  // Bulk Product Selector State (Feature #18)
+  const [selectedProductIds, setSelectedProductIds] = React.useState<string[]>([]);
+  const [bulkPriceChange, setBulkPriceChange] = React.useState<number>(0); // e.g. percent or flat
+  const [bulkStockChange, setBulkStockChange] = React.useState<number>(0);
+  const [bulkSuccessMsg, setBulkSuccessMsg] = React.useState<string | null>(null);
+
   // Filter listings belonging to this seller
   const sellerProducts = React.useMemo(() => {
     return products.filter((p) => p.sellerId === currentUser.id);
@@ -287,6 +293,49 @@ export default function SellerView({
     });
   };
 
+  // Bulk selectors and adjusters (Feature #18)
+  const handleToggleSelectProduct = (id: string) => {
+    setSelectedProductIds((prev) => 
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleToggleSelectAllProducts = () => {
+    if (selectedProductIds.length === sellerProducts.length) {
+      setSelectedProductIds([]);
+    } else {
+      setSelectedProductIds(sellerProducts.map((p) => p.id));
+    }
+  };
+
+  const handleApplyBulkAdjust = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedProductIds.length === 0) return;
+
+    selectedProductIds.forEach((id) => {
+      const prod = products.find((p) => p.id === id);
+      if (!prod) return;
+
+      let updatedPrice = prod.price;
+      if (bulkPriceChange !== 0) {
+        updatedPrice = Math.max(1, prod.price + bulkPriceChange);
+      }
+
+      let updatedStock = prod.stock;
+      if (bulkStockChange !== 0) {
+        updatedStock = Math.max(0, prod.stock + bulkStockChange);
+      }
+
+      onUpdateProduct(id, { price: updatedPrice, stock: updatedStock });
+    });
+
+    setBulkSuccessMsg(`Successfully committed price & stock adjusters across ${selectedProductIds.length} catalog listings!`);
+    setSelectedProductIds([]);
+    setBulkPriceChange(0);
+    setBulkStockChange(0);
+    setTimeout(() => setBulkSuccessMsg(null), 4000);
+  };
+
   return (
     <div id="seller-hub-container" className="pb-16 space-y-10">
       
@@ -420,6 +469,74 @@ export default function SellerView({
       {/* INVENTORY TAB CONTENTS */}
       {activeTab === 'inventory' && (
         <div className="space-y-6">
+          {/* BULK ADJUSTER CONTROL BAR (Feature #18) */}
+          {selectedProductIds.length > 0 && (
+            <form 
+              id="bulk-adjuster-bar" 
+              onSubmit={handleApplyBulkAdjust}
+              className="rounded-2xl border border-amber-200 bg-amber-50/65 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in shadow-xs"
+            >
+              <div className="space-y-1">
+                <h4 className="font-extrabold text-slate-800 text-xs flex items-center gap-1">
+                  <span>🛠️ Bulk adjustments engaged: {selectedProductIds.length} listings selected</span>
+                </h4>
+                <p className="text-[10px] text-slate-500">
+                  Submit offset adjusters below to update rates and stock capacities across all selected items.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase block">Price Offset ($ USD)</label>
+                  <input
+                    id="bulk-price-offset"
+                    type="number"
+                    placeholder="e.g. -15 or +10"
+                    value={bulkPriceChange || ''}
+                    onChange={(e) => setBulkPriceChange(Number(e.target.value))}
+                    className="w-24 rounded-lg border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-600 uppercase block">Stock Offset</label>
+                  <input
+                    id="bulk-stock-offset"
+                    type="number"
+                    placeholder="e.g. +5 or -2"
+                    value={bulkStockChange || ''}
+                    onChange={(e) => setBulkStockChange(Number(e.target.value))}
+                    className="w-24 rounded-lg border border-slate-200 bg-white p-2 text-xs font-mono text-slate-800 outline-none focus:border-teal-500"
+                  />
+                </div>
+
+                <div className="flex items-end self-end gap-2 pt-1 md:pt-0">
+                  <button
+                    id="bulk-adjust-clear-btn"
+                    type="button"
+                    onClick={() => setSelectedProductIds([])}
+                    className="rounded-lg border border-slate-200 hover:border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-500 transition-all cursor-pointer"
+                  >
+                    Deselect All
+                  </button>
+                  <button
+                    id="bulk-adjust-submit-btn"
+                    type="submit"
+                    className="rounded-lg bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-all cursor-pointer active:scale-95"
+                  >
+                    Commit Offsets
+                  </button>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {bulkSuccessMsg && (
+            <div id="bulk-adjust-success-alert" className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-xs text-emerald-800 font-medium animate-fade-in shadow-2xs">
+              ✓ {bulkSuccessMsg}
+            </div>
+          )}
+
           {/* CREATE / UPDATE MODAL FORM */}
           {showAddForm && (
             <div id="seller-listing-form-overlay" className="rounded-2xl border border-teal-500/20 bg-teal-50/10 p-6 shadow-sm">
@@ -581,6 +698,14 @@ export default function SellerView({
                 <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider font-mono">
+                      <th className="px-6 py-4 w-12">
+                        <input
+                          type="checkbox"
+                          checked={selectedProductIds.length === sellerProducts.length && sellerProducts.length > 0}
+                          onChange={handleToggleSelectAllProducts}
+                          className="rounded text-teal-600 focus:ring-teal-500 cursor-pointer h-4 w-4"
+                        />
+                      </th>
                       <th className="px-6 py-4">Listed item</th>
                       <th className="px-6 py-4">Category</th>
                       <th className="px-6 py-4">Rate ($)</th>
@@ -591,7 +716,17 @@ export default function SellerView({
                   </thead>
                   <tbody className="divide-y divide-slate-50 text-slate-700 font-medium">
                     {sellerProducts.map((prod) => (
-                      <tr id={`seller-inventory-row-${prod.id}`} key={prod.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr id={`seller-inventory-row-${prod.id}`} key={prod.id} className={`hover:bg-slate-50/50 transition-colors ${
+                        selectedProductIds.includes(prod.id) ? 'bg-teal-50/35' : ''
+                      }`}>
+                        <td className="px-6 py-4 w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedProductIds.includes(prod.id)}
+                            onChange={() => handleToggleSelectProduct(prod.id)}
+                            className="rounded text-teal-600 focus:ring-teal-500 cursor-pointer h-4 w-4"
+                          />
+                        </td>
                         <td className="px-6 py-4 flex items-center gap-3">
                           <img src={prod.image} alt={prod.name} className="h-10 w-10 rounded-lg object-cover" />
                           <div>

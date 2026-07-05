@@ -82,6 +82,33 @@ export default function CartCheckoutView({
     }).filter(item => item.product !== undefined) as { product: Product; quantity: number; price: number }[];
   }, [cart, products, currentUser.isElite]);
 
+  // Multi-vendor split deliveries (Feature #16)
+  const warehouseSplits = React.useMemo(() => {
+    const warehouses = [
+      { name: 'Seattle Flight Node A', eta: '1-2 Days', color: 'bg-teal-50 border-teal-100 text-teal-800' },
+      { name: 'Austin Cargo Hub B', eta: '2-3 Days', color: 'bg-indigo-50 border-indigo-100 text-indigo-800' },
+      { name: 'Secaucus Ground Depot C', eta: '3-4 Days', color: 'bg-purple-50 border-purple-100 text-purple-800' }
+    ];
+
+    const clusters: Record<string, typeof cartItems> = {};
+    cartItems.forEach((item) => {
+      const idx = Math.abs(item.product.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)) % warehouses.length;
+      const whName = warehouses[idx].name;
+      if (!clusters[whName]) clusters[whName] = [];
+      clusters[whName].push(item);
+    });
+
+    return Object.entries(clusters).map(([name, items]) => {
+      const idx = warehouses.findIndex(w => w.name === name);
+      return {
+        name,
+        items,
+        eta: currentUser.isElite ? 'Elite Priority: Under 24h Drone Flight' : warehouses[idx]?.eta || '2-3 Days',
+        color: warehouses[idx]?.color || 'bg-slate-50 border-slate-100 text-slate-700'
+      };
+    });
+  }, [cartItems, currentUser.isElite]);
+
   // Map wishlist identifiers
   const wishlistProducts = React.useMemo(() => {
     return wishlist.map((id) => products.find((p) => p.id === id)).filter(Boolean) as Product[];
@@ -361,12 +388,59 @@ export default function CartCheckoutView({
                 </div>
               ))}
             </div>
+
+            {/* Split Delivery Estimates (Feature #16) */}
+            {cartItems.length > 0 && (
+              <div id="split-deliveries-analyzer" className="mt-6 border-t border-slate-100 pt-5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-teal-600 block">Logistics Routing Protocol</span>
+                    <h4 className="font-extrabold text-slate-800 text-xs">Multi-Origin Dispatch Split Analyzer</h4>
+                  </div>
+                  <span className="inline-flex items-center gap-1 text-[9px] font-mono text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                    <span>99.8% Perfect Carbon Routing</span>
+                  </span>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {warehouseSplits.map((wh) => (
+                    <div key={wh.name} className={`rounded-xl border p-3.5 space-y-2.5 flex flex-col justify-between ${wh.color}`}>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <Truck className="h-3.5 w-3.5 opacity-80" />
+                          <span className="font-bold text-[11px] tracking-tight">{wh.name}</span>
+                        </div>
+                        <ul className="space-y-1 text-[10px] opacity-90 font-medium list-disc list-inside">
+                          {wh.items.map((item) => (
+                            <li key={item.product.id} className="truncate" title={item.product.name}>
+                              {item.quantity}x {item.product.name}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="border-t border-black/5 pt-2 flex items-center justify-between text-[9px] font-bold uppercase tracking-wider">
+                        <span>EST. TRANSIT:</span>
+                        <span className="font-mono">{wh.eta}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-xl bg-slate-50 p-3 text-[10px] text-slate-500 leading-relaxed border border-slate-100 flex items-center gap-2">
+                  <span>ℹ️</span>
+                  <span>
+                    To minimize logistics overhead and expedite clearance times, items in your basket are automatically allocated to our closest regional cargo hubs. You will receive real-time tracking streams for each dispatch block.
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* CHECKOUT CALCULATOR (4 cols) */}
           <div className="md:col-span-4 space-y-4">
             
-            {/* Promo code box */}
+            {/* Promo code box with Voucher Catalog Drawer / Matcher (Feature #11) */}
             <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-3">
               <label className="text-xs font-bold text-slate-700 block">Apply Voucher</label>
               
@@ -379,7 +453,7 @@ export default function CartCheckoutView({
                   <button
                     id="remove-promo-btn"
                     onClick={handleRemovePromo}
-                    className="text-[10px] font-bold text-emerald-800 underline hover:no-underline uppercase"
+                    className="text-[10px] font-bold text-emerald-800 underline hover:no-underline uppercase cursor-pointer"
                   >
                     Remove
                   </button>
@@ -397,7 +471,7 @@ export default function CartCheckoutView({
                   <button
                     id="promo-submit-btn"
                     type="submit"
-                    className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 text-xs font-bold"
+                    className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 text-xs font-bold cursor-pointer"
                   >
                     Apply
                   </button>
@@ -416,6 +490,73 @@ export default function CartCheckoutView({
                   <span>{promoSuccess}</span>
                 </p>
               )}
+
+              {/* Dynamic Voucher Ledger list (Feature #11) */}
+              <div id="voucher-catalog-drawer" className="border-t border-slate-100 pt-3.5 mt-2 space-y-2">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Available Voucher Catalog</span>
+                <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                  {promoCodes.map((promo) => {
+                    const meetsElite = !promo.requiresElite || currentUser.isElite;
+                    const meetsMin = !promo.minSubtotal || subtotal >= promo.minSubtotal;
+                    const isEligible = meetsElite && meetsMin;
+                    const isCurrentlyApplied = appliedPromo?.code === promo.code;
+
+                    return (
+                      <div
+                        id={`voucher-catalog-item-${promo.code}`}
+                        key={promo.code}
+                        onClick={() => {
+                          if (isEligible && !isCurrentlyApplied) {
+                            setAppliedPromo(promo);
+                            setPromoSuccess(`Voucher ${promo.code} applied successfully!`);
+                            setPromoError(null);
+                          }
+                        }}
+                        className={`rounded-xl border p-2.5 transition-all text-left group relative ${
+                          isCurrentlyApplied
+                            ? 'bg-emerald-50 border-emerald-300 shadow-2xs'
+                            : isEligible
+                              ? 'bg-white hover:bg-slate-50 border-slate-100 cursor-pointer hover:border-teal-300'
+                              : 'bg-slate-50 border-slate-100 opacity-60 cursor-not-allowed'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono text-xs font-black text-slate-800">{promo.code}</span>
+                            {promo.requiresElite && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.25 text-[7px] font-bold text-amber-800">
+                                <Crown className="h-2 w-2" />
+                                <span>ELITE</span>
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs font-black text-teal-600">-{promo.discountPercent}%</span>
+                        </div>
+                        
+                        <p className="text-[10px] text-slate-500 mt-1 leading-normal font-medium">{promo.description}</p>
+                        
+                        {promo.minSubtotal && (
+                          <p className="text-[8px] font-mono text-slate-400 mt-0.5">Min. Order Value: ${promo.minSubtotal}</p>
+                        )}
+
+                        <div className="mt-2 pt-1.5 border-t border-slate-50 flex items-center justify-between text-[8px] font-mono uppercase tracking-widest">
+                          {!isEligible ? (
+                            <span className="text-red-500 font-bold">
+                              {!meetsElite ? 'Requires Elite Status' : `Requires Min. $${promo.minSubtotal}`}
+                            </span>
+                          ) : isCurrentlyApplied ? (
+                            <span className="text-emerald-600 font-extrabold flex items-center gap-0.5">
+                              <span>✓ APPLIED</span>
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 group-hover:text-teal-600 transition-colors">Quick Apply</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Subtotal summary card */}

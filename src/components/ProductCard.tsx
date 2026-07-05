@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Heart, ShoppingCart, Star, Crown } from 'lucide-react';
+import { Heart, ShoppingCart, Star, Crown, Sparkles, Flame } from 'lucide-react';
 import { Product } from '../lib/db';
 
 interface ProductCardProps {
@@ -29,6 +29,11 @@ export default function ProductCard({
   const finalPrice = product.isElite && isEliteUser 
     ? Math.round(product.price * 0.9) 
     : product.price;
+
+  // Compute dynamic highlight metrics
+  const isBestseller = product.rating >= 4.8 && product.reviewsCount >= 2;
+  const isStaffPick = product.rating >= 4.6 && product.reviewsCount === 1;
+  const isLowStock = product.stock > 0 && product.stock <= 5;
 
   return (
     <div 
@@ -59,16 +64,51 @@ export default function ProductCard({
           <Heart className="h-4.5 w-4.5" fill={isWishlisted ? 'currentColor' : 'none'} />
         </button>
 
-        {/* Elite Badge */}
-        {product.isElite && (
-          <div 
-            id={`elite-badge-${product.id}`}
-            className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-amber-500/90 backdrop-blur-sm px-2.5 py-1 text-[10px] font-bold text-white shadow-sm"
-          >
-            <Crown className="h-3 w-3" />
-            <span>ELITE TIER</span>
-          </div>
-        )}
+        {/* Badge Stack */}
+        <div className="absolute left-3 top-3 flex flex-col gap-1.5 items-start z-10">
+          {product.isElite && (
+            <div 
+              id={`elite-badge-${product.id}`}
+              className="flex items-center gap-1 rounded-full bg-amber-500/90 backdrop-blur-sm px-2.5 py-1 text-[9px] font-black tracking-wide text-white shadow-sm"
+              title="Elite Program Exclusive Product"
+            >
+              <Crown className="h-3 w-3" />
+              <span>ELITE TIER</span>
+            </div>
+          )}
+
+          {isBestseller && (
+            <div 
+              id={`bestseller-badge-${product.id}`}
+              className="flex items-center gap-1 rounded-full bg-rose-600/90 backdrop-blur-sm px-2.5 py-1 text-[9px] font-black tracking-wide text-white shadow-sm"
+              title="Top performing product across the platform with exceptionally high ratings"
+            >
+              <Flame className="h-3 w-3 animate-pulse" />
+              <span>VELOCITY GOLD</span>
+            </div>
+          )}
+
+          {isStaffPick && (
+            <div 
+              id={`staffpick-badge-${product.id}`}
+              className="flex items-center gap-1 rounded-full bg-teal-600/95 backdrop-blur-sm px-2.5 py-1 text-[9px] font-black tracking-wide text-white shadow-sm"
+              title="Hand-picked by our curators for impeccable design and performance"
+            >
+              <Sparkles className="h-3 w-3" />
+              <span>CURATOR SELECTION</span>
+            </div>
+          )}
+
+          {isLowStock && (
+            <div 
+              id={`lowstock-badge-${product.id}`}
+              className="flex items-center gap-1 rounded-full bg-amber-600/90 backdrop-blur-sm px-2.5 py-1 text-[9px] font-black tracking-wide text-white shadow-sm"
+              title={`Only ${product.stock} units remain before sell out`}
+            >
+              <span>FEW COPIES LEFT</span>
+            </div>
+          )}
+        </div>
 
         {/* Out of Stock overlay */}
         {product.stock <= 0 && (

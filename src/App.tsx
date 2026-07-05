@@ -382,6 +382,7 @@ export default function App() {
             setSelectedCategory={(cat) => { setSelectedCategory(cat); setActiveView('search'); }}
             promoCodes={dbState.promoCodes}
             setActiveView={setActiveView}
+            onToggleElite={handleToggleSelfElite}
           />
         );
       case 'search':

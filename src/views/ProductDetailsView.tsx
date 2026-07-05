@@ -65,6 +65,25 @@ export default function ProductDetailsView({
   const [reviewText, setReviewText] = React.useState('');
   const [reviewSuccess, setReviewSuccess] = React.useState(false);
 
+  // Real-time keyword sentiment heuristics (Feature #14)
+  const computedSentiment = React.useMemo(() => {
+    if (!reviewText.trim()) return null;
+    const lower = reviewText.toLowerCase();
+    const positiveWords = ['excellent', 'love', 'amazing', 'great', 'perfect', 'good', 'best', 'superb', 'delightful', 'gorgeous', 'bliss', 'magical', 'flawless', 'curated'];
+    const negativeWords = ['bad', 'worst', 'hate', 'issue', 'poor', 'broken', 'disappointing', 'tight', 'heavy', 'stiff', 'sad', 'muddy', 'clunky', 'annoying'];
+    
+    const posCount = positiveWords.filter(w => lower.includes(w)).length;
+    const negCount = negativeWords.filter(w => lower.includes(w)).length;
+    
+    if (posCount > negCount) {
+      return { label: 'Audit Result: Product Praise (Positive Sentiment)', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    } else if (negCount > posCount) {
+      return { label: 'Audit Result: Critical Friction (Negative Sentiment)', color: 'bg-rose-50 text-rose-700 border-rose-200' };
+    } else {
+      return { label: 'Audit Result: Neutral Balance (Neutral/Objective)', color: 'bg-blue-50 text-blue-700 border-blue-200' };
+    }
+  }, [reviewText]);
+
   // Add Question state
   const [questionText, setQuestionText] = React.useState('');
   const [questionSuccess, setQuestionSuccess] = React.useState(false);
@@ -430,6 +449,17 @@ export default function ProductDetailsView({
                 onChange={(e) => setReviewText(e.target.value)}
                 className="w-full rounded-xl border border-slate-100 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
               ></textarea>
+              
+              {/* Dynamic Sentiment AI Tagger */}
+              {computedSentiment && (
+                <div 
+                  id="evaluation-sentiment-ticker" 
+                  className={`mt-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold tracking-wide transition-all duration-300 animate-fade-in flex items-center justify-between ${computedSentiment.color}`}
+                >
+                  <span>{computedSentiment.label}</span>
+                  <span className="opacity-60 text-[8px] font-mono">LIVE AI FEED</span>
+                </div>
+              )}
             </div>
 
             <button

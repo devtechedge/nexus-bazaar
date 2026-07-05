@@ -184,15 +184,111 @@ export default function OrdersView({
 
               </div>
 
-              {/* Courier and Logistics Details (e.g. Tracking No) */}
-              {order.trackingNo && (
-                <div className="rounded-xl bg-slate-50 p-3 text-xs flex items-center gap-2 border border-slate-100 text-slate-500">
-                  <Truck className="h-4 w-4 text-slate-400 shrink-0" />
-                  <span>
-                    Logistics Tracking Code: <strong className="font-mono text-slate-700">{order.trackingNo}</strong>
-                  </span>
+              {/* INTERACTIVE DRONE SHIPMENT TRACKER PIPELINE (Feature #12) */}
+              <div id={`drone-tracker-panel-${order.id}`} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4.5 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-slate-800 uppercase tracking-wide">
+                    <Truck className="h-4 w-4 text-teal-600 animate-pulse" />
+                    <span>Active Telemetry: Drone Delivery Tracker</span>
+                  </div>
+                  {order.trackingNo ? (
+                    <span className="font-mono text-[10px] text-slate-500">
+                      Logistics Hub Code: <strong className="text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded-md">{order.trackingNo}</strong>
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-slate-400 font-medium">Awaiting Dispatch Channel...</span>
+                  )}
                 </div>
-              )}
+
+                {/* Tracking Progress Pipeline Nodes */}
+                <div className="grid grid-cols-4 gap-2 text-center pt-1 relative">
+                  {/* Decorative timeline bar */}
+                  <div className="absolute top-4.5 left-[12.5%] right-[12.5%] h-1 bg-slate-200 -z-0 rounded-full">
+                    <div 
+                      className="h-full bg-teal-500 rounded-full transition-all duration-500" 
+                      style={{
+                        width: order.status === 'Placed' ? '0%' : 
+                               order.status === 'Processing' ? '33.33%' :
+                               order.status === 'Shipped' ? '66.66%' : '100%'
+                      }}
+                    />
+                  </div>
+
+                  {/* Node 1: Placed */}
+                  <div className="space-y-1.5 relative z-10 flex flex-col items-center">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all shadow-2xs ${
+                      order.status === 'Placed' ? 'bg-blue-600 border-blue-600 text-white ring-4 ring-blue-100' :
+                      ['Processing', 'Shipped', 'Delivered'].includes(order.status) ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-slate-200 text-slate-400'
+                    }`}>
+                      1
+                    </div>
+                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">Placed</span>
+                  </div>
+
+                  {/* Node 2: Processing */}
+                  <div className="space-y-1.5 relative z-10 flex flex-col items-center">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all shadow-2xs ${
+                      order.status === 'Processing' ? 'bg-indigo-600 border-indigo-600 text-white ring-4 ring-indigo-100' :
+                      ['Shipped', 'Delivered'].includes(order.status) ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-slate-200 text-slate-400'
+                    }`}>
+                      2
+                    </div>
+                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">Processing</span>
+                  </div>
+
+                  {/* Node 3: Shipped / Flight */}
+                  <div className="space-y-1.5 relative z-10 flex flex-col items-center">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all shadow-2xs ${
+                      order.status === 'Shipped' ? 'bg-amber-500 border-amber-500 text-white ring-4 ring-amber-100' :
+                      ['Delivered'].includes(order.status) ? 'bg-teal-500 border-teal-500 text-white' : 'bg-white border-slate-200 text-slate-400'
+                    }`}>
+                      3
+                    </div>
+                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">In Airspace</span>
+                  </div>
+
+                  {/* Node 4: Delivered */}
+                  <div className="space-y-1.5 relative z-10 flex flex-col items-center">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border transition-all shadow-2xs ${
+                      order.status === 'Delivered' ? 'bg-emerald-600 border-emerald-600 text-white ring-4 ring-emerald-100' : 'bg-white border-slate-200 text-slate-400'
+                    }`}>
+                      4
+                    </div>
+                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">Port Secured</span>
+                  </div>
+                </div>
+
+                {/* Interactive Simulator Button */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/60">
+                  <p className="text-[10px] text-slate-500 font-medium">
+                    {order.status === 'Placed' && '⚙️ Drone cargo is currently being packaged at the local secure hub.'}
+                    {order.status === 'Processing' && '📦 Drone cargo loaded. Safety checks being certified by ledger nodes.'}
+                    {order.status === 'Shipped' && '🚀 Autonomous drone is in transit inside verified legal flight lanes.'}
+                    {order.status === 'Delivered' && '🏠 Drone landed, parcel dropped, and recipient biometric receipt recorded.'}
+                  </p>
+                  
+                  {order.status !== 'Delivered' && (
+                    <button
+                      id={`simulate-step-btn-${order.id}`}
+                      onClick={() => {
+                        let nextStatus: Order['status'] = 'Placed';
+                        let tracking = order.trackingNo || `TRK-DRN-${Math.floor(100000 + Math.random() * 900000)}-NX`;
+                        
+                        if (order.status === 'Placed') nextStatus = 'Processing';
+                        else if (order.status === 'Processing') nextStatus = 'Shipped';
+                        else if (order.status === 'Shipped') nextStatus = 'Delivered';
+                        
+                        onUpdateOrderStatus(order.id, nextStatus, tracking);
+                      }}
+                      className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 text-[10px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
+                    >
+                      {order.status === 'Placed' && 'Authorize Package'}
+                      {order.status === 'Processing' && 'Dispatch Flight Drone'}
+                      {order.status === 'Shipped' && 'Secure Drone Landing'}
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* LOGISTICS FORM POPUP (Inline overlay for admin) */}
               {editingStatusId === order.id && (
