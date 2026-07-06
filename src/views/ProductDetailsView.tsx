@@ -783,9 +783,46 @@ export default function ProductDetailsView({
   const [selectedStarFilter, setSelectedStarFilter] = React.useState<number | null>(null);
   const [qaSearchQuery, setQaSearchQuery] = React.useState('');
 
+  const [bountyClaimed, setBountyClaimed] = React.useState(false);
+
   const handleReviewSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewTitle.trim() || !reviewText.trim()) return;
+
+    // Check if high-effort review for bounty (Feature 60)
+    const isHighEffort = reviewText.trim().length >= 40;
+    if (isHighEffort) {
+      // 1. Grant $15.00 credits
+      const storedCredits = localStorage.getItem('nexus_bazaar_store_credit');
+      const currentCredits = storedCredits ? parseFloat(storedCredits) : 25.00;
+      const nextCredits = currentCredits + 15.00;
+      localStorage.setItem('nexus_bazaar_store_credit', nextCredits.toFixed(2));
+
+      // 2. Add transaction history record
+      const storedTx = localStorage.getItem('nexus_bazaar_loyalty_ledger');
+      const txHistory = storedTx ? JSON.parse(storedTx) : [];
+      const newTx = {
+        id: `tx_bounty_${Date.now()}`,
+        type: 'earn',
+        amount: 15.00,
+        description: `Claimed Review Bounty for ${product.name}`,
+        date: new Date().toISOString().split('T')[0]
+      };
+      txHistory.unshift(newTx);
+      localStorage.setItem('nexus_bazaar_loyalty_ledger', JSON.stringify(txHistory));
+
+      // 3. Grant a Badge (Feature 55)
+      const storedBadges = localStorage.getItem('nexus_bazaar_badges');
+      let badgesList: string[] = storedBadges ? JSON.parse(storedBadges) : [];
+      if (!badgesList.includes('audiophile_veteran')) {
+        badgesList.push('audiophile_veteran');
+        localStorage.setItem('nexus_bazaar_badges', JSON.stringify(badgesList));
+      }
+
+      setBountyClaimed(true);
+      setTimeout(() => setBountyClaimed(false), 5000);
+    }
+
     onAddReview(product.id, reviewRating, reviewTitle, reviewText);
     setReviewTitle('');
     setReviewText('');
@@ -2572,6 +2609,37 @@ export default function ProductDetailsView({
                         <UserCheck className="h-2.5 w-2.5" />
                         <span>Verified Buyer</span>
                       </span>
+
+                      {/* 55. Digital Unbox Achievements Badges */}
+                      {(() => {
+                        let revBadges: string[] = [];
+                        if (rev.userName === 'Emma') revBadges = ['ergonomic_sensei'];
+                        else if (rev.userName === 'Alex') revBadges = ['wearables_pioneer'];
+                        else if (rev.userName === 'Sarah Connor') revBadges = ['audiophile_veteran'];
+                        else if (rev.userName === currentUser.name) {
+                          if (typeof window !== 'undefined') {
+                            const b = localStorage.getItem('nexus_bazaar_badges');
+                            revBadges = b ? JSON.parse(b) : ['audiophile_veteran'];
+                          } else {
+                            revBadges = ['audiophile_veteran'];
+                          }
+                        }
+
+                        return revBadges.map(badgeId => {
+                          const label = badgeId === 'audiophile_veteran' ? 'Audiophile Veteran' :
+                                        badgeId === 'ergonomic_sensei' ? 'Ergonomic Sensei' :
+                                        badgeId === 'wearables_pioneer' ? 'Wearables Pioneer' : 'Bug Hunter';
+                          const color = badgeId === 'audiophile_veteran' ? 'bg-teal-500/10 text-teal-400 border-teal-500/20' :
+                                        badgeId === 'ergonomic_sensei' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                        badgeId === 'wearables_pioneer' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                        'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                          return (
+                            <span key={badgeId} className={`inline-flex items-center gap-0.5 text-[8px] font-mono font-bold border px-1.5 py-0.5 rounded-full ${color}`} title={`${label} Badge`}>
+                              ✨ {label}
+                            </span>
+                          );
+                        });
+                      })()}
                     </div>
                     <span className="text-[10px] font-mono text-slate-400">{rev.date}</span>
                   </div>
@@ -2592,79 +2660,99 @@ export default function ProductDetailsView({
           </div>
 
           {/* Create Review Form */}
-          <form id="add-review-form" onSubmit={handleReviewSubmit} className={`rounded-2xl border p-5 space-y-4 ${
-            editorialMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-100 bg-slate-50/50'
-          }`}>
-            <h4 className="text-sm font-bold">Publish Client Evaluation</h4>
-            
-            {reviewSuccess && (
-              <div id="review-success-banner" className="rounded-lg bg-emerald-950/40 text-emerald-400 p-3 text-xs font-medium border border-emerald-800">
-                ✓ Evaluation logs committed successfully to the local cache!
+          <div className="space-y-4">
+            {/* 60. Active Review Bounty Alert */}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3 text-xs text-amber-200">
+              <span className="text-xl">💰</span>
+              <div className="space-y-1">
+                <span className="font-bold block text-amber-300">ACTIVE REVIEW BOUNTY: Earn $15.00 Store Credits!</span>
+                <span className="text-[11px] text-slate-400 leading-relaxed block">
+                  The community treasury has posted a bounty on this equipment. Submit a detailed client review of <strong className="text-amber-400">40 characters or more</strong> to receive <strong className="text-teal-450">$15.00 in instant store credit</strong> on your loyalty ledger and unlock a digital category achievement badge!
+                </span>
+              </div>
+            </div>
+
+            {bountyClaimed && (
+              <div id="review-bounty-claimed-banner" className="rounded-xl bg-teal-950/40 text-teal-400 p-4 text-xs font-semibold border border-teal-800 animate-bounce flex items-center gap-2">
+                <span>✨</span>
+                <span>Review Bounty Claimed! $15.00 in Store Credits have been wired to your Loyalty Ledger and an Audiophile Veteran achievement badge has been added to your profile!</span>
               </div>
             )}
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-400">Metric Score:</span>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((stars) => (
-                  <button
-                    id={`review-score-star-${stars}`}
-                    key={stars}
-                    type="button"
-                    onClick={() => setReviewRating(stars)}
-                    className={`text-lg transition-colors cursor-pointer ${stars <= reviewRating ? 'text-amber-400' : 'text-slate-700 hover:text-amber-300'}`}
-                  >
-                    ★
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400">Headline</label>
-              <input
-                id="review-title-input"
-                type="text"
-                required
-                placeholder="e.g. Exceptional response, solid craftsmanship"
-                value={reviewTitle}
-                onChange={(e) => setReviewTitle(e.target.value)}
-                className="w-full rounded-xl border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400">Evaluation Body</label>
-              <textarea
-                id="review-text-input"
-                required
-                rows={3}
-                placeholder="Share your detailed assessment of product ergonomics, latency, design, etc..."
-                value={reviewText}
-                onChange={(e) => setReviewText(e.target.value)}
-                className="w-full rounded-xl border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
-              ></textarea>
+            <form id="add-review-form" onSubmit={handleReviewSubmit} className={`rounded-2xl border p-5 space-y-4 ${
+              editorialMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-100 bg-slate-50/50'
+            }`}>
+              <h4 className="text-sm font-bold">Publish Client Evaluation</h4>
               
-              {/* Dynamic Sentiment AI Tagger */}
-              {computedSentiment && (
-                <div 
-                  id="evaluation-sentiment-ticker" 
-                  className={`mt-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold tracking-wide transition-all duration-300 flex items-center justify-between ${computedSentiment.color}`}
-                >
-                  <span>{computedSentiment.label}</span>
-                  <span className="opacity-60 text-[8px] font-mono">LIVE AI FEED</span>
+              {reviewSuccess && (
+                <div id="review-success-banner" className="rounded-lg bg-emerald-950/40 text-emerald-400 p-3 text-xs font-medium border border-emerald-800">
+                  ✓ Evaluation logs committed successfully to the local cache!
                 </div>
               )}
-            </div>
 
-            <button
-              id="submit-review-btn"
-              type="submit"
-              className="rounded-xl bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors cursor-pointer"
-            >
-              Commit Evaluation
-            </button>
-          </form>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-400">Metric Score:</span>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((stars) => (
+                    <button
+                      id={`review-score-star-${stars}`}
+                      key={stars}
+                      type="button"
+                      onClick={() => setReviewRating(stars)}
+                      className={`text-lg transition-colors cursor-pointer ${stars <= reviewRating ? 'text-amber-400' : 'text-slate-700 hover:text-amber-300'}`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-400">Headline</label>
+                <input
+                  id="review-title-input"
+                  type="text"
+                  required
+                  placeholder="e.g. Exceptional response, solid craftsmanship"
+                  value={reviewTitle}
+                  onChange={(e) => setReviewTitle(e.target.value)}
+                  className="w-full rounded-xl border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-400">Evaluation Body</label>
+                <textarea
+                  id="review-text-input"
+                  required
+                  rows={3}
+                  placeholder="Share your detailed assessment of product ergonomics, latency, design, etc..."
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  className="w-full rounded-xl border border-slate-700/30 bg-white/5 p-2.5 text-xs text-slate-200 outline-none focus:border-teal-500"
+                ></textarea>
+                
+                {/* Dynamic Sentiment AI Tagger */}
+                {computedSentiment && (
+                  <div 
+                    id="evaluation-sentiment-ticker" 
+                    className={`mt-1.5 rounded-lg border px-3 py-1.5 text-[10px] font-bold tracking-wide transition-all duration-300 flex items-center justify-between ${computedSentiment.color}`}
+                  >
+                    <span>{computedSentiment.label}</span>
+                    <span className="opacity-60 text-[8px] font-mono">LIVE AI FEED</span>
+                  </div>
+                )}
+              </div>
+
+              <button
+                id="submit-review-btn"
+                type="submit"
+                className="rounded-xl bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 text-xs font-bold shadow-sm transition-colors cursor-pointer"
+              >
+                Commit Evaluation
+              </button>
+            </form>
+          </div>
         </section>
 
         {/* Q&A SEGMENT (right 5 cols) */}

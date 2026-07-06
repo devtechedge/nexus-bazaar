@@ -80,6 +80,14 @@ export default function CartCheckoutView({
   // Shipping Method
   const [shippingMethod, setShippingMethod] = React.useState<'standard' | 'express'>('standard');
 
+  // Store Credits state (Feature 51)
+  const [storeCredits, setStoreCredits] = React.useState<number>(() => {
+    if (typeof window === 'undefined') return 25.00;
+    const stored = localStorage.getItem('nexus_bazaar_store_credit');
+    return stored ? parseFloat(stored) : 25.00;
+  });
+  const [useStoreCredits, setUseStoreCredits] = React.useState<boolean>(false);
+
   // Promo code entry
   const [promoInput, setPromoInput] = React.useState('');
   const [appliedPromo, setAppliedPromo] = React.useState<PromoCode | null>(null);
@@ -238,10 +246,19 @@ export default function CartCheckoutView({
     return diff === 0 ? 5.00 : diff;
   }, [roundUpDonation, subtotal, discountAmount, greenDiscount, shippingCost, taxAmount]);
 
-  const totalAmount = React.useMemo(() => {
+  const totalAmountBeforeCredits = React.useMemo(() => {
     const base = Number((subtotal - discountAmount - greenDiscount + shippingCost + taxAmount).toFixed(2));
     return Number((base + (roundUpDonation ? donationAmount : 0)).toFixed(2));
   }, [subtotal, discountAmount, greenDiscount, shippingCost, taxAmount, roundUpDonation, donationAmount]);
+
+  const appliedCredits = React.useMemo(() => {
+    if (!useStoreCredits) return 0;
+    return Number(Math.min(storeCredits, totalAmountBeforeCredits).toFixed(2));
+  }, [useStoreCredits, storeCredits, totalAmountBeforeCredits]);
+
+  const totalAmount = React.useMemo(() => {
+    return Number(Math.max(0, totalAmountBeforeCredits - appliedCredits).toFixed(2));
+  }, [totalAmountBeforeCredits, appliedCredits]);
 
   // Canvas Signature event listeners (Feature #23)
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
@@ -446,6 +463,30 @@ export default function CartCheckoutView({
       predictiveLagDays: delayForecast.days,
       splitDeliveryAddresses: splitAddressEnabled ? splitAddresses : undefined,
     });
+
+    // Update store credits if used (Feature 51)
+    if (appliedCredits > 0) {
+      const nextCredits = Number((storeCredits - appliedCredits).toFixed(2));
+      localStorage.setItem('nexus_bazaar_store_credit', nextCredits.toFixed(2));
+      
+      const storedTx = localStorage.getItem('nexus_bazaar_loyalty_ledger');
+      const txHistory = storedTx ? JSON.parse(storedTx) : [];
+      const newTx = {
+        id: `tx_spend_${Date.now()}`,
+        type: 'spend',
+        amount: appliedCredits,
+        description: `Applied credits to Order checkout`,
+        date: new Date().toISOString().split('T')[0]
+      };
+      txHistory.unshift(newTx);
+      localStorage.setItem('nexus_bazaar_loyalty_ledger', JSON.stringify(txHistory));
+    }
+
+    // Update lifetime spend milestones (Feature 52)
+    const storedSpend = localStorage.getItem('nexus_bazaar_lifetime_spend');
+    const currentSpend = storedSpend ? parseFloat(storedSpend) : 850.00;
+    const nextSpend = currentSpend + subtotal;
+    localStorage.setItem('nexus_bazaar_lifetime_spend', nextSpend.toFixed(2));
 
     // Clear local state
     setAppliedPromo(null);
@@ -1675,6 +1716,30 @@ export default function CartCheckoutView({
                     </div>
                   )}
                 </div>
+
+                {/* 51. Store Credit application checkbox/switch */}
+                {storeCredits > 0 && (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 animate-fade-in text-xs">
+                    <label className="flex items-center justify-between font-semibold text-slate-700 cursor-pointer">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="checkbox"
+                          checked={useStoreCredits}
+                          onChange={(e) => setUseStoreCredits(e.target.checked)}
+                          className="accent-teal-600 h-4 w-4 cursor-pointer"
+                        />
+                        <span>Apply Store Credits</span>
+                      </div>
+                      <span className="font-mono font-bold text-teal-600">${storeCredits.toFixed(2)} Available</span>
+                    </label>
+                    {useStoreCredits && (
+                      <div className="flex justify-between text-[11px] text-teal-700 bg-teal-50 px-2 py-1 rounded border border-teal-100 font-mono font-semibold">
+                        <span>Applied Credits:</span>
+                        <span>-${appliedCredits.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {appliedPromo && (
                   <div id="recap-promo-breakdown-banner" className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 text-[11px] text-emerald-800 space-y-1 animate-fade-in shadow-2xs">

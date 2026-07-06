@@ -171,6 +171,17 @@ export default function Header({
             Curations
           </button>
 
+          {/* Loyalty Hub */}
+          <button
+            id="nav-loyalty-btn"
+            onClick={() => setActiveView('loyalty')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              activeView === 'loyalty' ? 'text-teal-600 bg-teal-50 font-bold' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+            }`}
+          >
+            Loyalty Hub
+          </button>
+
           {/* Guilds */}
           <button
             id="nav-guilds-btn"
