@@ -86,6 +86,26 @@ export default function CartCheckoutView({
   const [promoError, setPromoError] = React.useState<string | null>(null);
   const [promoSuccess, setPromoSuccess] = React.useState<string | null>(null);
 
+  // --- FEATURE #12: SHARED MULTI-USER SESSION CARTS STATES ---
+  const [sharedSessionActive, setSharedSessionActive] = React.useState(true);
+  const [splitBillingEnabled, setSplitBillingEnabled] = React.useState(false);
+  const sessionPeers = [
+    { name: 'Emma', color: 'bg-emerald-500', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&auto=format&fit=crop&q=60' },
+    { name: 'Lucas', color: 'bg-amber-500', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&auto=format&fit=crop&q=60' }
+  ];
+
+  // --- FEATURE #14: ANONYMOUS GIFTING VAULT STATES ---
+  const [anonymousGiftingEnabled, setAnonymousGiftingEnabled] = React.useState(false);
+  const [giftRecipientEmail, setGiftRecipientEmail] = React.useState('');
+  const [giftMessage, setGiftMessage] = React.useState('');
+  const giftToken = React.useMemo(() => {
+    return `GIFT_CIPHER_${Math.floor(1000 + Math.random() * 9000)}_X`;
+  }, []);
+
+  // --- FEATURE #17: MICRO-DONATION ROUND-UPS STATES ---
+  const [roundUpDonation, setRoundUpDonation] = React.useState(false);
+  const [donationCause, setDonationCause] = React.useState<'carbon_capture' | 'green_forest' | 'ewaste'>('carbon_capture');
+
   // Map cart identifiers to concrete product models
   const cartItems = React.useMemo(() => {
     return cart.map((item) => {
@@ -171,9 +191,19 @@ export default function CartCheckoutView({
     return Number((taxableSubtotal * taxRate).toFixed(2));
   }, [subtotal, discountAmount, greenDiscount, taxRate]);
 
+  // Donation Amount Calculation
+  const donationAmount = React.useMemo(() => {
+    if (!roundUpDonation) return 0;
+    const baseTotal = subtotal - discountAmount - greenDiscount + shippingCost + taxAmount;
+    const nextFive = Math.ceil(baseTotal / 5) * 5;
+    const diff = Number((nextFive - baseTotal).toFixed(2));
+    return diff === 0 ? 5.00 : diff;
+  }, [roundUpDonation, subtotal, discountAmount, greenDiscount, shippingCost, taxAmount]);
+
   const totalAmount = React.useMemo(() => {
-    return Number((subtotal - discountAmount - greenDiscount + shippingCost + taxAmount).toFixed(2));
-  }, [subtotal, discountAmount, greenDiscount, shippingCost, taxAmount]);
+    const base = Number((subtotal - discountAmount - greenDiscount + shippingCost + taxAmount).toFixed(2));
+    return Number((base + (roundUpDonation ? donationAmount : 0)).toFixed(2));
+  }, [subtotal, discountAmount, greenDiscount, shippingCost, taxAmount, roundUpDonation, donationAmount]);
 
   // Canvas Signature event listeners (Feature #23)
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
@@ -476,6 +506,39 @@ export default function CartCheckoutView({
         /* STEP 1: CART VIEW */
         <div id="step-cart-grid" className="grid gap-8 md:grid-cols-12">
           
+          {/* SHARED MULTI-USER SESSION CONTROLS (Feature #12) */}
+          {sharedSessionActive && (
+            <div className="md:col-span-12 rounded-2xl border border-teal-100 bg-teal-50/30 p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  <img src={currentUser.avatar} alt="You" className="h-8 w-8 rounded-full border-2 border-white object-cover" title="You" />
+                  {sessionPeers.map((peer, pidx) => (
+                    <img key={pidx} src={peer.avatar} alt={peer.name} className="h-8 w-8 rounded-full border-2 border-white object-cover" title={peer.name} />
+                  ))}
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-800">Shared Session Active</h4>
+                  <p className="text-[10px] text-slate-400 font-mono">Synced via Vercel KV WebSockets • Emma & Lucas are editing live</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setSplitBillingEnabled(!splitBillingEnabled)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-all border cursor-pointer ${
+                    splitBillingEnabled 
+                      ? 'bg-teal-600 text-white border-teal-600' 
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {splitBillingEnabled ? '✓ Split Billing Active' : 'Enable Split Billing'}
+                </button>
+                
+                <span className="text-[10px] text-slate-400 font-mono">3 Shoppers</span>
+              </div>
+            </div>
+          )}
+          
           {/* CART ITEMS LIST (8 cols) */}
           <div className="md:col-span-8 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
             <h3 className="font-bold text-slate-900 text-sm">Shopping Cart Items ({cartItems.length})</h3>
@@ -494,6 +557,11 @@ export default function CartCheckoutView({
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[8px] font-bold text-amber-800 mt-1">
                           <Crown className="h-2 w-2" />
                           <span>ELITE PRICE APPLIED (-10%)</span>
+                        </span>
+                      )}
+                      {sharedSessionActive && (
+                        <span className="block text-[8px] font-mono text-slate-400 mt-1 font-bold">
+                          Owner: {item.product.id.charCodeAt(0) % 3 === 0 ? 'Emma' : item.product.id.charCodeAt(0) % 3 === 1 ? 'Lucas' : 'Me'}
                         </span>
                       )}
                     </div>
@@ -752,10 +820,48 @@ export default function CartCheckoutView({
                 </div>
               )}
 
-              <div className="flex items-baseline justify-between pt-1">
-                <span className="text-sm font-bold text-slate-800">Estimated Total</span>
-                <span id="summary-total" className="text-xl font-black text-slate-900 font-mono">${subtotal - discountAmount + shippingCost}</span>
+              {/* MICRO-DONATION ROUND-UPS (Feature #17) */}
+              <div className="border-t border-dashed border-slate-100 pt-3 space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={roundUpDonation}
+                    onChange={(e) => setRoundUpDonation(e.target.checked)}
+                    className="accent-teal-600 rounded"
+                  />
+                  <span className="text-[11px] font-bold text-slate-700">Round up to donate to green causes</span>
+                </label>
+
+                {roundUpDonation && (
+                  <div className="pl-5 space-y-1.5 animate-fade-in">
+                    <p className="text-[10px] text-slate-400">Your donation of <span className="font-bold text-teal-600 font-mono">${donationAmount.toFixed(2)}</span> will go directly to your chosen impact sector:</p>
+                    <select
+                      value={donationCause}
+                      onChange={(e: any) => setDonationCause(e.target.value)}
+                      className="w-full rounded-lg border border-slate-100 bg-slate-50 p-1.5 text-[10px] text-slate-700 outline-none"
+                    >
+                      <option value="carbon_capture">Direct Air Carbon Capture (DAC)</option>
+                      <option value="green_forest">Sustainable Reforestation Hub</option>
+                      <option value="ewaste">Electronic E-Waste Reduction Node</option>
+                    </select>
+                  </div>
+                )}
               </div>
+
+              <div className="flex items-baseline justify-between pt-1 border-t border-slate-50">
+                <span className="text-sm font-bold text-slate-800">Estimated Total</span>
+                <span id="summary-total" className="text-xl font-black text-slate-900 font-mono">${totalAmount}</span>
+              </div>
+
+              {splitBillingEnabled && (
+                <div className="bg-teal-50 border border-teal-100/50 rounded-xl p-3 text-[11px] text-teal-800 space-y-1 mt-2">
+                  <span className="font-bold uppercase tracking-wider text-[9px] text-teal-600 font-mono block">Co-Op Split Billing Activated</span>
+                  <div className="flex justify-between font-bold">
+                    <span>Your 1/3 Portion</span>
+                    <span className="font-mono text-xs text-teal-900">${(totalAmount / 3).toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
 
               <button
                 id="cart-next-step-btn"
@@ -796,6 +902,72 @@ export default function CartCheckoutView({
               <div className="flex items-center gap-2 font-bold text-slate-800 text-sm border-b border-slate-50 pb-3">
                 <MapPin className="h-4 w-4 text-teal-600" />
                 <span>Logistics Delivery Endpoint</span>
+              </div>
+
+              {/* ANONYMOUS GIFTING VAULT WIDGET (Feature #14) */}
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-3.5 space-y-3">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-700 text-xs">
+                  <input
+                    type="checkbox"
+                    checked={anonymousGiftingEnabled}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      setAnonymousGiftingEnabled(enabled);
+                      if (enabled) {
+                        // Auto-fill hidden details so standard HTML validators pass without friction
+                        setStreet('Vault Routed Endpoint');
+                        setCity('Decentralized Depot');
+                        setZip('94101');
+                      } else {
+                        setStreet('');
+                        setCity('');
+                        setZip('');
+                      }
+                    }}
+                    className="accent-teal-600 rounded"
+                  />
+                  <span>Route via Encrypted Anonymous Gifting Vault</span>
+                </label>
+                
+                {anonymousGiftingEnabled ? (
+                  <div className="space-y-3.5 pt-2 animate-fade-in text-xs">
+                    <p className="text-[11px] text-slate-400 leading-normal">
+                      Security token generated! The physical package will print your custom cipher token. The courier will look up the recipient's coordinates on scans without exposing your name or billing details.
+                    </p>
+                    
+                    <div className="p-3 bg-slate-900 text-white rounded-xl space-y-2">
+                      <span className="text-[8px] font-mono text-slate-500 uppercase font-bold block">Secure Vault Cipher Token</span>
+                      <p className="font-mono text-xs font-black tracking-wider text-teal-400">{giftToken}</p>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500">Recipient Email</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="recipient@domain.com"
+                          value={giftRecipientEmail}
+                          onChange={(e) => setGiftRecipientEmail(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-teal-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500">Encrypted Gift Note</label>
+                        <input
+                          type="text"
+                          placeholder="Happy Birthday! Open soon!"
+                          value={giftMessage}
+                          onChange={(e) => setGiftMessage(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-800 outline-none focus:border-teal-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-400 leading-normal">Redacts billing credentials from standard packing slip metrics, converting delivery into an un-trackable surprise note.</p>
+                )}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

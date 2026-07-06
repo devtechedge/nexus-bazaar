@@ -28,6 +28,9 @@ import SellerView from './views/SellerView';
 import AdminView from './views/AdminView';
 import OrdersView from './views/OrdersView';
 import WishlistView from './views/WishlistView';
+import GuildsView from './views/GuildsView';
+import StylingRoomView from './views/StylingRoomView';
+import CurationsView from './views/CurationsView';
 import ConciergeChatbot from './components/ConciergeChatbot';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
 
@@ -50,7 +53,7 @@ export default function App() {
   });
 
   // 3. Routing views
-  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist'>('storefront');
+  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist' | 'guilds' | 'styling' | 'curations'>('storefront');
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
 
   // 4. Shared filters search inputs
@@ -474,6 +477,32 @@ export default function App() {
             onRemoveFromWishlist={handleRemoveFromWishlist}
             onMoveToCart={handleMoveToCart}
             onViewDetails={(p) => { setSelectedProduct(p); setActiveView('details'); }}
+            setActiveView={setActiveView}
+          />
+        );
+      case 'guilds':
+        return (
+          <GuildsView
+            currentUser={currentUser}
+            onAddPromoCode={handleAddPromoCode}
+            setActiveView={setActiveView}
+          />
+        );
+      case 'styling':
+        return (
+          <StylingRoomView
+            currentUser={currentUser}
+            onAddToCart={handleAddToCart}
+            products={dbState.products}
+            setActiveView={setActiveView}
+          />
+        );
+      case 'curations':
+        return (
+          <CurationsView
+            currentUser={currentUser}
+            products={dbState.products}
+            onAddToCart={handleAddToCart}
             setActiveView={setActiveView}
           />
         );

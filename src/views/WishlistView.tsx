@@ -24,6 +24,38 @@ export default function WishlistView({
   onViewDetails,
   setActiveView,
 }: WishlistViewProps) {
+  // --- FEATURE #18: SHARED WISHLIST EVENT REGISTRIES STATES ---
+  const [registryActive, setRegistryActive] = React.useState(true);
+  const [registryName, setRegistryName] = React.useState('Technical Lab Relocation Hub');
+  const [claimedProducts, setClaimedProducts] = React.useState<Record<string, string>>(() => {
+    return {
+      'prod_2': 'Emma',
+    };
+  });
+  const [contributedAmounts, setContributedAmounts] = React.useState<Record<string, number>>(() => {
+    return {
+      'prod_4': 40
+    };
+  });
+
+  const handleToggleClaim = (prodId: string) => {
+    setClaimedProducts(prev => {
+      if (prev[prodId]) {
+        const next = { ...prev };
+        delete next[prodId];
+        return next;
+      }
+      return { ...prev, [prodId]: 'Me' };
+    });
+  };
+
+  const handleContributeFunds = (prodId: string) => {
+    setContributedAmounts(prev => ({
+      ...prev,
+      [prodId]: (prev[prodId] || 0) + 20
+    }));
+  };
+
   const wishlistedProducts = React.useMemo(() => {
     return wishlist
       .map((id) => products.find((p) => p.id === id))
@@ -68,6 +100,51 @@ export default function WishlistView({
           </button>
         )}
       </div>
+
+      {/* SHARED EVENT REGISTRY CARD (Feature #18) */}
+      {registryActive && wishlistedProducts.length > 0 && (
+        <div className="rounded-2xl border border-teal-100 bg-teal-50/20 p-5 space-y-4 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-teal-700 font-bold text-xs">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Shared Event Registry Active</span>
+              </div>
+              <input
+                type="text"
+                value={registryName}
+                onChange={(e) => setRegistryName(e.target.value)}
+                className="text-sm font-black text-slate-800 bg-transparent border-b border-transparent hover:border-slate-300 focus:border-teal-500 focus:bg-white outline-none px-1 py-0.5 rounded transition-all"
+                placeholder="Enter Registry Name..."
+              />
+              <p className="text-[9px] text-slate-400 font-mono">Invite link: https://hyper-bazaar.hub/wishlist/share-7913</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <span className="text-[8px] font-mono text-slate-400 block uppercase">Registry Claim Progress</span>
+                <span className="text-xs font-bold text-slate-800">
+                  {Object.keys(claimedProducts).length} item(s) claimed of {wishlistedProducts.length}
+                </span>
+              </div>
+              <div className="h-8 w-px bg-slate-200"></div>
+              <div className="text-right">
+                <span className="text-[8px] font-mono text-slate-400 block uppercase">Joint Funding Pooled</span>
+                <span className="text-xs font-mono font-black text-teal-600">
+                  ${Object.values(contributedAmounts).reduce((a, b) => a + b, 0)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div 
+              className="bg-teal-600 h-full transition-all duration-300" 
+              style={{ width: `${(Object.keys(claimedProducts).length / wishlistedProducts.length) * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
 
       {wishlistedProducts.length === 0 ? (
         <div id="wishlist-empty-slate" className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-16 px-4 bg-white text-center">
@@ -134,6 +211,45 @@ export default function WishlistView({
                   </p>
                 </div>
               </div>
+
+              {/* EVENT REGISTRY ASSIGNMENT MODULE (Feature #18) */}
+              {registryActive && (
+                <div className="mt-3 pt-2.5 border-t border-dashed border-slate-100 space-y-2 text-[10px]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400 font-medium">Registry Status:</span>
+                    {claimedProducts[product.id] ? (
+                      <span className="bg-teal-50 text-teal-700 font-bold px-1.5 py-0.5 rounded border border-teal-100 flex items-center gap-0.5">
+                        ✓ Claimed by {claimedProducts[product.id]}
+                      </span>
+                    ) : (
+                      <span className="bg-slate-50 text-slate-500 font-mono px-1.5 py-0.5 rounded border border-slate-100">
+                        Unclaimed
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => handleToggleClaim(product.id)}
+                      className="flex-1 py-1 rounded bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/60 text-center font-bold cursor-pointer hover:border-slate-300 transition-all text-[10px]"
+                    >
+                      {claimedProducts[product.id] === 'Me' ? 'Release Claim' : 'Claim Item'}
+                    </button>
+
+                    <button
+                      onClick={() => handleContributeFunds(product.id)}
+                      className="flex-1 py-1 rounded bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/60 text-center font-bold cursor-pointer hover:border-teal-300 flex justify-center items-center gap-1 transition-all text-[10px]"
+                    >
+                      <span>Pool +$20</span>
+                      {(contributedAmounts[product.id] || 0) > 0 && (
+                        <span className="font-mono text-[9px] bg-teal-600 text-white px-1 rounded-full">
+                          ${contributedAmounts[product.id]}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Product Card Bottom: Price and Add-to-cart */}
               <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">

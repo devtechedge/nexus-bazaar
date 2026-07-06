@@ -160,6 +160,39 @@ export default function Header({
             <span className="hidden sm:inline">Orders</span>
           </button>
 
+          {/* Curations */}
+          <button
+            id="nav-curations-btn"
+            onClick={() => setActiveView('curations')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              activeView === 'curations' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+            }`}
+          >
+            Curations
+          </button>
+
+          {/* Guilds */}
+          <button
+            id="nav-guilds-btn"
+            onClick={() => setActiveView('guilds')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              activeView === 'guilds' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+            }`}
+          >
+            Guilds
+          </button>
+
+          {/* Styling Lab */}
+          <button
+            id="nav-styling-btn"
+            onClick={() => setActiveView('styling')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              activeView === 'styling' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+            }`}
+          >
+            Styling Lab
+          </button>
+
           <div className="h-4 w-[1px] bg-slate-200"></div>
 
           {/* Wishlist Link */}

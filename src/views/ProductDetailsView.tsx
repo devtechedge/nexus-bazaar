@@ -39,6 +39,85 @@ export default function ProductDetailsView({
   onAddQuestion,
   onAddAnswer,
 }: ProductDetailsViewProps) {
+  // --- FEATURE #11: CO-OP POOL BUYING STATES ---
+  const [joinedPool, setJoinedPool] = React.useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const stored = localStorage.getItem(`nexus_bazaar_pool_${product.id}`);
+    return stored === 'true';
+  });
+  const [poolCount, setPoolCount] = React.useState<number>(() => {
+    const hash = product.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return (hash % 4) + 2; 
+  });
+  const [poolTimeLeft, setPoolTimeLeft] = React.useState<number>(82452); 
+  const [kvLogs, setKvLogs] = React.useState<string[]>([]);
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setPoolTimeLeft(prev => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatSeconds = (totalSec: number) => {
+    const hrs = Math.floor(totalSec / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleTogglePool = () => {
+    const nextJoined = !joinedPool;
+    setJoinedPool(nextJoined);
+    localStorage.setItem(`nexus_bazaar_pool_${product.id}`, String(nextJoined));
+    
+    const opId = `kv_op_${Date.now()}`;
+    const newLogs = [
+      `[KV] ${opId} - SADD pool:active_buyers:${product.id} -> ${currentUser.name}`,
+      `[KV] ${opId} - HSET pool:meta:${product.id} buyers_count ${poolCount + (nextJoined ? 1 : 0)}`,
+      `[KV] ${opId} - COMMIT SUCCESS (14ms)`
+    ];
+    setKvLogs(prev => [...newLogs, ...prev].slice(0, 8));
+  };
+
+  // --- FEATURE #15: PEER-TO-PEER VERIFIED RESALE STATES ---
+  const [resaleListings, setResaleListings] = React.useState<{ id: string; seller: string; condition: string; price: number; orderRef: string }[]>(() => {
+    const hash = product.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const isEven = hash % 2 === 0;
+    if (isEven) {
+      return [
+        {
+          id: `resale_${product.id}_1`,
+          seller: 'Alex (Acoustics Expert)',
+          condition: 'Mint (Used 2 weeks)',
+          price: Math.round(product.price * 0.70),
+          orderRef: `ord_orig_9921`
+        }
+      ];
+    }
+    return [];
+  });
+
+  const handleBuyUsed = (item: any) => {
+    const mockUsedProduct: Product = {
+      ...product,
+      name: `${product.name} (P2P Resale - Verified ${item.condition})`,
+      price: item.price,
+      stock: 1
+    };
+    onAddToCart(mockUsedProduct);
+    alert(`Success! Added ${mockUsedProduct.name} (Used) to cart.`);
+  };
+
+  // --- FEATURE #16: CROWDSOURCED Q&A STREAMS UPVOTE STATES ---
+  const [qaUpvotes, setQaUpvotes] = React.useState<Record<string, number>>({});
+  const handleUpvoteQa = (qaId: string) => {
+    setQaUpvotes(prev => ({
+      ...prev,
+      [qaId]: (prev[qaId] || 0) + 1
+    }));
+  };
+
   // Feature #6: Immersive Editorial Lookbook layout mode toggle
   const [editorialMode, setEditorialMode] = React.useState(false);
 
@@ -1269,6 +1348,121 @@ export default function ProductDetailsView({
             </div>
           </div>
 
+          {/* CO-OP POOL BUYING CARD (Feature #11) */}
+          <div id="coop-pool-card" className={`rounded-2xl border p-5 space-y-4 shadow-sm ${
+            editorialMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-emerald-50/45'
+          }`}>
+            <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+              <span className="text-[10px] font-bold font-mono text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                <Crown className="h-3.5 w-3.5 text-emerald-600 animate-pulse" />
+                Co-Op Pool Buying Hub
+              </span>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 uppercase animate-pulse">
+                Pool Active
+              </span>
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs text-slate-700">
+                <span>Active Pool Members:</span>
+                <span className="font-mono font-black text-emerald-700">{poolCount + (joinedPool ? 1 : 0)} joined</span>
+              </div>
+              <div className="flex justify-between text-xs text-slate-700">
+                <span>Current Discount:</span>
+                <span className="font-mono font-black text-emerald-700">25% Volume Discount</span>
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                <span>Pool Expiration Limit:</span>
+                <span>{formatSeconds(poolTimeLeft)} left</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                id="coop-join-toggle-btn"
+                onClick={handleTogglePool}
+                className={`flex-1 py-2 rounded-xl text-xs font-bold uppercase transition-colors cursor-pointer ${
+                  joinedPool 
+                    ? 'bg-rose-100 text-rose-800 border border-rose-200 hover:bg-rose-200' 
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs'
+                }`}
+              >
+                {joinedPool ? 'Leave Co-Op Pool' : 'Join Co-Op Pool (Lock -25%)'}
+              </button>
+
+              {joinedPool && (
+                <button
+                  id="coop-cart-add-btn"
+                  onClick={() => {
+                    const discountedProd: Product = {
+                      ...product,
+                      name: `${product.name} (Co-Op Pool Price Locked)`,
+                      price: Math.round(product.price * 0.75)
+                    };
+                    onAddToCart(discountedProd);
+                    alert(`Locked in 25% co-op discount! Added ${discountedProd.name} to cart.`);
+                  }}
+                  className="px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold cursor-pointer"
+                  title="Claim discount and add to cart"
+                >
+                  Claim & Add
+                </button>
+              )}
+            </div>
+
+            {/* Vercel KV Real-time State Log (Multi-user sync simulation) */}
+            {kvLogs.length > 0 && (
+              <div className="rounded-lg bg-slate-900/90 border border-slate-800 p-2 font-mono text-[8px] text-emerald-400 space-y-1">
+                <span className="text-[7px] text-slate-500 block uppercase font-bold">Vercel KV Transactions</span>
+                {kvLogs.map((log, lidx) => (
+                  <p key={lidx} className="truncate">{log}</p>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* PEER-TO-PEER VERIFIED RESALE LEDGER (Feature #15) */}
+          {resaleListings.length > 0 && (
+            <div id="p2p-resale-card" className={`rounded-2xl border p-5 space-y-3.5 shadow-sm ${
+              editorialMode ? 'border-slate-800 bg-slate-900/50' : 'border-slate-200 bg-amber-50/20'
+            }`}>
+              <div className="flex items-center justify-between border-b border-amber-100 pb-1.5">
+                <span className="text-[10px] font-bold font-mono text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                  <UserCheck className="h-3.5 w-3.5 text-amber-600" />
+                  Peer-to-Peer Resale Ledger
+                </span>
+                <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 uppercase">
+                  Verified Original
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {resaleListings.map(item => (
+                  <div key={item.id} className="flex items-center justify-between p-2 rounded-xl border border-dashed border-amber-200/60 bg-white/40">
+                    <div className="text-xs">
+                      <p className="font-bold text-slate-800">Listed by {item.seller}</p>
+                      <p className="text-[10px] text-slate-400 font-mono font-normal">Ref Purchase: {item.orderRef} • Cond: {item.condition}</p>
+                    </div>
+
+                    <div className="text-right flex items-center gap-2">
+                      <div className="leading-none">
+                        <span className="text-xs font-black text-amber-700 font-mono block">${item.price}</span>
+                        <span className="text-[8px] text-slate-400 line-through font-mono block">${product.price}</span>
+                      </div>
+
+                      <button
+                        onClick={() => handleBuyUsed(item)}
+                        className="h-7 px-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold cursor-pointer"
+                      >
+                        Buy Used
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* LIVE COUNTER-OFFER BIDDING BARTERING ENGINE (Feature #21) */}
           <div id="bidding-barter-engine" className={`rounded-2xl border p-5 space-y-4 shadow-sm ${
             editorialMode ? 'border-slate-800 bg-slate-900/60' : 'border-slate-200 bg-slate-50'
@@ -1552,6 +1746,19 @@ export default function ProductDetailsView({
             )}
           </div>
 
+          {/* STORE CREDIT LEADERBOARD (Feature #16) */}
+          <div className="rounded-xl p-3 border border-amber-100 bg-amber-50/20 space-y-2">
+            <span className="text-[9px] font-mono font-bold text-amber-800 uppercase tracking-wider block">Contributor Store Credit Leaderboard</span>
+            <div className="flex items-center justify-between text-[10px] text-slate-600">
+              <span className="font-bold flex items-center gap-1"><span className="text-amber-500">★</span> Emma (Vetted Expert)</span>
+              <span className="font-mono text-amber-800">+45 Credits earned</span>
+            </div>
+            <div className="flex items-center justify-between text-[10px] text-slate-600">
+              <span className="font-bold flex items-center gap-1"><span className="text-amber-500">★</span> Alex (Mechanical Lead)</span>
+              <span className="font-mono text-amber-800">+24 Credits earned</span>
+            </div>
+          </div>
+
           {/* List of Questions */}
           <div className="space-y-4">
             {productQas.length > 0 ? (
@@ -1559,12 +1766,21 @@ export default function ProductDetailsView({
                 <div id={`qa-item-${qa.id}`} key={qa.id} className={`rounded-2xl border p-4 space-y-3 shadow-xs ${
                   editorialMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-100 bg-white'
                 }`}>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1 text-teal-600">
-                      <HelpCircle className="h-3.5 w-3.5 shrink-0" />
-                      <span className="text-xs font-bold">{qa.question}</span>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-teal-600">
+                        <HelpCircle className="h-3.5 w-3.5 shrink-0" />
+                        <span className="text-xs font-bold">{qa.question}</span>
+                      </div>
+                      <p className="text-[9px] font-mono text-slate-500 pl-4.5">Asked by {qa.askedBy} • {qa.date}</p>
                     </div>
-                    <p className="text-[9px] font-mono text-slate-500 pl-4.5">Asked by {qa.askedBy} • {qa.date}</p>
+
+                    <button
+                      onClick={() => handleUpvoteQa(qa.id)}
+                      className="flex items-center gap-1 text-[9px] font-mono font-bold text-slate-400 hover:text-teal-600 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 cursor-pointer"
+                    >
+                      ▲ {(qaUpvotes[qa.id] || 0) + (qa.id.length % 5)}
+                    </button>
                   </div>
 
                   {qa.answer ? (
