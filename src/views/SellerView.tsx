@@ -15,7 +15,11 @@ import {
   Layers,
   Sparkles,
   Save,
-  X
+  X,
+  Radio,
+  Tv,
+  Bell,
+  Play
 } from 'lucide-react';
 import { Product, Order, User, PromoCode } from '../lib/db';
 
@@ -29,6 +33,8 @@ interface SellerViewProps {
   promoCodes: PromoCode[];
   onAddPromoCode: (code: PromoCode) => void;
   onRemovePromoCode: (code: string) => void;
+  onLaunchSellerAuction?: (productId: string, startingBid: number, durationSeconds: number) => void;
+  onBroadcastFlashClearance?: (msg: string, prodId: string) => void;
 }
 
 export default function SellerView({
@@ -41,19 +47,68 @@ export default function SellerView({
   promoCodes,
   onAddPromoCode,
   onRemovePromoCode,
+  onLaunchSellerAuction,
+  onBroadcastFlashClearance,
 }: SellerViewProps) {
   // Modal/Form toggle states
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [editingProductId, setEditingProductId] = React.useState<string | null>(null);
 
   // Seller Tabs & Vouchers State
-  const [activeTab, setActiveTab] = React.useState<'inventory' | 'vouchers' | 'metrics'>('inventory');
+  const [activeTab, setActiveTab] = React.useState<'inventory' | 'vouchers' | 'metrics' | 'broadcasts'>('inventory');
   const [voucherCode, setVoucherCode] = React.useState('');
   const [voucherDiscount, setVoucherDiscount] = React.useState(15);
   const [voucherDescription, setVoucherDescription] = React.useState('');
   const [voucherEliteOnly, setVoucherEliteOnly] = React.useState(false);
   const [voucherMinSpend, setVoucherMinSpend] = React.useState(0);
   const [voucherSuccess, setVoucherSuccess] = React.useState(false);
+
+  // --- BATCH 4 SELLER STATES & EFFECTS ---
+  const [streamProduct, setStreamProduct] = React.useState('');
+  const [streamStartBid, setStreamStartBid] = React.useState(150);
+  const [streamDuration, setStreamDuration] = React.useState(120);
+  const [isStreaming, setIsStreaming] = React.useState(false);
+  const [streamSecondsLeft, setStreamSecondsLeft] = React.useState(0);
+  
+  const [broadcastMsgText, setBroadcastMsgText] = React.useState('');
+  const [broadcastProductSelected, setBroadcastProductSelected] = React.useState('');
+  const [broadcastSuccess, setBroadcastSuccess] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!isStreaming) return;
+    if (streamSecondsLeft <= 0) {
+      setIsStreaming(false);
+      return;
+    }
+    const timer = setInterval(() => {
+      setStreamSecondsLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isStreaming, streamSecondsLeft]);
+
+  const handleStartStream = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!streamProduct) {
+      alert("Please select a valid inventory product to host a bid session.");
+      return;
+    }
+    if (onLaunchSellerAuction) {
+      onLaunchSellerAuction(streamProduct, Number(streamStartBid), Number(streamDuration));
+    }
+    setIsStreaming(true);
+    setStreamSecondsLeft(Number(streamDuration));
+  };
+
+  const handleSendBroadcast = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!broadcastMsgText.trim()) return;
+    if (onBroadcastFlashClearance) {
+      onBroadcastFlashClearance(broadcastMsgText.trim(), broadcastProductSelected);
+    }
+    setBroadcastSuccess(true);
+    setBroadcastMsgText('');
+    setTimeout(() => setBroadcastSuccess(false), 3000);
+  };
 
   // Persistent payout states
   const [withdrawnAmount, setWithdrawnAmount] = React.useState(() => {
@@ -408,11 +463,11 @@ export default function SellerView({
       </section>
 
       {/* SELLER CONTROL TABS */}
-      <div id="seller-tab-bar" className="flex border-b border-slate-100 gap-6">
+      <div id="seller-tab-bar" className="flex border-b border-slate-100 gap-6 overflow-x-auto">
         <button
           id="seller-tab-inventory"
           onClick={() => setActiveTab('inventory')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'inventory'
               ? 'border-teal-600 text-teal-600'
               : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -423,7 +478,7 @@ export default function SellerView({
         <button
           id="seller-tab-vouchers"
           onClick={() => setActiveTab('vouchers')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'vouchers'
               ? 'border-teal-600 text-teal-600'
               : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -434,13 +489,24 @@ export default function SellerView({
         <button
           id="seller-tab-metrics"
           onClick={() => setActiveTab('metrics')}
-          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer ${
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer whitespace-nowrap ${
             activeTab === 'metrics'
               ? 'border-teal-600 text-teal-600'
               : 'border-transparent text-slate-400 hover:text-slate-600'
           }`}
         >
           Earnings & Metrics
+        </button>
+        <button
+          id="seller-tab-broadcasts"
+          onClick={() => setActiveTab('broadcasts')}
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer whitespace-nowrap ${
+            activeTab === 'broadcasts'
+              ? 'border-teal-600 text-teal-600'
+              : 'border-transparent text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          🎙️ Live Studio & Broadcasts
         </button>
       </div>
 
@@ -1171,6 +1237,170 @@ export default function SellerView({
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* 31 & 36. LIVE STUDIO & BROADCASTS TAB CONTENTS */}
+      {activeTab === 'broadcasts' && (
+        <div id="seller-broadcasts-section" className="grid gap-8 md:grid-cols-12 animate-fade-in">
+          {/* LIVE STREAMING & BIDDING STUDIO (7 cols) */}
+          <div id="live-streaming-studio-card" className="md:col-span-7 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-6">
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <Radio className="h-4.5 w-4.5 text-rose-500 animate-pulse" />
+                <span>Live Stream & Auction Launchpad</span>
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">Stream high-frequency bids from verified buyers with sub-second latency simulation</p>
+            </div>
+
+            {isStreaming ? (
+              <div className="space-y-4">
+                {/* Visual live webcam simulation */}
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
+                  <div className="absolute top-4 left-4 bg-rose-600 text-white font-mono text-[9px] font-black tracking-widest uppercase px-2.5 py-1 rounded-md flex items-center gap-1 animate-pulse">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white"></span>
+                    <span>LIVE</span>
+                  </div>
+                  <div className="absolute top-4 right-4 bg-slate-800/80 backdrop-blur-xs text-white font-mono text-[9px] font-bold px-2 py-1 rounded-md">
+                    👁️ 142 watching
+                  </div>
+
+                  <div className="text-center space-y-2 z-10">
+                    <Tv className="h-12 w-12 text-slate-600 mx-auto animate-bounce" />
+                    <p className="text-[11px] text-slate-300 font-medium font-sans">Broadcast camera feed transmitting successfully...</p>
+                    <p className="text-2xl font-black text-rose-500 font-mono">
+                      {Math.floor(streamSecondsLeft / 60)}:{(streamSecondsLeft % 60).toString().padStart(2, '0')}
+                    </p>
+                  </div>
+
+                  {/* Simulated chat overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 max-h-24 overflow-y-auto space-y-1 text-[10px] font-medium text-white/90 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent p-2 rounded-lg text-left">
+                    <p><span className="text-indigo-400 font-bold">SolderKnight:</span> This spec looks super clean!</p>
+                    <p><span className="text-teal-400 font-bold">VoltVandal:</span> Bid submitted! Best price on the net.</p>
+                    <p><span className="text-amber-400 font-bold">CyberNerd_42:</span> Can you zoom on the left input ports please?</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <div>
+                    <p className="text-[10px] font-mono text-slate-400 uppercase">Selected Listing</p>
+                    <p className="text-xs font-bold text-slate-800">
+                      {products.find(p => p.id === streamProduct)?.name || "Interactive Device"}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsStreaming(false)}
+                    className="px-3.5 py-1.5 rounded-xl bg-slate-800 text-white font-bold text-xs hover:bg-slate-700 transition-colors"
+                  >
+                    Kill Stream
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleStartStream} className="space-y-4 text-xs">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-600">Select Catalog Listing</label>
+                  <select 
+                    value={streamProduct}
+                    onChange={(e) => setStreamProduct(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                  >
+                    <option value="">-- Choose Listing --</option>
+                    {sellerProducts.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} (${p.price})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid gap-4 grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-600">Starting Bid (USD)</label>
+                    <input 
+                      type="number"
+                      required
+                      min={1}
+                      value={streamStartBid}
+                      onChange={(e) => setStreamStartBid(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-600">Duration (Seconds)</label>
+                    <input 
+                      type="number"
+                      required
+                      min={10}
+                      max={600}
+                      value={streamDuration}
+                      onChange={(e) => setStreamDuration(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-black hover:brightness-110 active:scale-95 shadow-lg shadow-rose-500/10 transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-1.5"
+                >
+                  <Tv className="h-4 w-4" />
+                  <span>Launch Live Stream & Bids</span>
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* FLASH ALERT BROADCAST STATION (5 cols) */}
+          <div id="flash-alert-broadcast-card" className="md:col-span-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-5">
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <Bell className="h-4.5 w-4.5 text-amber-500" />
+                <span>Clearance Alert Broadcaster</span>
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">Broadcast instant notification updates to all customers browsing the bazaar</p>
+            </div>
+
+            {broadcastSuccess && (
+              <div className="rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs p-4 font-medium animate-fade-in">
+                ✓ Live Broadcast Alert successfully transmitted and delivered to watchers!
+              </div>
+            )}
+
+            <form onSubmit={handleSendBroadcast} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Link Product Deal</label>
+                <select 
+                  value={broadcastProductSelected}
+                  onChange={(e) => setBroadcastProductSelected(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                >
+                  <option value="">-- Choose Product (Optional) --</option>
+                  {sellerProducts.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-600">Broadcast Message</label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="e.g. ⚠️ Flash Clearance: AuraSound Headsets are currently running 40% OFF starting right now! Only 3 left!"
+                  value={broadcastMsgText}
+                  onChange={(e) => setBroadcastMsgText(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:border-teal-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-black shadow-md shadow-amber-500/15 active:scale-95 transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-1.5"
+              >
+                <Radio className="h-4 w-4" />
+                <span>Transmit Broadcast Alert</span>
+              </button>
+            </form>
+          </div>
         </div>
       )}
 

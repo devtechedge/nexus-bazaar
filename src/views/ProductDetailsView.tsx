@@ -24,6 +24,8 @@ interface ProductDetailsViewProps {
   onAddReview: (productId: string, rating: number, title: string, text: string) => void;
   onAddQuestion: (productId: string, question: string) => void;
   onAddAnswer: (qaId: string, answer: string) => void;
+  onPlayPodcast?: (product: Product) => void;
+  podcastPlaying?: boolean;
 }
 
 export default function ProductDetailsView({
@@ -38,6 +40,8 @@ export default function ProductDetailsView({
   onAddReview,
   onAddQuestion,
   onAddAnswer,
+  onPlayPodcast,
+  podcastPlaying = false,
 }: ProductDetailsViewProps) {
   // --- FEATURE #11: CO-OP POOL BUYING STATES ---
   const [joinedPool, setJoinedPool] = React.useState<boolean>(() => {
@@ -122,8 +126,25 @@ export default function ProductDetailsView({
   const [editorialMode, setEditorialMode] = React.useState(false);
 
   // Specifications Tabs Panel
-  // 'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku'
-  const [techTab, setTechTab] = React.useState<'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku'>('parametric');
+  // 'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku' | 'demo' | 'unboxing' | 'compare' | 'lighting'
+  const [techTab, setTechTab] = React.useState<'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku' | 'demo' | 'unboxing' | 'compare' | 'lighting'>('parametric');
+
+  // --- BATCH 4 PRODUCT DETAILS INTERACTIVE STATES ---
+  const [demoVolume, setDemoVolume] = React.useState(50);
+  const [demoAncEnabled, setDemoAncEnabled] = React.useState(false);
+  const [demoUsbConnected, setDemoUsbConnected] = React.useState(false);
+  const [demoBatteryPct, setDemoBatteryPct] = React.useState(62);
+
+  const [unboxedSleeve, setUnboxedSleeve] = React.useState(false);
+  const [unboxedLid, setUnboxedLid] = React.useState(false);
+  const [unboxedTray, setUnboxedTray] = React.useState(false);
+
+  const [compareSplitX, setCompareSplitX] = React.useState(50);
+  const [activeLighting, setActiveLighting] = React.useState<'studio' | 'neon' | 'daylight' | 'stealth'>('studio');
+
+  // --- FEATURE #32: TIME-STAMPED VIDEO REVIEW STATES ---
+  const [reviewVideoPlaying, setReviewVideoPlaying] = React.useState(false);
+  const [reviewVideoTime, setReviewVideoTime] = React.useState(10);
 
   // --- FEATURE #21: AUTOREPLENISH PARAMETRIC SUBSCRIPTION STATES ---
   const [purchaseMode, setPurchaseMode] = React.useState<'onetime' | 'replenish'>('onetime');
@@ -824,6 +845,50 @@ export default function ProductDetailsView({
     return { stars, count: matchingCount, pct };
   });
 
+  // --- FEATURE #32: TIME-STAMPED VIDEO REVIEW SNIPPET PARSER ---
+  const renderReviewText = (text: string) => {
+    const parts = text.split(/(\[0:10\]|\[0:35\]|\[1:15\])/g);
+    return parts.map((part, index) => {
+      if (part === '[0:10]') {
+        return (
+          <button
+            key={index}
+            type="button"
+            onClick={() => { setReviewVideoTime(10); setReviewVideoPlaying(true); }}
+            className="mx-1 px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 font-mono text-[10px] border border-purple-800/40 hover:bg-purple-900 transition-colors cursor-pointer inline-flex items-center gap-0.5 font-bold"
+          >
+            <Play className="h-2.5 w-2.5 fill-current" /> 0:10
+          </button>
+        );
+      }
+      if (part === '[0:35]') {
+        return (
+          <button
+            key={index}
+            type="button"
+            onClick={() => { setReviewVideoTime(35); setReviewVideoPlaying(true); }}
+            className="mx-1 px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 font-mono text-[10px] border border-purple-800/40 hover:bg-purple-900 transition-colors cursor-pointer inline-flex items-center gap-0.5 font-bold"
+          >
+            <Play className="h-2.5 w-2.5 fill-current" /> 0:35
+          </button>
+        );
+      }
+      if (part === '[1:15]') {
+        return (
+          <button
+            key={index}
+            type="button"
+            onClick={() => { setReviewVideoTime(75); setReviewVideoPlaying(true); }}
+            className="mx-1 px-1.5 py-0.5 rounded bg-purple-950 text-purple-300 font-mono text-[10px] border border-purple-800/40 hover:bg-purple-900 transition-colors cursor-pointer inline-flex items-center gap-0.5 font-bold"
+          >
+            <Play className="h-2.5 w-2.5 fill-current" /> 1:15
+          </button>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   return (
     <div id="product-details-view" className={`pb-16 space-y-12 transition-all duration-500 rounded-3xl ${
       editorialMode 
@@ -977,6 +1042,50 @@ export default function ProductDetailsView({
                   }`}
                 >
                   SKU Ledger
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('demo')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'demo' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  🎛️ Micro-Demo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('unboxing')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'unboxing' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  📦 Unboxing
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('compare')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'compare' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  ↔ Split Compare
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('lighting')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'lighting' 
+                      ? 'bg-purple-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  💡 Lighting
                 </button>
               </div>
             </div>
@@ -1481,6 +1590,362 @@ export default function ProductDetailsView({
                 </motion.div>
               )}
 
+              {/* FEATURE #33: DYNAMIC INTERACTIVE MICRO-DEMO */}
+              {techTab === 'demo' && (
+                <motion.div
+                  key="tab-demo"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Interact directly with the mock hardware controls below to test Active Noise Cancellation filters, volume attenuator scrolls, or rapid USB-C fast-charging speeds on this {product.name}.
+                  </p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Device schematic visualization with interactive hotspots */}
+                    <div className="relative rounded-2xl border border-slate-800 bg-slate-950 p-4 min-h-[180px] flex flex-col justify-between overflow-hidden">
+                      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(147,51,234,0.06),transparent_70%)]" />
+                      
+                      <div className="flex justify-between items-center text-[8px] font-mono text-slate-500 z-10">
+                        <span>SCHEM_MODEL: V-GEN4_SYS</span>
+                        <span className="text-purple-400 animate-pulse">● LIVE INTERACTION READY</span>
+                      </div>
+
+                      {/* Mock hardware vector lines */}
+                      <div className="relative my-4 flex justify-center items-center h-28">
+                        <div className="absolute w-24 h-24 rounded-full border border-dashed border-purple-500/30 flex items-center justify-center animate-spin-slow">
+                          <div className="w-16 h-16 rounded-full border border-purple-500/20" />
+                        </div>
+                        {/* Interactive overlays based on selected specs */}
+                        <div className={`absolute px-3 py-1.5 rounded-lg border text-[10px] font-mono z-10 transition-all ${
+                          demoAncEnabled ? 'border-emerald-500 bg-emerald-950/40 text-emerald-400' : 'border-purple-900 bg-slate-900/60 text-slate-400'
+                        }`}>
+                          {demoAncEnabled ? '🛡️ ANC FILTER: HIGH' : '🔊 PASS-THROUGH MODE'}
+                        </div>
+
+                        {demoUsbConnected && (
+                          <div className="absolute bottom-1 bg-yellow-950 border border-yellow-700 text-yellow-400 rounded px-1.5 py-0.5 text-[8px] font-mono uppercase tracking-widest animate-bounce">
+                            ⚡ Charging: {demoBatteryPct}%
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-[8px] font-mono text-slate-500 text-right z-10">
+                        ATTENUATOR VOL LEVEL: {demoVolume}%
+                      </div>
+                    </div>
+
+                    {/* Controls Panel */}
+                    <div className="space-y-3 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs font-mono text-slate-300">
+                      <span className="text-[9px] font-bold text-purple-400 uppercase tracking-widest block border-b border-slate-800 pb-1.5 mb-2">Attenuator Control Nodes</span>
+                      
+                      {/* Control 1: ANC Toggle */}
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-bold text-[11px] text-white">Active Noise Cancellation</p>
+                          <p className="text-[9px] text-slate-500">Toggle isolation filters</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setDemoAncEnabled(!demoAncEnabled)}
+                          className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all ${
+                            demoAncEnabled ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          {demoAncEnabled ? 'Active' : 'Muted'}
+                        </button>
+                      </div>
+
+                      {/* Control 2: Volume dial slider */}
+                      <div className="space-y-1.5 pt-1">
+                        <div className="flex justify-between">
+                          <span>Attenuator Volume Roll</span>
+                          <strong className="text-purple-400">{demoVolume}%</strong>
+                        </div>
+                        <input
+                          type="range" min="0" max="100" value={demoVolume}
+                          onChange={(e) => setDemoVolume(Number(e.target.value))}
+                          className="w-full accent-purple-500 cursor-pointer h-1 bg-slate-800 rounded-lg appearance-none"
+                        />
+                      </div>
+
+                      {/* Control 3: Plug USB-C */}
+                      <div className="flex justify-between items-center pt-2 border-t border-slate-800">
+                        <div>
+                          <p className="font-bold text-[11px] text-white">USB-C Power Deliver</p>
+                          <p className="text-[9px] text-slate-500">{demoUsbConnected ? '18W Fast Charging' : 'Mains disconnected'}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDemoUsbConnected(!demoUsbConnected);
+                            if (!demoUsbConnected) {
+                              setDemoBatteryPct(62);
+                              const intv = setInterval(() => {
+                                setDemoBatteryPct(p => Math.min(100, p + 1));
+                              }, 800);
+                              setTimeout(() => clearInterval(intv), 10000);
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all ${
+                            demoUsbConnected ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          {demoUsbConnected ? 'Unplug' : 'Plug In'}
+                        </button>
+                      </div>
+
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* FEATURE #37: INTERACTIVE UNBOXING TIMELINES */}
+              {techTab === 'unboxing' && (
+                <motion.div
+                  key="tab-unboxing"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Peel back the layers of this premium delivery box using our interactive sequence to verify absolute shipment packaging authenticity.
+                  </p>
+
+                  <div className="bg-slate-950 rounded-2xl border border-slate-800 p-4 space-y-4 font-mono text-[10.5px]">
+                    <div className="relative border-l border-purple-500/30 ml-4 pl-6 space-y-6 py-2">
+                      
+                      {/* Step 1: bio peel */}
+                      <div className="relative text-left">
+                        <div className={`absolute -left-9.5 top-0.5 h-6 w-6 rounded-full border flex items-center justify-center transition-colors ${
+                          unboxedSleeve ? 'bg-emerald-500 border-emerald-400 text-slate-950' : 'bg-slate-900 border-slate-700 text-slate-400'
+                        }`}>
+                          1
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-white text-[11px]">Unwrap Biodegradable Polymer Sleeve</h5>
+                          <p className="text-[9.5px] text-slate-400">Protects outer carton casing from moisture and static charge.</p>
+                          <button
+                            type="button"
+                            onClick={() => setUnboxedSleeve(!unboxedSleeve)}
+                            className="px-2.5 py-1 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-[9px] font-bold rounded-lg text-teal-400 mt-1 cursor-pointer"
+                          >
+                            {unboxedSleeve ? '✓ Sleeve Peeled' : 'Peel Outer Protection'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Step 2: lid lift */}
+                      <div className="relative text-left">
+                        <div className={`absolute -left-9.5 top-0.5 h-6 w-6 rounded-full border flex items-center justify-center transition-colors ${
+                          unboxedLid ? 'bg-emerald-500 border-emerald-400 text-slate-950' : 'bg-slate-900 border-slate-700 text-slate-400'
+                        }`}>
+                          2
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-white text-[11px]">Matte Charcoal Heavyweight Cardboard Lid Lift</h5>
+                          <p className="text-[9.5px] text-slate-400">Fitted friction seal releases slowly with signature airtight sound.</p>
+                          <button
+                            type="button"
+                            disabled={!unboxedSleeve}
+                            onClick={() => setUnboxedLid(!unboxedLid)}
+                            className={`px-2.5 py-1 border text-[9px] font-bold rounded-lg mt-1 cursor-pointer ${
+                              !unboxedSleeve ? 'bg-slate-950 border-slate-900 text-slate-600 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-teal-400'
+                            }`}
+                          >
+                            {unboxedLid ? '✓ Lid Released' : 'Slide Lid Open'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Step 3: molded tray */}
+                      <div className="relative text-left">
+                        <div className={`absolute -left-9.5 top-0.5 h-6 w-6 rounded-full border flex items-center justify-center transition-colors ${
+                          unboxedTray ? 'bg-emerald-500 border-emerald-400 text-slate-950' : 'bg-slate-900 border-slate-700 text-slate-400'
+                        }`}>
+                          3
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-white text-[11px]">Recycled Plant-Fiber Device Bed Extraction</h5>
+                          <p className="text-[9.5px] text-slate-400">Presents the core hardware element cleanly with accessories nested safely below.</p>
+                          <button
+                            type="button"
+                            disabled={!unboxedLid}
+                            onClick={() => {
+                              setUnboxedTray(!unboxedTray);
+                              if (!unboxedTray) alert(`✨ Packaging complete! You have revealed the pristine hardware casing of the ${product.name}!`);
+                            }}
+                            className={`px-2.5 py-1 border text-[9px] font-bold rounded-lg mt-1 cursor-pointer ${
+                              !unboxedLid ? 'bg-slate-950 border-slate-900 text-slate-600 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-teal-400'
+                            }`}
+                          >
+                            {unboxedTray ? '✓ Device Revealed' : 'Lift Device from Mold'}
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* FEATURE #38: COMPARATIVE VIDEO SPLIT-SCREENS */}
+              {techTab === 'compare' && (
+                <motion.div
+                  key="tab-compare"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal font-sans text-left">
+                    Drag the interactive comparison slider below to inspect split-screen rendering improvements of standard SDR vs advanced Ultra-HDR color spectrums side-by-side in real-time.
+                  </p>
+
+                  <div className="relative rounded-2xl border border-slate-800 bg-slate-950 aspect-video overflow-hidden flex items-center justify-center select-none">
+                    
+                    {/* Left Layer: SDR standard (Faded/Grayed) */}
+                    <div className="absolute inset-0 bg-slate-900 flex items-center justify-center text-center p-6 text-slate-500 font-mono text-[10px]">
+                      <div className="space-y-2">
+                        <p className="font-extrabold text-sm uppercase tracking-wider text-slate-400 opacity-65">Standard SDR Filter</p>
+                        <p className="text-[9px]">Saturated Color Gamut: Rec. 709 (Limited)</p>
+                        <p className="text-[9px]">Dynamic Peak Luminance: 120 Nits</p>
+                      </div>
+                    </div>
+
+                    {/* Right Layer: Ultra HDR overlay clipping */}
+                    <div 
+                      className="absolute top-0 bottom-0 right-0 overflow-hidden bg-gradient-to-tr from-purple-950 via-slate-900 to-teal-950 border-l-2 border-purple-400 flex items-center justify-center text-center p-6 text-white font-mono text-[10px]"
+                      style={{ left: `${compareSplitX}%` }}
+                    >
+                      {/* Offset container so content doesn't squeeze as left moves */}
+                      <div className="absolute w-full h-full inset-0 flex items-center justify-center p-6" style={{ width: '400px', right: 0 }}>
+                        <div className="space-y-2 text-center">
+                          <p className="font-black text-sm uppercase tracking-wider text-purple-400 animate-pulse">Ultra-HDR Enhanced Spectrum</p>
+                          <p className="text-[9px]">Expanded Wide Color Gamut: DCI-P3 (10-bit)</p>
+                          <p className="text-[9px]">Max Peak Luminance: 1400 Nits</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Slider overlay control bar input */}
+                    <input 
+                      type="range" min="0" max="100" value={compareSplitX}
+                      onChange={(e) => setCompareSplitX(Number(e.target.value))}
+                      className="absolute inset-0 opacity-0 cursor-ew-resize w-full h-full z-40"
+                    />
+
+                    {/* Slider thumb handle decoration overlay */}
+                    <div 
+                      className="absolute top-0 bottom-0 w-1 bg-purple-400 pointer-events-none z-30 flex items-center justify-center"
+                      style={{ left: `${compareSplitX}%`, transform: 'translateX(-50%)' }}
+                    >
+                      <div className="h-7 w-7 rounded-full bg-purple-500 border-2 border-purple-300 shadow-lg text-white font-bold flex items-center justify-center text-[10px]">
+                        ↔
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between font-mono text-[9px] text-slate-500 bg-slate-950/40 p-2 rounded-xl border border-slate-800">
+                    <span>SPLIT DISPLACEMENT: {compareSplitX}%</span>
+                    <span>ACTIVE EVALUATION MODULE</span>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* FEATURE #39: IMMERSIVE 360-DEGREE LIGHTING SIMULATORS */}
+              {techTab === 'lighting' && (
+                <motion.div
+                  key="tab-lighting"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4 font-sans text-left"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Adjust the studio light parameters below to project custom virtual ambient light filters onto our real-time product preview casing.
+                  </p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Simulated light-responsive card */}
+                    <div className={`relative rounded-2xl border p-6 min-h-[160px] flex flex-col justify-between transition-all duration-700 ease-in-out ${
+                      activeLighting === 'studio' 
+                        ? 'bg-gradient-to-br from-amber-950 via-slate-950 to-amber-950/80 border-amber-900/40 shadow-[0_0_20px_rgba(245,158,11,0.15)] text-white' 
+                        : activeLighting === 'neon'
+                        ? 'bg-gradient-to-br from-indigo-950 via-slate-950 to-pink-950 border-purple-900/40 shadow-[0_0_20px_rgba(168,85,247,0.18)] text-white'
+                        : activeLighting === 'daylight'
+                        ? 'bg-gradient-to-br from-slate-100 via-white to-slate-200 border-slate-200 shadow-[0_0_20px_rgba(148,163,184,0.1)] text-slate-800'
+                        : 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 border-slate-800 shadow-none text-slate-300'
+                    }`}>
+                      <div className="text-[8px] font-mono opacity-50 uppercase tracking-widest">
+                        Studio Filter Output: {activeLighting}
+                      </div>
+
+                      <div className="text-center my-2">
+                        <img 
+                          src={product.image} 
+                          alt={product.name} 
+                          className="h-20 w-20 object-contain mx-auto mix-blend-screen transition-transform duration-500 hover:rotate-6" 
+                        />
+                      </div>
+
+                      <p className="font-bold text-xs text-center tracking-tight leading-none">
+                        {product.name} ({activeLighting.toUpperCase()} GLOW)
+                      </p>
+                    </div>
+
+                    {/* Lighting selector buttons */}
+                    <div className="space-y-3 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs font-mono text-slate-300">
+                      <span className="text-[9px] font-bold text-teal-400 uppercase tracking-widest block border-b border-slate-800 pb-1.5 mb-2">Select Studio Preset</span>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setActiveLighting('studio')}
+                          className={`py-2 rounded-xl text-[10px] font-bold transition-all uppercase ${
+                            activeLighting === 'studio' ? 'bg-amber-600 text-white font-extrabold shadow-md' : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          Studio Gold
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveLighting('neon')}
+                          className={`py-2 rounded-xl text-[10px] font-bold transition-all uppercase ${
+                            activeLighting === 'neon' ? 'bg-purple-600 text-white font-extrabold shadow-md' : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          Cyber Neon
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveLighting('daylight')}
+                          className={`py-2 rounded-xl text-[10px] font-bold transition-all uppercase ${
+                            activeLighting === 'daylight' ? 'bg-slate-100 text-slate-800 font-extrabold shadow-md' : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          Daylight White
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveLighting('stealth')}
+                          className={`py-2 rounded-xl text-[10px] font-bold transition-all uppercase ${
+                            activeLighting === 'stealth' ? 'bg-slate-800 text-slate-300 font-extrabold shadow-md' : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          Midnight Gray
+                        </button>
+                      </div>
+
+                      <p className="text-[8.5px] text-slate-500 leading-normal font-sans pt-1">Glow presets dynamically calculate reflection shading variables to display casing textures.</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
             </AnimatePresence>
           </div>
         </div>
@@ -1677,6 +2142,50 @@ export default function ProductDetailsView({
                 </span>
               </button>
             </div>
+          </div>
+
+          {/* FEATURE #40: AUDIO-GUIDED PRODUCT DEEP-DIVE CARD */}
+          <div id="audio-deepdive-guide-card" className={`rounded-2xl border p-5 space-y-4 shadow-sm ${
+            editorialMode ? 'border-slate-800 bg-slate-900/40' : 'border-slate-200 bg-indigo-50/40'
+          }`}>
+            <div className="flex items-center justify-between border-b border-indigo-100/50 pb-2">
+              <span className="text-[10px] font-bold font-mono text-indigo-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Volume2 className="h-4 w-4 text-indigo-600" />
+                Acoustic Research & Audio Guide
+              </span>
+              <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded uppercase ${
+                podcastPlaying ? 'bg-emerald-100 text-emerald-800 animate-pulse' : 'bg-indigo-100 text-indigo-800'
+              }`}>
+                {podcastPlaying ? 'Playing' : 'Audio Ready'}
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Listen to our expert-guided 3-minute technical audio analysis. This guide covers detailed materials telemetry, mechanical dial tolerances, and acoustic wave absorption metrics for the {product.name}.
+            </p>
+
+            <button
+              id="play-podcast-deepdive-btn"
+              type="button"
+              onClick={() => onPlayPodcast?.(product)}
+              className={`w-full py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 border ${
+                podcastPlaying 
+                  ? 'bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-200' 
+                  : 'bg-indigo-600 text-white border-transparent hover:bg-indigo-700 shadow-xs'
+              }`}
+            >
+              {podcastPlaying ? (
+                <>
+                  <Square className="h-3.5 w-3.5 fill-current" />
+                  <span>Stop Guided Commentary</span>
+                </>
+              ) : (
+                <>
+                  <Play className="h-3.5 w-3.5 fill-current" />
+                  <span>Start Technical Podcast Guide (3:00)</span>
+                </>
+              )}
+            </button>
           </div>
 
           {/* CO-OP POOL BUYING CARD (Feature #11) */}
@@ -1934,6 +2443,121 @@ export default function ProductDetailsView({
             </div>
           )}
 
+          {/* FEATURE #32: TIME-STAMPED VIDEO DEMONSTRATION ATTACHMENT */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3.5 shadow-md">
+            <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+              <span className="text-[10px] font-bold font-mono text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Play className="h-3.5 w-3.5 text-purple-500 fill-current" />
+                Attached Demonstration Reel: Audio/Visual Specifications
+              </span>
+              <span className="text-[8px] font-mono bg-purple-950 text-purple-300 border border-purple-800/40 px-1.5 py-0.5 rounded uppercase">
+                Interactive Timestamps Enabled
+              </span>
+            </div>
+
+            {/* Simulated Video Feed Frame */}
+            <div className="relative aspect-video rounded-xl bg-slate-900 border border-slate-800 overflow-hidden flex flex-col justify-between p-4 select-none">
+              {/* Dynamic video overlay graphics representing timeline seconds */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/40 pointer-events-none" />
+              
+              {/* Spinning/pulsing graphic simulating video state */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                {reviewVideoPlaying ? (
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute h-20 w-20 rounded-full border-2 border-purple-500/20 animate-ping" />
+                    <Disc className="h-12 w-12 text-purple-400/85 animate-spin" style={{ animationDuration: '3s' }} />
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 rounded-full bg-black/60 border border-slate-750 flex items-center justify-center text-purple-400 backdrop-blur-xs">
+                    <Play className="h-6 w-6 fill-current ml-1" />
+                  </div>
+                )}
+              </div>
+
+              {/* Top HUD bar */}
+              <div className="flex justify-between items-start z-10 font-mono text-[9px] text-slate-400">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                  <span>RESOL: 2160p ULTRA-HD</span>
+                </div>
+                <span>FPS: 60.00</span>
+              </div>
+
+              {/* Lower HUD status/overlay text showing content based on timestamp */}
+              <div className="z-10 text-center text-[11px] font-bold text-slate-100 tracking-wide bg-black/50 py-1.5 px-3 rounded-lg border border-white/5 backdrop-blur-xs self-center">
+                {reviewVideoTime < 15 ? (
+                  <span>📦 [0:10] - Initial Outer Packaging & Casing Weight Audit</span>
+                ) : reviewVideoTime >= 15 && reviewVideoTime < 45 ? (
+                  <span>🎛️ [0:35] - Attenuator Knob Friction Sweep & Dial Resistances</span>
+                ) : (
+                  <span>🛡️ [1:15] - Active Noise Isolation Chamber Testing & Sound Graphs</span>
+                )}
+              </div>
+
+              {/* Footer controls */}
+              <div className="z-10 space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-mono text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setReviewVideoPlaying(!reviewVideoPlaying)}
+                      className="text-purple-400 hover:text-purple-300 font-extrabold uppercase transition-colors cursor-pointer"
+                    >
+                      {reviewVideoPlaying ? 'Pause Video' : 'Play Video'}
+                    </button>
+                    <span>|</span>
+                    <span>0:{reviewVideoTime.toString().padStart(2, '0')} / 1:30</span>
+                  </div>
+                  <span className="text-slate-500">SEEK_FRAME: #{(reviewVideoTime * 60).toString().padStart(4, '0')}</span>
+                </div>
+
+                {/* Timeline slider */}
+                <input
+                  type="range"
+                  min="0"
+                  max="90"
+                  value={reviewVideoTime}
+                  onChange={(e) => setReviewVideoTime(Number(e.target.value))}
+                  className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg cursor-pointer appearance-none"
+                />
+              </div>
+            </div>
+
+            {/* Quick jump highlights board */}
+            <div className="grid grid-cols-3 gap-2 font-mono text-[9px]">
+              <button
+                type="button"
+                onClick={() => { setReviewVideoTime(10); setReviewVideoPlaying(true); }}
+                className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                  reviewVideoTime < 15 ? 'border-purple-500 bg-purple-950/20 text-purple-300 font-bold' : 'border-slate-850 bg-slate-900 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span className="block text-[8px] text-slate-500 mb-0.5">STEP 1 (0:10)</span>
+                Unboxing Frame
+              </button>
+              <button
+                type="button"
+                onClick={() => { setReviewVideoTime(35); setReviewVideoPlaying(true); }}
+                className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                  reviewVideoTime >= 15 && reviewVideoTime < 45 ? 'border-purple-500 bg-purple-950/20 text-purple-300 font-bold' : 'border-slate-850 bg-slate-900 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span className="block text-[8px] text-slate-500 mb-0.5">STEP 2 (0:35)</span>
+                Attenuator Sweep
+              </button>
+              <button
+                type="button"
+                onClick={() => { setReviewVideoTime(75); setReviewVideoPlaying(true); }}
+                className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                  reviewVideoTime >= 45 ? 'border-purple-500 bg-purple-950/20 text-purple-300 font-bold' : 'border-slate-850 bg-slate-900 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <span className="block text-[8px] text-slate-500 mb-0.5">STEP 3 (1:15)</span>
+                Noise Isolation
+              </button>
+            </div>
+          </div>
+
           {/* List of Reviews */}
           <div className="space-y-4">
             {productReviews.length > 0 ? (
@@ -1959,7 +2583,7 @@ export default function ProductDetailsView({
                   </div>
 
                   <h4 className="text-xs font-bold">{rev.title}</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">{rev.text}</p>
+                  <p className="text-xs text-slate-400 leading-relaxed">{renderReviewText(rev.text)}</p>
                 </div>
               ))
             ) : (

@@ -300,7 +300,7 @@ export const initialReviews: Review[] = [
     userName: 'Jane Doe',
     rating: 5,
     title: 'Absolute game changer!',
-    text: 'I use these for 8 hours a day in a busy open-plan office. The noise cancellation is magical. Soundstage is wide and punchy.',
+    text: 'The unboxing experience is phenomenal [0:10] and is a complete game changer! I use these for 8 hours a day in a busy open-plan office. The noise cancellation is magical. Soundstage is wide and punchy.',
     date: '2026-06-12',
   },
   {
@@ -309,7 +309,7 @@ export const initialReviews: Review[] = [
     userName: 'Alex Carter',
     rating: 4,
     title: 'Superb sound, minor headband tightness',
-    text: 'Audio profile is gorgeous. Bass is deep without muddying mids. It gets slightly tight around my ears after about 3 hours, but otherwise flawless.',
+    text: 'Audio profile is gorgeous. The volume attenuator dial [0:35] turns with incredible tactile resistance. Bass is deep without muddying mids. It gets slightly tight around my ears after about 3 hours, but otherwise flawless.',
     date: '2026-06-25',
   },
   {
@@ -318,7 +318,7 @@ export const initialReviews: Review[] = [
     userName: 'Sam Miller',
     rating: 5,
     title: 'Unbelievable Battery Life',
-    text: 'Truly hits the 45 hours claimed. I only charge it once every two weeks! High quality build, nice premium hard case included.',
+    text: 'Truly hits the 45 hours claimed. In our acoustic chamber isolation sweep [1:15], noise absorption was absolutely state-of-the-art! High quality build, nice premium hard case included.',
     date: '2026-07-01',
   },
   {

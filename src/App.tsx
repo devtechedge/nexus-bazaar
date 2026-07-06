@@ -32,12 +32,57 @@ import GuildsView from './views/GuildsView';
 import StylingRoomView from './views/StylingRoomView';
 import CurationsView from './views/CurationsView';
 import ConciergeChatbot from './components/ConciergeChatbot';
-import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { ShieldAlert, RefreshCw, Radio, Bell, Volume2, Play, Square, X as CloseIcon } from 'lucide-react';
+
+export interface LiveAuction {
+  id: string;
+  sellerName: string;
+  product: Product;
+  currentBid: number;
+  highestBidder: string;
+  timeLeft: number;
+  bidsCount: number;
+  isCompleted?: boolean;
+}
 
 export default function App() {
   // 1. Core State loaded from simulated database
   const [dbState, setDbState] = React.useState<DatabaseState>(() => loadDatabase());
   const [currentUser, setCurrentUser] = React.useState<User>(() => getActiveUser(dbState.users));
+
+  // --- BATCH 4 STATES ---
+  const [liveAuctions, setLiveAuctions] = React.useState<LiveAuction[]>(() => {
+    // Initial seeded auctions
+    return [
+      {
+        id: 'auction_1',
+        sellerName: 'AuraSound Labs',
+        product: dbState.products.find(p => p.id === 'prod_1') || dbState.products[0],
+        currentBid: 180,
+        highestBidder: 'SolderKnight',
+        timeLeft: 120, // seconds left
+        bidsCount: 12,
+        isCompleted: false
+      },
+      {
+        id: 'auction_2',
+        sellerName: 'CoreGrip Inc',
+        product: dbState.products.find(p => p.id === 'prod_2') || dbState.products[1] || dbState.products[0],
+        currentBid: 95,
+        highestBidder: 'CyberNerd_42',
+        timeLeft: 195,
+        bidsCount: 8,
+        isCompleted: false
+      }
+    ];
+  });
+
+  const [broadcastNotification, setBroadcastNotification] = React.useState<string | null>(null);
+  const [broadcastProductId, setBroadcastProductId] = React.useState<string | null>(null);
+  
+  const [activePodcastProduct, setActivePodcastProduct] = React.useState<Product | null>(null);
+  const [podcastPlaying, setPodcastPlaying] = React.useState<boolean>(false);
+  const [podcastTime, setPodcastTime] = React.useState<number>(15); // mock current playback position
 
   // 2. Shopping Cart and Wishlist client states
   const [cart, setCart] = React.useState<{ productId: string; quantity: number }[]>(() => {
@@ -68,6 +113,111 @@ export default function App() {
   React.useEffect(() => {
     localStorage.setItem('nexus_bazaar_wishlist', JSON.stringify(wishlist));
   }, [wishlist]);
+
+  // --- BATCH 4 REAL-TIME PROCESSORS ---
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      // 1. Decrement and bid on live auctions
+      setLiveAuctions((prev) =>
+        prev.map((auc) => {
+          if (auc.timeLeft <= 0) {
+            if (!auc.isCompleted) {
+              const isUserWinner = auc.highestBidder === currentUser.name;
+              if (isUserWinner) {
+                setTimeout(() => {
+                  alert(`🏆 CONGRATULATIONS! You won the live auction for "${auc.product.name}" at $${auc.currentBid}! We have added this special rate win directly to your shopping cart.`);
+                  handleAddToCart({
+                    ...auc.product,
+                    name: `${auc.product.name} (Live Auction Winner Rate)`,
+                    price: auc.currentBid,
+                  });
+                }, 100);
+              }
+              return { ...auc, timeLeft: 0, isCompleted: true };
+            }
+            return auc;
+          }
+
+          // Real-time sub-second/multi-second bid update simulation (KV-backed high-frequency emulation)
+          let nextBid = auc.currentBid;
+          let nextBidder = auc.highestBidder;
+          let nextCount = auc.bidsCount;
+
+          if (Math.random() < 0.12 && auc.timeLeft > 3) {
+            const increment = Math.floor(Math.random() * 8 + 4);
+            nextBid += increment;
+            const bidders = ['SolderKnight', 'CyberNerd_42', 'CircuitWeaver', 'ResistorRanger', 'DiodesGalore', 'VoltVandal', 'AlloyAlchemist'];
+            const eligibleBidders = bidders.filter(b => b !== currentUser.name);
+            nextBidder = eligibleBidders[Math.floor(Math.random() * eligibleBidders.length)];
+            nextCount += 1;
+          }
+
+          return {
+            ...auc,
+            timeLeft: auc.timeLeft - 1,
+            currentBid: nextBid,
+            highestBidder: nextBidder,
+            bidsCount: nextCount,
+          };
+        })
+      );
+
+      // 2. Increment active podcast track playtimer
+      if (podcastPlaying) {
+        setPodcastTime((prev) => (prev >= 175 ? 0 : prev + 1));
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [currentUser.name, podcastPlaying]);
+
+  const handlePlaceAuctionBid = (auctionId: string, bidAmount: number) => {
+    setLiveAuctions((prev) =>
+      prev.map((auc) => {
+        if (auc.id === auctionId) {
+          if (bidAmount <= auc.currentBid) {
+            alert(`Unable to commit bid: your offer of $${bidAmount} must exceed the current highest offer of $${auc.currentBid}.`);
+            return auc;
+          }
+          return {
+            ...auc,
+            currentBid: bidAmount,
+            highestBidder: currentUser.name,
+            bidsCount: auc.bidsCount + 1,
+          };
+        }
+        return auc;
+      })
+    );
+  };
+
+  const handleLaunchSellerAuction = (productId: string, startingBid: number, durationSeconds: number) => {
+    const prod = dbState.products.find((p) => p.id === productId);
+    if (!prod) return;
+
+    const newAuction: LiveAuction = {
+      id: `auction_${Date.now()}`,
+      sellerName: currentUser.name,
+      product: prod,
+      currentBid: startingBid,
+      highestBidder: 'Reserve Rate Set',
+      timeLeft: durationSeconds,
+      bidsCount: 0,
+      isCompleted: false
+    };
+
+    setLiveAuctions((prev) => [newAuction, ...prev]);
+  };
+
+  const handleBroadcastFlashClearance = (msg: string, prodId: string) => {
+    setBroadcastNotification(msg);
+    setBroadcastProductId(prodId);
+    // Auto clear after 8 seconds
+    setTimeout(() => {
+      setBroadcastNotification(null);
+      setBroadcastProductId(null);
+    }, 8000);
+  };
 
   // Save full state on db changes
   const updateDbState = (updater: (prev: DatabaseState) => DatabaseState) => {
@@ -395,6 +545,8 @@ export default function App() {
             promoCodes={dbState.promoCodes}
             setActiveView={setActiveView}
             onToggleElite={handleToggleSelfElite}
+            liveAuctions={liveAuctions}
+            onPlaceAuctionBid={handlePlaceAuctionBid}
           />
         );
       case 'search':
@@ -426,6 +578,8 @@ export default function App() {
             onAddReview={handleAddReview}
             onAddQuestion={handleAddQuestion}
             onAddAnswer={handleAddAnswer}
+            onPlayPodcast={(p) => { setActivePodcastProduct(p); setPodcastPlaying(true); setPodcastTime(0); }}
+            podcastPlaying={podcastPlaying && activePodcastProduct?.id === selectedProduct.id}
           />
         ) : (
           <div className="text-center text-slate-400 py-10">No product selected.</div>
@@ -458,6 +612,8 @@ export default function App() {
             promoCodes={dbState.promoCodes}
             onAddPromoCode={handleAddPromoCode}
             onRemovePromoCode={handleRemovePromoCode}
+            onLaunchSellerAuction={handleLaunchSellerAuction}
+            onBroadcastFlashClearance={handleBroadcastFlashClearance}
           />
         );
       case 'admin':
@@ -586,6 +742,115 @@ export default function App() {
 
       {/* GLOBAL CONCIERGE CHATBOT ASSISTANT (Feature #9) */}
       {currentUser.role === 'buyer' && <ConciergeChatbot />}
+
+      {/* 40. AUDIO-GUIDED PRODUCT DEEP-DIVE PODCAST MINI-PLAYER */}
+      {activePodcastProduct && (
+        <div id="audio-deepdive-player" className="fixed bottom-6 left-6 z-50 max-w-xs md:max-w-sm w-full rounded-2xl bg-slate-950 border border-slate-800 text-white shadow-2xl p-4 animate-slide-up flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 ${podcastPlaying ? '' : 'hidden'}`}></span>
+                <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${podcastPlaying ? 'bg-emerald-500' : 'bg-slate-600'}`}></span>
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold font-mono">Audio Guide Podcast</span>
+            </div>
+            <button 
+              onClick={() => { setActivePodcastProduct(null); setPodcastPlaying(false); }}
+              className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+            >
+              <CloseIcon className="h-4.5 w-4.5" />
+            </button>
+          </div>
+
+          <div className="flex gap-3">
+            <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-slate-800 border border-slate-700 shrink-0">
+              <img src={activePodcastProduct.image} alt={activePodcastProduct.name} className="h-full w-full object-cover" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h5 
+                onClick={() => { setSelectedProduct(activePodcastProduct); setActiveView('details'); }}
+                className="text-xs font-bold text-slate-100 hover:text-indigo-400 hover:underline cursor-pointer truncate"
+              >
+                {activePodcastProduct.name}
+              </h5>
+              <p className="text-[10px] text-slate-400 truncate">Deep-Dive Commentary Series</p>
+            </div>
+          </div>
+
+          {/* Equalizer animation */}
+          <div className="flex items-center justify-between bg-slate-900/60 p-2 rounded-xl">
+            <div className="flex items-end gap-0.5 h-6 w-8 pl-1 shrink-0">
+              <span className={`w-1 rounded-t bg-indigo-400 transition-all ${podcastPlaying ? 'animate-[pulse_1.2s_infinite_ease-in-out_alternate]' : 'h-1'}`} style={{ height: podcastPlaying ? '80%' : '15%' }}></span>
+              <span className={`w-1 rounded-t bg-indigo-500 transition-all ${podcastPlaying ? 'animate-[pulse_0.8s_infinite_ease-in-out_alternate]' : 'h-2'}`} style={{ height: podcastPlaying ? '40%' : '25%' }}></span>
+              <span className={`w-1 rounded-t bg-purple-400 transition-all ${podcastPlaying ? 'animate-[pulse_1s_infinite_ease-in-out_alternate]' : 'h-1'}`} style={{ height: podcastPlaying ? '90%' : '10%' }}></span>
+              <span className={`w-1 rounded-t bg-purple-500 transition-all ${podcastPlaying ? 'animate-[pulse_1.4s_infinite_ease-in-out_alternate]' : 'h-2'}`} style={{ height: podcastPlaying ? '50%' : '20%' }}></span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setPodcastPlaying(!podcastPlaying)}
+                className="h-8 w-8 rounded-full bg-indigo-600 hover:bg-indigo-500 flex items-center justify-center shadow transition-all active:scale-95"
+              >
+                {podcastPlaying ? <Square className="h-3 w-3 fill-white" /> : <Play className="h-3 w-3 fill-white translate-x-0.5" />}
+              </button>
+              <div className="text-[10px] font-mono text-slate-400">
+                {Math.floor(podcastTime / 60)}:{(podcastTime % 60).toString().padStart(2, '0')} / 3:00
+              </div>
+            </div>
+          </div>
+
+          <div className="w-full bg-slate-800 rounded-full h-1 overflow-hidden">
+            <div className="bg-indigo-500 h-1 rounded-full transition-all duration-1000" style={{ width: `${(podcastTime / 180) * 100}%` }}></div>
+          </div>
+        </div>
+      )}
+
+      {/* 36. REAL-TIME SELLER BROADCAST CHANNEL INCOMING NOTIFICATION */}
+      {broadcastNotification && (
+        <div id="broadcast-toast" className="fixed bottom-6 right-6 z-50 max-w-sm w-full bg-slate-900 border border-amber-500/30 rounded-2xl shadow-[0_20px_50px_rgba(245,158,11,0.25)] text-slate-100 overflow-hidden animate-bounce">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Radio className="h-4 w-4 text-white animate-pulse" />
+              <span className="text-xs font-black tracking-wider text-white uppercase">Live Brand Broadcast</span>
+            </div>
+            <button 
+              onClick={() => { setBroadcastNotification(null); setBroadcastProductId(null); }}
+              className="p-1 rounded-full text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <CloseIcon className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="p-4 space-y-3">
+            <p className="text-xs text-slate-300 font-medium leading-relaxed">
+              "{broadcastNotification}"
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => { setBroadcastNotification(null); setBroadcastProductId(null); }}
+                className="px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-400 hover:text-slate-200 transition-all"
+              >
+                Dismiss
+              </button>
+              {broadcastProductId && (
+                <button
+                  onClick={() => {
+                    const prod = dbState.products.find(p => p.id === broadcastProductId);
+                    if (prod) {
+                      setSelectedProduct(prod);
+                      setActiveView('details');
+                      setBroadcastNotification(null);
+                      setBroadcastProductId(null);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg text-[11px] font-black bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20 hover:brightness-110 active:scale-95 transition-all"
+                >
+                  Snatch Flash Deal
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
