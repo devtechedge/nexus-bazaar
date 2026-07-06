@@ -352,6 +352,15 @@ export default function App() {
     }));
   };
 
+  const handleUpdateOrder = (updatedOrder: Order) => {
+    if (isSuspended) return;
+
+    updateDbState((prev) => ({
+      ...prev,
+      orders: prev.orders.map((o) => o.id === updatedOrder.id ? updatedOrder : o),
+    }));
+  };
+
   // Dynamic state views router
   const renderActiveView = () => {
     if (isSuspended) {
@@ -467,6 +476,7 @@ export default function App() {
             orders={dbState.orders}
             currentUser={currentUser}
             onUpdateOrderStatus={handleUpdateOrderStatus}
+            onUpdateOrder={handleUpdateOrder}
           />
         );
       case 'wishlist':

@@ -122,8 +122,71 @@ export default function ProductDetailsView({
   const [editorialMode, setEditorialMode] = React.useState(false);
 
   // Specifications Tabs Panel
-  // 'parametric' | 'revision' | 'audio' | 'hologram'
-  const [techTab, setTechTab] = React.useState<'parametric' | 'revision' | 'audio' | 'hologram'>('parametric');
+  // 'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku'
+  const [techTab, setTechTab] = React.useState<'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku'>('parametric');
+
+  // --- FEATURE #21: AUTOREPLENISH PARAMETRIC SUBSCRIPTION STATES ---
+  const [purchaseMode, setPurchaseMode] = React.useState<'onetime' | 'replenish'>('onetime');
+  const [replenishRate, setReplenishRate] = React.useState<number>(3); // daily cycles
+  const [containerCapacity, setContainerCapacity] = React.useState<number>(120); // total capacity / cycles
+  const computedDays = React.useMemo(() => {
+    return Math.max(5, Math.ceil(containerCapacity / Math.max(1, replenishRate)));
+  }, [replenishRate, containerCapacity]);
+
+  // --- FEATURE #24: DYNAMIC PRICE-DROP WAITLISTS ---
+  const [targetPrice, setTargetPrice] = React.useState<number>(Math.round(product.price * 0.8));
+  const [waitlistDeployed, setWaitlistDeployed] = React.useState<boolean>(false);
+  const [waitlistLogs, setWaitlistLogs] = React.useState<string[]>([]);
+  const [waitlistSuccess, setWaitlistSuccess] = React.useState<boolean>(false);
+
+  // --- FEATURE #28: DIRECT-TO-MANUFACTURER CUSTOMIZATION ---
+  const [mfgAlloy, setMfgAlloy] = React.useState<string>('Grade 5 Titanium');
+  const [mfgSolder, setMfgSolder] = React.useState<string>('Sac305 Lead-Free');
+  const [mfgFirmware, setMfgFirmware] = React.useState<string>('https://github.com/nexus-bazaar/custom-node.git');
+  const [mfgCNCLogs, setMfgCNCLogs] = React.useState<string[]>([]);
+  const [mfgCompiled, setMfgCompiled] = React.useState<boolean>(false);
+
+  // --- FEATURE #29: UNIVERSAL SKU MATCHING LEDGER ---
+  const [selectedSkuVariant, setSelectedSkuVariant] = React.useState<'branded' | 'white_label'>('branded');
+
+  const handleCompileSpecs = () => {
+    setMfgCompiled(true);
+    const mockId = Math.floor(Math.random() * 9000 + 1000);
+    setMfgCNCLogs([
+      `[CNC] G-CODE GENERATOR v4.1 INITIALIZED`,
+      `[CNC] CNC MILL LOADED: ALLOY TYPE -> ${mfgAlloy}`,
+      `[CNC] SPEED: 18000RPM | FEEDRATE: 1500MM/MIN`,
+      `[CNC] G00 X0.00 Y0.00 Z10.00 (SAFE POS)`,
+      `[CNC] G01 Z-1.25 F150 (INITIAL PENETRATION)`,
+      `[CNC] G02 X22.50 Y10.00 R8.50 F800 (LASER CASING PROFILE CUT)`,
+      `[CNC] RE-ZEROING SPINDLE NODES... OK`,
+      `[SOLDER] PROFILE CONFIGURED: TEMP_MAX 217°C (LIQUIDUS) [${mfgSolder}]`,
+      `[FIRMWARE] PULLING COMMITS FROM ${mfgFirmware}...`,
+      `[FIRMWARE] SECURE BOOTLOADER RE-SIGNED & LOADED SUCCESSFULLY`,
+      `[LEDGER] SPECIFICATIONS RECORDED ON MFG FLOW RUN #${mockId} EN-ROUTE TO MANUFACTURING LINE!`
+    ]);
+  };
+
+  const handleAddToCartClick = () => {
+    let finalName = displayProductName;
+    let finalDesc = displayProductDesc;
+    
+    if (purchaseMode === 'replenish') {
+      finalName = `${displayProductName} (AutoReplenish - Every ${computedDays} Days)`;
+      finalDesc = `${displayProductDesc} [AUTOREPLENISH SUBSCRIPTION: Parametric rate of ${replenishRate} cycles/day for a capacity of ${containerCapacity} units]`;
+    } else if (mfgCompiled) {
+      finalName = `${displayProductName} (Custom Direct Mfg: ${mfgAlloy})`;
+      finalDesc = `${displayProductDesc} [DIRECT MFG RUN SPECS: Base Alloy -> ${mfgAlloy}, Solder -> ${mfgSolder}, Firmware URL -> ${mfgFirmware}]`;
+    }
+
+    const cartProduct = {
+      ...product,
+      name: finalName,
+      price: finalPrice,
+      description: finalDesc,
+    };
+    onAddToCart(cartProduct);
+  };
 
   // Image Hover Zoom effect
   const [zoomStyle, setZoomStyle] = React.useState<React.CSSProperties>({ transform: 'scale(1)' });
@@ -740,9 +803,20 @@ export default function ProductDetailsView({
       )
     : rawProductQas;
 
+  const isWhiteLabel = selectedSkuVariant === 'white_label';
+  const rawBasePrice = isWhiteLabel ? Math.round(product.price * 0.55) : product.price;
+
   const finalPrice = product.isElite && currentUser.isElite 
-    ? Math.round(product.price * 0.9) 
-    : product.price;
+    ? Math.round(rawBasePrice * 0.9) 
+    : rawBasePrice;
+
+  const displayProductName = isWhiteLabel 
+    ? `Generic White-Label Alternative (${product.brand} OEM)` 
+    : product.name;
+
+  const displayProductDesc = isWhiteLabel
+    ? `Identical architectural design and structural frame matching the unbranded ledger footprint. Manufactured on the same production floor utilizing raw industrial casings and plain bulk packaging. Bypasses premium retail markups.`
+    : product.description;
 
   const ratingDistribution = [5, 4, 3, 2, 1].map((stars) => {
     const matchingCount = rawProductReviews.filter((r) => r.rating === stars).length;
@@ -858,7 +932,7 @@ export default function ProductDetailsView({
                       : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  Hardware Revisions
+                  Revisions
                 </button>
                 <button
                   type="button"
@@ -869,7 +943,7 @@ export default function ProductDetailsView({
                       : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  Spatial Audio
+                  Spatial Demo
                 </button>
                 <button
                   type="button"
@@ -880,7 +954,29 @@ export default function ProductDetailsView({
                       : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  3D AR Model
+                  3D AR Sandbox
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('custom')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'custom' 
+                      ? 'bg-teal-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  Direct Mfg
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTechTab('sku')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'sku' 
+                      ? 'bg-teal-600 text-white' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  SKU Ledger
                 </button>
               </div>
             </div>
@@ -1230,6 +1326,161 @@ export default function ProductDetailsView({
                 </motion.div>
               )}
 
+              {/* FEATURE #28: DIRECT-TO-MANUFACTURER CUSTOMIZATION PANEL */}
+              {techTab === 'custom' && (
+                <motion.div
+                  key="tab-custom"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4"
+                >
+                  <p className="text-[11px] text-slate-400 leading-normal">
+                    Append your custom engineering configuration specifications directly to the manufacturer's automated production run queue, completely bypassing retail middleware.
+                  </p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-300">
+                      <div className="space-y-1">
+                        <label className="block text-slate-500 uppercase text-[8px] font-bold">CNC Alloy Base Grade</label>
+                        <select 
+                          value={mfgAlloy} 
+                          onChange={(e) => { setMfgAlloy(e.target.value); setMfgCompiled(false); }}
+                          className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white"
+                        >
+                          <option value="Grade 5 Titanium">Grade 5 Titanium (Premium Aerospace)</option>
+                          <option value="6061-T6 Aluminum">6061-T6 Aluminum (Anodized Spec)</option>
+                          <option value="Eutectic Solid Copper">Eutectic Solid Copper (Max Thermal Transfer)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-slate-500 uppercase text-[8px] font-bold">Substrate Solder Alloy</label>
+                        <select 
+                          value={mfgSolder} 
+                          onChange={(e) => { setMfgSolder(e.target.value); setMfgCompiled(false); }}
+                          className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white"
+                        >
+                          <option value="Sac305 Lead-Free">SAC305 Lead-Free (Sn/Ag/Cu standard)</option>
+                          <option value="Indium Eutectic">Indium Eutectic (Low-Temp Crystal)</option>
+                          <option value="High-Silver Eutectic">High-Silver Eutectic (High-Conductivity)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-slate-500 uppercase text-[8px] font-bold">Custom Firmware Repo URL</label>
+                        <input 
+                          type="text" 
+                          value={mfgFirmware} 
+                          onChange={(e) => { setMfgFirmware(e.target.value); setMfgCompiled(false); }}
+                          placeholder="https://github.com/org/repo.git"
+                          className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-white"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleCompileSpecs}
+                        className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white rounded text-xs font-bold uppercase transition-colors"
+                      >
+                        Compile & Append to CNC Queue
+                      </button>
+                    </div>
+
+                    {/* Manufacturing compilation log terminal */}
+                    <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 h-[200px] flex flex-col justify-between font-mono text-[8px]">
+                      <div className="space-y-1 overflow-y-auto max-h-[160px]">
+                        <span className="text-slate-500 uppercase text-[7px] block font-bold">CNC Compiler Feed</span>
+                        {mfgCompiled ? (
+                          mfgCNCLogs.map((log, lidx) => (
+                            <p key={lidx} className={log.includes('SUCCESS') || log.includes('RECORDED') ? 'text-teal-400 font-bold' : 'text-slate-400'}>
+                              {log}
+                            </p>
+                          ))
+                        ) : (
+                          <div className="text-slate-600 italic py-8 text-center uppercase">
+                            Await compiling specs to manufacture line...
+                          </div>
+                        )}
+                      </div>
+                      {mfgCompiled && (
+                        <div className="border-t border-slate-800 pt-1.5 text-teal-400 flex items-center gap-1">
+                          <span className="h-1.5 w-1.5 rounded-full bg-teal-400 animate-ping" />
+                          <span>SPECS APPENDED TO QUEUE SLOT</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* FEATURE #29: UNIVERSAL SKU MATCHING LEDGER PANEL */}
+              {techTab === 'sku' && (
+                <motion.div
+                  key="tab-sku"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-4 font-mono text-[11px]"
+                >
+                  <p className="text-slate-400 leading-normal font-sans">
+                    Our platform maps manufacturers' physical hardware footprints. Use the open <strong>Universal SKU Matching Ledger</strong> to instantly identify unbranded white-label equivalents of this product.
+                  </p>
+
+                  <div className="bg-slate-950 rounded-xl border border-slate-800 p-4 space-y-4">
+                    <div className="grid gap-3 sm:grid-cols-2 text-[10px]">
+                      <div className={`p-3 rounded-lg border transition-all ${
+                        selectedSkuVariant === 'branded' ? 'border-teal-500 bg-slate-900/60' : 'border-slate-800'
+                      }`}>
+                        <div className="flex justify-between items-center pb-1.5 border-b border-slate-800">
+                          <span className="font-bold text-white uppercase">Premium Brand Layout</span>
+                          <span className="text-[8px] bg-teal-950 text-teal-400 border border-teal-800 px-1.5 py-0.5 rounded">Active</span>
+                        </div>
+                        <ul className="space-y-1 mt-2 text-slate-400">
+                          <li>SKU: <span className="text-slate-300 font-bold">NEX-{product.id.substring(0, 5).toUpperCase()}</span></li>
+                          <li>Casing: Aluminum Anodized Matte</li>
+                          <li>Price: <span className="text-teal-400 font-bold">${product.price}</span></li>
+                        </ul>
+                      </div>
+
+                      <div className={`p-3 rounded-lg border transition-all ${
+                        selectedSkuVariant === 'white_label' ? 'border-amber-500 bg-slate-900/60' : 'border-slate-800'
+                      }`}>
+                        <div className="flex justify-between items-center pb-1.5 border-b border-slate-800">
+                          <span className="font-bold text-white uppercase">Unbranded White-Label Equivalent</span>
+                          <span className="text-[8px] bg-amber-950 text-amber-400 border border-amber-800 px-1.5 py-0.5 rounded">Mapped Alternative</span>
+                        </div>
+                        <ul className="space-y-1 mt-2 text-slate-400">
+                          <li>SKU: <span className="text-slate-300 font-bold">OEM-{product.id.substring(0, 5).toUpperCase()}-RAW</span></li>
+                          <li>Casing: Recycled Carbon Matrix</li>
+                          <li>Price: <span className="text-amber-400 font-bold">${Math.round(product.price * 0.55)} (-45%)</span></li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center border-t border-slate-800 pt-3">
+                      <span className="text-slate-400 font-sans text-xs">
+                        {selectedSkuVariant === 'branded' 
+                          ? "Using official branded package with extended warranty."
+                          : "Using white-label package. Logo stripped, raw components used."
+                        }
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSkuVariant(selectedSkuVariant === 'branded' ? 'white_label' : 'branded')}
+                        className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                          selectedSkuVariant === 'branded' 
+                            ? 'bg-amber-600 hover:bg-amber-700 text-white' 
+                            : 'bg-teal-600 hover:bg-teal-700 text-white'
+                        }`}
+                      >
+                        {selectedSkuVariant === 'branded' ? 'Swap to Generic Alternative' : 'Restore Premium Brand'}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
             </AnimatePresence>
           </div>
         </div>
@@ -1250,7 +1501,7 @@ export default function ProductDetailsView({
             <h2 id="details-product-title" className={`text-3xl font-black tracking-tight leading-tight ${
               editorialMode ? 'text-white text-4xl' : 'text-slate-900'
             }`}>
-              {product.name}
+              {displayProductName}
             </h2>
 
             {/* Rating overview */}
@@ -1271,7 +1522,7 @@ export default function ProductDetailsView({
             <p className={`text-sm leading-relaxed pt-2 ${
               editorialMode ? 'text-slate-300 italic text-base font-light' : 'text-slate-500'
             }`}>
-              {product.description}
+              {displayProductDesc}
             </p>
 
             {/* Specs list */}
@@ -1295,25 +1546,98 @@ export default function ProductDetailsView({
             <div className="flex items-end justify-between">
               <div>
                 <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider mb-1">Pricing Ledger</span>
-                {product.isElite && currentUser.isElite ? (
-                  <div className="flex items-baseline gap-2">
-                    <span id="details-price-tag" className="text-3xl font-black text-teal-600">${finalPrice}</span>
+                <div className="flex items-baseline gap-2">
+                  <span id="details-price-tag" className={`text-3xl font-black ${editorialMode ? 'text-white' : 'text-slate-800'}`}>
+                    ${finalPrice}
+                  </span>
+                  {rawBasePrice !== product.price && (
                     <span className="text-sm text-slate-400 line-through">${product.price}</span>
-                    <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md">Elite 10% Discount applied!</span>
-                  </div>
-                ) : (
-                  <div className="flex items-baseline gap-2">
-                    <span id="details-price-tag" className={`text-3xl font-black ${editorialMode ? 'text-white' : 'text-slate-800'}`}>{`$${product.price}`}</span>
-                    {product.isElite && !currentUser.isElite && (
-                      <span className="text-[10px] text-amber-600 font-medium">Join Elite to save 10%!</span>
-                    )}
-                  </div>
-                )}
+                  )}
+                  {isWhiteLabel ? (
+                    <span className="text-[9px] font-mono font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md animate-pulse">
+                      White-Label SKU applied!
+                    </span>
+                  ) : product.isElite && currentUser.isElite ? (
+                    <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md">
+                      Elite 10% Discount applied!
+                    </span>
+                  ) : product.isElite && !currentUser.isElite && (
+                    <span className="text-[10px] text-amber-600 font-medium">Join Elite to save 10%!</span>
+                  )}
+                </div>
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider">Logistics Class</span>
                 <span className="text-xs font-bold text-slate-400">Priority Hub Delivery</span>
               </div>
+            </div>
+
+            {/* FEATURE #21: AUTOREPLENISH PARAMETRIC TRIGGER SELECTOR */}
+            <div className="border-t border-slate-100/10 pt-3 space-y-3">
+              <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Purchase Integration Model</span>
+              <div className="grid grid-cols-2 gap-1.5 bg-slate-100/60 p-1 rounded-xl border border-slate-200/50">
+                <button
+                  type="button"
+                  onClick={() => setPurchaseMode('onetime')}
+                  className={`py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                    purchaseMode === 'onetime' ? 'bg-white text-slate-800 shadow-xs border border-slate-200' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  Standard Buy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPurchaseMode('replenish')}
+                  className={`py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    purchaseMode === 'replenish' ? 'bg-teal-600 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <span>🔄 AutoReplenish</span>
+                </button>
+              </div>
+
+              {purchaseMode === 'replenish' && (
+                <div className="bg-teal-50/40 border border-teal-100 rounded-xl p-3 font-mono text-[10px] space-y-3 text-slate-700">
+                  <div className="flex justify-between items-center text-[11px] font-bold text-teal-800 border-b border-teal-100 pb-1.5">
+                    <span>PARAMETRIC SUBSCRIPTION CONFIG</span>
+                    <span className="bg-teal-100 text-teal-800 px-1 rounded">ACTIVE</span>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Daily Usage Cycles / Consumption</span>
+                      <strong className="text-teal-700">{replenishRate} cycles/day</strong>
+                    </div>
+                    <input 
+                      type="range" min="1" max="10" value={replenishRate}
+                      onChange={(e) => setReplenishRate(Number(e.target.value))}
+                      className="w-full accent-teal-600 cursor-pointer h-1 bg-slate-200 rounded-lg appearance-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-slate-600">
+                      <span>Container Capacity / Cycles</span>
+                      <strong className="text-teal-700">{containerCapacity} total</strong>
+                    </div>
+                    <input 
+                      type="range" min="30" max="360" step="10" value={containerCapacity}
+                      onChange={(e) => setContainerCapacity(Number(e.target.value))}
+                      className="w-full accent-teal-600 cursor-pointer h-1 bg-slate-200 rounded-lg appearance-none"
+                    />
+                  </div>
+
+                  <div className="pt-1 text-[11px] font-bold text-teal-800 flex justify-between items-center leading-tight">
+                    <span>Predictive replenishment trigger:</span>
+                    <span className="bg-teal-600 text-white px-2 py-0.5 rounded-md text-[10px] font-black uppercase animate-pulse">
+                      Every {computedDays} Days
+                    </span>
+                  </div>
+                  <p className="text-[8.5px] text-slate-400 font-sans leading-relaxed">
+                    AutoReplenish uses parametric telemetry to auto-ship precisely when your consumable cycles deplete. Saves warehouse logistics and storage waste.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -1334,7 +1658,7 @@ export default function ProductDetailsView({
               {/* Add to Cart Button */}
               <button
                 id="details-add-to-cart-btn"
-                onClick={() => onAddToCart(product)}
+                onClick={handleAddToCartClick}
                 disabled={product.stock <= 0}
                 className={`flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-bold text-white shadow-sm transition-all ${
                   product.stock > 0
@@ -1343,7 +1667,14 @@ export default function ProductDetailsView({
                 }`}
               >
                 <ShoppingCart className="h-4 w-4" />
-                <span>{product.stock > 0 ? 'Commit to Cart' : 'Currently Out of Stock'}</span>
+                <span>
+                  {product.stock <= 0 
+                    ? 'Currently Out of Stock' 
+                    : purchaseMode === 'replenish' 
+                      ? 'Confirm Parametric Subscription' 
+                      : 'Commit to Cart'
+                  }
+                </span>
               </button>
             </div>
           </div>

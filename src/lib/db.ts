@@ -85,6 +85,12 @@ export interface Order {
   status: 'Placed' | 'Processing' | 'Shipped' | 'Delivered';
   date: string;
   trackingNo?: string;
+  // --- BATCH 3 NEW OPTIONAL FIELDS ---
+  warehouseHoldDays?: number;
+  fractionalInvoices?: Record<string, number>;
+  predictiveLagDays?: number;
+  splitDeliveryAddresses?: Record<string, string>;
+  recurringInterval?: string;
 }
 
 export interface PromoCode {

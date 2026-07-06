@@ -106,6 +106,44 @@ export default function CartCheckoutView({
   const [roundUpDonation, setRoundUpDonation] = React.useState(false);
   const [donationCause, setDonationCause] = React.useState<'carbon_capture' | 'green_forest' | 'ewaste'>('carbon_capture');
 
+  // --- FEATURE #22: MULTI-ADDRESS SPLIT CHECKOUT ---
+  const [splitAddressEnabled, setSplitAddressEnabled] = React.useState(false);
+  const [splitAddresses, setSplitAddresses] = React.useState<Record<string, string>>({}); // itemID -> address string
+
+  // --- FEATURE #23: MICRO-FULFILLMENT HOLD REGISTRY ---
+  const [holdInWarehouse, setHoldInWarehouse] = React.useState(false);
+  const [holdDurationDays, setHoldDurationDays] = React.useState(7); // 1 to 14 days
+
+  // --- FEATURE #25: FRACTIONAL INVOICING FOR SHARED BUSINESS ACCOUNTS ---
+  const [fractionalInvoicingEnabled, setFractionalInvoicingEnabled] = React.useState(false);
+  const [fractionalShares, setFractionalShares] = React.useState<Record<string, number>>({
+    'Corporate Headquarters': 50,
+    'R&D Sector C': 30,
+    'Logistics Division': 20
+  }); // percentage split
+
+  // --- FEATURE #27: PREDICTIVE SHIPPING DELAY NOTIFICATIONS ---
+  const [ecoRouteBuffer, setEcoRouteBuffer] = React.useState(false);
+  
+  // Forecast exact shipping lag using route congestion, solar flare storms, asteroid-density risk
+  const delayForecast = React.useMemo(() => {
+    let baseDelay = shippingMethod === 'express' ? 1 : 4;
+    let factor = shippingState === 'NY' ? 1.8 : shippingState === 'CA' ? 0.9 : 1.3;
+    let solarCongestion = shippingState === 'NY' ? 'MODERATE SOLAR FLARE IMPACT' : 'STABLE LOGISTICS CORRIDOR';
+    let asteroidRisk = shippingState === 'TX' ? 'HIGH SPACE-DEBRIS INDEX' : 'CLEAR COURIER ROUTE';
+    
+    let baseDays = Math.max(1, Math.round(baseDelay * factor));
+    let bufferDays = ecoRouteBuffer ? 3 : 0;
+    
+    return {
+      days: baseDays + bufferDays,
+      solarCongestion,
+      asteroidRisk,
+      routeCongestionPct: Math.round(factor * 35),
+      environmentalSavings: ecoRouteBuffer ? 4.8 : 0 // CO2 offset kg
+    };
+  }, [shippingState, shippingMethod, ecoRouteBuffer]);
+
   // Map cart identifiers to concrete product models
   const cartItems = React.useMemo(() => {
     return cart.map((item) => {
@@ -403,6 +441,10 @@ export default function CartCheckoutView({
         state: shippingState,
         zip,
       },
+      warehouseHoldDays: holdInWarehouse ? holdDurationDays : undefined,
+      fractionalInvoices: fractionalInvoicingEnabled ? fractionalShares : undefined,
+      predictiveLagDays: delayForecast.days,
+      splitDeliveryAddresses: splitAddressEnabled ? splitAddresses : undefined,
     });
 
     // Clear local state
@@ -970,9 +1012,64 @@ export default function CartCheckoutView({
                 )}
               </div>
 
+              {/* FEATURE #22: MULTI-ADDRESS SPLIT CHECKOUT TOGGLE */}
+              <div className="rounded-2xl border border-slate-200/60 bg-slate-50/40 p-4 space-y-3 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-teal-600" />
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 uppercase leading-none">Multi-Address Split Checkout</h4>
+                      <p className="text-[9px] text-slate-400 mt-0.5">Route items in this checkout to separate destinations under a single unified payment transaction.</p>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={splitAddressEnabled}
+                    onChange={(e) => setSplitAddressEnabled(e.target.checked)}
+                    className="accent-teal-600 h-4.5 w-4.5 cursor-pointer rounded"
+                  />
+                </div>
+
+                {splitAddressEnabled ? (
+                  <div className="bg-white rounded-xl p-3.5 space-y-3.5 border border-slate-200/50">
+                    <span className="text-[9px] font-bold text-teal-700 font-mono uppercase tracking-wide block border-b border-slate-100 pb-1.5">Configure Destination Rerouting</span>
+                    {cartItems.map((item) => (
+                      <div key={item.id} className="space-y-1 pb-2 border-b border-slate-100 last:border-0 last:pb-0 last:mb-0">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs font-bold text-slate-700 truncate max-w-[180px]">{item.name}</span>
+                          <span className="text-[10px] font-mono text-slate-400">Qty: {item.quantity}</span>
+                        </div>
+                        <input
+                          type="text"
+                          required={splitAddressEnabled}
+                          placeholder="e.g. 104 Industrial Pkwy, Seattle WA 98101"
+                          value={splitAddresses[item.id] || ''}
+                          onChange={(e) => {
+                            setSplitAddresses({
+                              ...splitAddresses,
+                              [item.id]: e.target.value
+                            });
+                          }}
+                          className="w-full bg-slate-50 border border-slate-150 rounded-xl px-3 py-2 text-xs outline-none focus:border-teal-500 focus:bg-white"
+                        />
+                      </div>
+                    ))}
+                    <p className="text-[8.5px] text-slate-400 font-mono leading-relaxed pt-1 border-t border-slate-150">
+                      Standard shipping fees are optimized. You are billed once and our fulfillment drones will dispatch from separate matching warehouse corridors.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-slate-400 leading-normal">
+                    Active un-split delivery: All items are bound for the default single recipient master address specified below.
+                  </p>
+                )}
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2 space-y-1">
-                  <label className="text-xs font-bold text-slate-600">Full Recipient Name</label>
+                  <label className="text-xs font-bold text-slate-600">
+                    {splitAddressEnabled ? 'Default Master Billing / Recipient Name' : 'Full Recipient Name'}
+                  </label>
                   <input
                     id="checkout-fullName-input"
                     type="text"
@@ -1228,6 +1325,108 @@ export default function CartCheckoutView({
               </div>
             </div>
 
+            {/* FEATURE #23 & #27: MICRO-FULFILLMENT HOLD & PREDICTIVE DELAY PANELS */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Feature #23: Hold Registry */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Database className="h-4 w-4 text-teal-600" />
+                    <span className="text-xs font-bold text-slate-800 uppercase">Micro-Fulfillment Hold Registry</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={holdInWarehouse}
+                    onChange={(e) => setHoldInWarehouse(e.target.checked)}
+                    className="accent-teal-600 h-4 w-4 cursor-pointer"
+                  />
+                </div>
+
+                <p className="text-[10px] text-slate-500 leading-normal">
+                  Hold purchased items in our climate-controlled local virtual warehouse for up to 14 days to consolidate with subsequent orders. Reduces carbon packaging waste and delivery costs.
+                </p>
+
+                {holdInWarehouse && (
+                  <div className="bg-teal-50/30 border border-teal-100 rounded-xl p-3 space-y-3 font-mono text-[10px] text-teal-800">
+                    <div className="flex justify-between items-center text-teal-950 font-bold border-b border-teal-100 pb-1">
+                      <span>HOLD CONSOLIDATION WINDOW</span>
+                      <span className="bg-teal-600 text-white px-1.5 py-0.2 rounded uppercase text-[8px] tracking-wider font-bold animate-pulse">Warehouse Reserved</span>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-slate-600">
+                        <span>Consolidation Duration:</span>
+                        <strong className="text-teal-700">{holdDurationDays} Days</strong>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="14"
+                        value={holdDurationDays}
+                        onChange={(e) => setHoldDurationDays(Number(e.target.value))}
+                        className="w-full accent-teal-600 cursor-pointer h-1 bg-slate-200 rounded-lg appearance-none"
+                      />
+                    </div>
+                    <p className="text-[8.5px] text-slate-400 font-sans leading-relaxed pt-1">
+                      Your items will be securely held in Warehouse Staging Slot #{Math.floor(1000 + Math.random() * 9000)}. Logistics dispatch will combine this order with future checkouts before the strict 14-day limit.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Feature #27: Predictive Shipping Delay Forecast */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-sm">
+                <div className="flex items-center gap-2 border-b border-slate-100 pb-2.5 font-bold text-slate-800 text-xs uppercase">
+                  <Activity className="h-4 w-4 text-rose-500" />
+                  <span>Logistics Telemetry Predictor</span>
+                </div>
+
+                <p className="text-[10px] text-slate-500 leading-normal">
+                  Predictive route modeling estimates transport speed against route variables like magnetosphere radiation, solar wind storms, and ground shipping traffic.
+                </p>
+
+                <div className="bg-slate-50 rounded-xl p-3 font-mono text-[9.5px] space-y-2 border border-slate-100 text-slate-600">
+                  <div className="flex justify-between">
+                    <span>Route Traffic Load:</span>
+                    <strong className="text-slate-800">{delayForecast.routeCongestionPct}% Capacity</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Space Congestion Index:</span>
+                    <strong className="text-slate-800">{delayForecast.asteroidRisk}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Atmospheric Radiation:</span>
+                    <strong className={delayForecast.solarCongestion.includes('IMPACT') ? 'text-amber-600 font-bold' : 'text-teal-600'}>
+                      {delayForecast.solarCongestion}
+                    </strong>
+                  </div>
+                  <div className="flex justify-between items-center text-[10.5px] font-bold text-slate-800 border-t border-slate-200/50 pt-1.5 mt-1">
+                    <span>Predictive Transit Time:</span>
+                    <span className="bg-slate-800 text-white px-2 py-0.5 rounded text-[10px] font-mono">
+                      {delayForecast.days} Transit Days
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 text-[10px]">
+                  <label className="flex items-center gap-2 cursor-pointer text-slate-600 font-medium">
+                    <input
+                      type="checkbox"
+                      checked={ecoRouteBuffer}
+                      onChange={(e) => setEcoRouteBuffer(e.target.checked)}
+                      className="accent-teal-600 h-3.5 w-3.5 cursor-pointer"
+                    />
+                    <span>Opt-In Eco-Route Buffer Offset</span>
+                  </label>
+                  {ecoRouteBuffer && (
+                    <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-[8.5px] font-bold font-mono border border-emerald-200">
+                      -{delayForecast.environmentalSavings}kg CO₂
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* 3. SIMULATED PAYMENT CARD */}
             <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
               <div className="flex items-center gap-2 font-bold text-slate-800 text-sm border-b border-slate-50 pb-3">
@@ -1280,6 +1479,74 @@ export default function CartCheckoutView({
                     <CheckCircle2 className="h-4 w-4 text-teal-600 shrink-0" />
                     <p>Encryption logs validated. Payment occurs in a sandboxed, client-contained state. No physical currency is drafted.</p>
                   </div>
+                </div>
+
+                {/* FEATURE #25: FRACTIONAL INVOICING FOR SHARED BUSINESS ACCOUNTS */}
+                <div className="sm:col-span-3 border-t border-slate-100 pt-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={fractionalInvoicingEnabled}
+                        onChange={(e) => setFractionalInvoicingEnabled(e.target.checked)}
+                        className="accent-teal-600 h-4 w-4 cursor-pointer"
+                      />
+                      <span className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
+                        <span>Fractional Business Ledger Invoicing</span>
+                        <span className="bg-teal-100 text-teal-800 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase">Corporate</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  {fractionalInvoicingEnabled && (
+                    <div className="bg-slate-50 border border-slate-200/50 rounded-xl p-3.5 space-y-3 font-mono text-[10px] text-slate-700">
+                      <div className="flex justify-between items-center text-slate-900 font-bold border-b border-slate-200 pb-1.5">
+                        <span>COST-CENTER SPLIT RATIOS</span>
+                        {Object.values(fractionalShares).reduce((a, b) => a + b, 0) === 100 ? (
+                          <span className="text-emerald-600 font-bold text-[9px] flex items-center gap-1">✓ LEDGER ALLOCATED (100%)</span>
+                        ) : (
+                          <span className="text-red-500 font-bold text-[9px]">⚠️ RATIOS MUST EQUAL 100% (CURRENT: {Object.values(fractionalShares).reduce((a, b) => a + b, 0)}%)</span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        {Object.entries(fractionalShares).map(([dept, share]) => {
+                          const sharedTotal = (totalAmount * (share / 100)).toFixed(2);
+                          return (
+                            <div key={dept} className="space-y-1 bg-white p-2.5 rounded-lg border border-slate-200/55 shadow-xs">
+                              <span className="text-[8.5px] font-bold text-slate-500 uppercase block tracking-tight truncate" title={dept}>
+                                {dept}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={share}
+                                  onChange={(e) => {
+                                    const val = Math.max(0, Math.min(100, Number(e.target.value)));
+                                    setFractionalShares({
+                                      ...fractionalShares,
+                                      [dept]: val
+                                    });
+                                  }}
+                                  className="w-12 bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-slate-800 text-xs font-bold text-center"
+                                />
+                                <span className="text-slate-500">%</span>
+                              </div>
+                              <div className="text-[10px] font-bold text-teal-600 mt-1">
+                                ${sharedTotal}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <p className="text-[8.5px] text-slate-400 font-sans leading-relaxed pt-1">
+                        Corporate gateway will automatically distribute matching debit tokens to respective department ledgers. fractional balances are logged separately on the master billing registry.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

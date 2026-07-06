@@ -14,7 +14,11 @@ import {
   Download, 
   X,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  PlusCircle,
+  Calendar,
+  Sparkles,
+  RefreshCw
 } from 'lucide-react';
 import { Order, User, UserRole } from '../lib/db';
 
@@ -22,12 +26,14 @@ interface OrdersViewProps {
   orders: Order[];
   currentUser: User;
   onUpdateOrderStatus: (orderId: string, status: Order['status'], tracking?: string) => void;
+  onUpdateOrder?: (order: Order) => void;
 }
 
 export default function OrdersView({
   orders,
   currentUser,
   onUpdateOrderStatus,
+  onUpdateOrder,
 }: OrdersViewProps) {
   // Modal toggle state for Invoice
   const [selectedInvoice, setSelectedInvoice] = React.useState<Order | null>(null);
@@ -290,6 +296,170 @@ export default function OrdersView({
                 </div>
               </div>
 
+              {/* BATCH 3 FEATURES: POST-PURCHASE VARIABLE ADD-ONS & VAULTED RECURRING ORDERS */}
+              <div className="grid gap-4 sm:grid-cols-2 pt-3 border-t border-slate-100">
+                
+                {/* Feature #26: Post-Purchase Variable Add-Ons */}
+                <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4 space-y-3">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs uppercase">
+                    <PlusCircle className="h-4 w-4 text-teal-600" />
+                    <span>Post-Purchase Order Augmentations</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 leading-normal">
+                    Enhance your order with premium add-ons before final dispatch. Ledger balances are updated in real-time.
+                  </p>
+                  
+                  <div className="space-y-2">
+                    {[
+                      { name: 'Micro-Fulfillment Weather Guard', price: 15.00, desc: 'Climatic protective membrane shield' },
+                      { name: 'Reinforced Carbon Binding Ties', price: 10.00, desc: 'Tensile aerospace binding cables' },
+                      { name: 'Anti-Static Substrate Thermal Wrap', price: 20.00, desc: 'Prevents electronic discharge lags' },
+                      { name: 'Ruggedized Secure Cargo Box', price: 35.00, desc: 'Heavy-duty armor transport casing' },
+                    ].map((addon) => {
+                      const isAlreadyAdded = order.items.some(item => item.name.includes(addon.name));
+                      return (
+                        <div key={addon.name} className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-slate-100 shadow-xs text-[10px]">
+                          <div>
+                            <span className="font-bold text-slate-700 block">{addon.name}</span>
+                            <span className="text-[8.5px] text-slate-400 font-mono leading-none">{addon.desc}</span>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={isAlreadyAdded || order.status !== 'Placed'}
+                            onClick={() => {
+                              if (onUpdateOrder) {
+                                const newAddOnItem = {
+                                  productId: `addon-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                                  name: `[Add-On] ${addon.name}`,
+                                  price: addon.price,
+                                  quantity: 1,
+                                  image: 'https://picsum.photos/seed/addon/200/200'
+                                };
+                                const updated: Order = {
+                                  ...order,
+                                  items: [...order.items, newAddOnItem],
+                                  subtotal: Number((order.subtotal + addon.price).toFixed(2)),
+                                  total: Number((order.total + addon.price).toFixed(2))
+                                };
+                                onUpdateOrder(updated);
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded-md font-bold transition-all cursor-pointer ${
+                              isAlreadyAdded 
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-150' 
+                                : order.status !== 'Placed'
+                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                : 'bg-slate-800 hover:bg-slate-900 text-white'
+                            }`}
+                          >
+                            {isAlreadyAdded ? 'Added' : `+$${addon.price}`}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {order.status !== 'Placed' && (
+                    <p className="text-[9px] text-rose-500 font-medium italic mt-1.5">
+                      ⚠️ Order is already {order.status.toLowerCase()} and cannot be augmented.
+                    </p>
+                  )}
+                </div>
+
+                {/* Feature #30: Vaulted Recurring Orders */}
+                <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4 flex flex-col justify-between space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs uppercase">
+                        <RefreshCw className={`h-4 w-4 ${order.recurringInterval ? 'text-emerald-500 animate-spin' : 'text-slate-400'}`} style={{ animationDuration: '6s' }} />
+                        <span>Vaulted Recurring Scheduling</span>
+                      </div>
+                      {order.recurringInterval && (
+                        <span className="bg-emerald-100 text-emerald-800 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase">
+                          Vaulted
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-normal">
+                      Vault this entire transaction configuration. Our ledger will securely re-draft the payment and re-ship identical items automatically.
+                    </p>
+
+                    {order.recurringInterval ? (
+                      <div className="bg-emerald-50/45 border border-emerald-100 rounded-xl p-3 space-y-1.5 text-[10px] text-emerald-800 font-mono">
+                        <div className="flex justify-between">
+                          <span>Auto-Draft:</span>
+                          <strong>ACTIVE</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Dispatch Speed:</span>
+                          <strong>EVERY {order.recurringInterval.toUpperCase()}</strong>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Next Bill Date:</span>
+                          <strong>7/13/2026</strong>
+                        </div>
+                        <p className="text-[8.5px] text-slate-400 font-sans leading-relaxed pt-1.5 border-t border-emerald-100/50">
+                          Identical products will ship automatically from nearest fulfillment pods. Cancelling clears vaulted payment tokens immediately.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-slate-500 block uppercase">Select Delivery Schedule</label>
+                          <select
+                            id={`recurring-select-${order.id}`}
+                            defaultValue="30 days"
+                            className="w-full rounded-lg border border-slate-200 bg-white p-2 text-[10px] outline-none font-mono focus:border-teal-500"
+                          >
+                            <option value="7 days">Every 7 Days (Weekly replenishment)</option>
+                            <option value="14 days">Every 14 Days (Bi-weekly restock)</option>
+                            <option value="30 days">Every 30 Days (Monthly restock)</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    {order.recurringInterval ? (
+                      <button
+                        type="button"
+                        id={`cancel-recur-btn-${order.id}`}
+                        onClick={() => {
+                          if (onUpdateOrder) {
+                            onUpdateOrder({
+                              ...order,
+                              recurringInterval: undefined
+                            });
+                          }
+                        }}
+                        className="w-full py-2 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 font-bold text-[10px] transition-colors cursor-pointer"
+                      >
+                        Cancel Recurring Dispatch
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        id={`save-recur-btn-${order.id}`}
+                        onClick={() => {
+                          if (onUpdateOrder) {
+                            const selectEl = document.getElementById(`recurring-select-${order.id}`) as HTMLSelectElement;
+                            const interval = selectEl ? selectEl.value : '30 days';
+                            onUpdateOrder({
+                              ...order,
+                              recurringInterval: interval
+                            });
+                          }
+                        }}
+                        className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        🔒 Vault & Schedule Dispatch
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
               {/* LOGISTICS FORM POPUP (Inline overlay for admin) */}
               {editingStatusId === order.id && (
                 <div id={`logistics-editor-${order.id}`} className="rounded-xl border border-teal-500/20 bg-teal-50/5 p-4 space-y-3">
@@ -475,6 +645,62 @@ export default function OrdersView({
                   <span className="font-mono font-black text-teal-600 text-base">${selectedInvoice.total}</span>
                 </div>
               </div>
+
+              {/* BATCH 3 INVOICE AUDIT EXTENSIONS */}
+              {(selectedInvoice.warehouseHoldDays || selectedInvoice.fractionalInvoices || selectedInvoice.splitDeliveryAddresses || selectedInvoice.recurringInterval) && (
+                <div className="border-t border-slate-100 pt-4.5 space-y-3.5 text-xs">
+                  <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Special Logistics & Ledger Allocations</span>
+                  
+                  {selectedInvoice.warehouseHoldDays && (
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-600 font-mono">
+                      <span className="font-bold text-slate-800">📦 Micro-Fulfillment Hold Registry Activation:</span>
+                      <p className="mt-1">Items are being held in regional cold staging for <strong className="text-teal-600">{selectedInvoice.warehouseHoldDays} days</strong> to merge with ongoing pipelines. Restricting individual shipping boxes saves 14.2kg CO₂.</p>
+                    </div>
+                  )}
+
+                  {selectedInvoice.recurringInterval && (
+                    <div className="bg-emerald-50/40 border border-emerald-150 rounded-xl p-3 text-[10px] text-emerald-800 font-mono">
+                      <span className="font-bold text-emerald-950">🔁 Vaulted Recurring Sequence Plan:</span>
+                      <p className="mt-1">Vaulted credit coordinates authorized. Automatic draft and logistics dispatch recur on a strict <strong className="text-emerald-700">{selectedInvoice.recurringInterval}</strong> rotation.</p>
+                    </div>
+                  )}
+
+                  {selectedInvoice.fractionalInvoices && (
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-600 font-mono">
+                      <span className="font-bold text-slate-800">📊 Corporate Fractional Cost-Center Distribution:</span>
+                      <div className="grid grid-cols-3 gap-2 mt-2">
+                        {Object.entries(selectedInvoice.fractionalInvoices).map(([dept, share]) => (
+                          <div key={dept} className="bg-white p-2 rounded border border-slate-150">
+                            <span className="text-[8px] font-bold text-slate-400 uppercase block truncate">{dept}</span>
+                            <span className="font-bold text-slate-700 text-[11px] block mt-0.5">{share}%</span>
+                            <span className="text-teal-600 font-bold text-[10px] block mt-0.5">
+                              ${(selectedInvoice.total * (share / 100)).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedInvoice.splitDeliveryAddresses && (
+                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-600 font-mono">
+                      <span className="font-bold text-slate-800">📍 Multi-Address Split Rerouting Map:</span>
+                      <div className="space-y-2 mt-2">
+                        {selectedInvoice.items.map((item) => {
+                          // Look up by id or item name
+                          const address = selectedInvoice.splitDeliveryAddresses?.[item.productId] || selectedInvoice.splitDeliveryAddresses?.[item.name] || 'Default master address';
+                          return (
+                            <div key={item.productId} className="flex justify-between bg-white p-2 rounded border border-slate-150 gap-3 text-[10px]">
+                              <span className="font-bold text-slate-700 truncate max-w-[200px]">{item.name}</span>
+                              <span className="text-slate-500 italic shrink-0 text-right font-mono truncate max-w-[250px]">{address}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Terms disclaimer */}
               <div className="border-t border-slate-100 pt-4 text-center">
