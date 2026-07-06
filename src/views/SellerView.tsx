@@ -19,7 +19,39 @@ import {
   Radio,
   Tv,
   Bell,
-  Play
+  Play,
+  BarChart2,
+  Percent,
+  ArrowRight,
+  Eye,
+  ShoppingCart,
+  Sliders,
+  Settings,
+  MapPin,
+  GitBranch,
+  FileText,
+  Cpu,
+  UploadCloud,
+  MessageSquare,
+  Send,
+  FileSpreadsheet,
+  Upload,
+  Activity,
+  Globe,
+  Calculator,
+  Layout,
+  Paintbrush,
+  Check,
+  Image,
+  AlertCircle,
+  ThumbsDown,
+  Gauge,
+  Flame,
+  Zap,
+  ChevronUp,
+  ChevronDown,
+  Info,
+  ShieldAlert
 } from 'lucide-react';
 import { Product, Order, User, PromoCode } from '../lib/db';
 
@@ -55,13 +87,92 @@ export default function SellerView({
   const [editingProductId, setEditingProductId] = React.useState<string | null>(null);
 
   // Seller Tabs & Vouchers State
-  const [activeTab, setActiveTab] = React.useState<'inventory' | 'vouchers' | 'metrics' | 'broadcasts'>('inventory');
+  const [activeTab, setActiveTab] = React.useState<'inventory' | 'vouchers' | 'metrics' | 'broadcasts' | 'suite'>('inventory');
   const [voucherCode, setVoucherCode] = React.useState('');
   const [voucherDiscount, setVoucherDiscount] = React.useState(15);
   const [voucherDescription, setVoucherDescription] = React.useState('');
   const [voucherEliteOnly, setVoucherEliteOnly] = React.useState(false);
   const [voucherMinSpend, setVoucherMinSpend] = React.useState(0);
   const [voucherSuccess, setVoucherSuccess] = React.useState(false);
+
+  // --- BATCH 5 ENTERPRISE SELLER SUITE STATES ---
+  // Feature 41: Conversion Analytics
+  const [funnelProduct, setFunnelProduct] = React.useState<string>('all');
+  const [trafficMultiplier, setTrafficMultiplier] = React.useState<number>(1);
+  const [trafficLogs, setTrafficLogs] = React.useState<string[]>([
+    "System Initialized: Real-time traffic stream active.",
+    "Bot traffic filtered out successfully."
+  ]);
+  const [simulatedViews, setSimulatedViews] = React.useState<number>(12400);
+
+  // Feature 42: Dynamic Pricing Engines
+  const [dynamicPricing, setDynamicPricing] = React.useState<Record<string, { enabled: boolean; min: number; max: number }>>({});
+  const [marketDemand, setMarketDemand] = React.useState<'low' | 'normal' | 'surge'>('normal');
+  const [pricingLogs, setPricingLogs] = React.useState<string[]>([]);
+
+  // Feature 43: Multi-Warehouse Splits
+  const [warehouseSplits, setWarehouseSplits] = React.useState<Record<string, { east: number; central: number; west: number }>>({});
+  const [activeSplitProduct, setActiveSplitProduct] = React.useState<string>('');
+
+  // Feature 44: AI Spec Extraction
+  const [specRawText, setSpecRawText] = React.useState<string>('Manufacturer Spec Sheet #A-1099\nModel: AuraSound Nexus ANC\nChassis: Ultra-Lightweight Carbon Matrix Alloy (weight 240g)\nDriver: 45mm Custom Bio-cellulose Dome Transducer\nBattery Life: 48 Hours Continuous (ANC ON), 75 Hours (ANC OFF)\nFrequency range: 4Hz - 42kHz extreme spectral range\nBluetooth Codec: LDAC, aptX Adaptive, AAC, SBC supported\nActive Noise Cancellation: Double-feed hybrid isolation, up to -45dB attenuation.');
+  const [isExtractingSpec, setIsExtractingSpec] = React.useState<boolean>(false);
+  const [extractedSpecs, setExtractedSpecs] = React.useState<{ key: string; value: string }[] | null>(null);
+  const [specUploadSuccess, setSpecUploadSuccess] = React.useState<boolean>(false);
+
+  // Feature 45: Seller-to-Buyer Messaging
+  const [activeThreadId, setActiveThreadId] = React.useState<string>('t-1');
+  const [threads, setThreads] = React.useState<Array<{
+    id: string;
+    buyerName: string;
+    productName: string;
+    messages: Array<{ sender: 'buyer' | 'seller'; text: string; date: string }>;
+  }>>([
+    {
+      id: 't-1',
+      buyerName: 'Alice Vance',
+      productName: 'AuraSound Headset',
+      messages: [
+        { sender: 'buyer', text: "Hello! I am ordering 15 units for our sound studio. Can we get custom laser engravings with our studio logo on the left cups? What format should I send the artwork?", date: "08:12 AM" },
+        { sender: 'seller', text: "Welcome Alice! Yes, we support custom engravings. Please send the artwork as a high-resolution vector format, preferably `.svg` or `.pdf` black-and-white. We can preview them before engraving.", date: "08:15 AM" },
+        { sender: 'buyer', text: "That is perfect! Will it increase the fulfillment lead time by much?", date: "08:20 AM" }
+      ]
+    },
+    {
+      id: 't-2',
+      buyerName: 'Marcus Brodie',
+      productName: 'Custom Balanced Cable',
+      messages: [
+        { sender: 'buyer', text: "Do you offer a silver-plated copper 4.4mm balanced cable with 2-pin connectors? I need a custom length of 2.5 meters. Let me know if that's possible.", date: "Yesterday" }
+      ]
+    }
+  ]);
+  const [newMsgInput, setNewMsgInput] = React.useState<string>('');
+
+  // Feature 46: Bulk CSV Inventory Synchronizers
+  const [csvContent, setCsvContent] = React.useState<string>("id,price,stock,brand\nPROD-1,145,50,AuraSound\nPROD-2,199,25,VoltAudio\nPROD-3,85,120,SolderTech");
+  const [isSyncingCSV, setIsSyncingCSV] = React.useState<boolean>(false);
+  const [syncProgress, setSyncProgress] = React.useState<number>(0);
+  const [syncLogs, setSyncLogs] = React.useState<string[]>([]);
+
+  // Feature 47: Geographic Taxes & Tariffs
+  const [taxRegion, setTaxRegion] = React.useState<'US-CA' | 'EU-DE' | 'UK-GB' | 'JP-TO' | 'BR-SP'>('EU-DE');
+  const [taxBaseAmount, setTaxBaseAmount] = React.useState<number>(150);
+
+  // Feature 48: Whitelabel Storefront Customizer
+  const [storeTheme, setStoreTheme] = React.useState<'slate' | 'cream' | 'teal' | 'cyberpunk'>('slate');
+  const [storeBanner, setStoreBanner] = React.useState<string>('https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80');
+  const [storeHeadline, setStoreHeadline] = React.useState<string>('The Sound Sanctum - Custom Audiophile Gear');
+  const [storeFont, setStoreFont] = React.useState<'sans' | 'serif' | 'mono'>('sans');
+  const [storeCols, setStoreCols] = React.useState<number>(3);
+  const [storeSaved, setStoreSaved] = React.useState<boolean>(false);
+
+  // Feature 49: Defect/Return-Rate Prediction
+  const [defectSelectedProd, setDefectSelectedProd] = React.useState<string>('');
+
+  // Feature 50: Liquidation Clearinghouse Pipelines
+  const [liquidationLog, setLiquidationLog] = React.useState<string[]>([]);
+  const [isLiquidating, setIsLiquidating] = React.useState<boolean>(false);
 
   // --- BATCH 4 SELLER STATES & EFFECTS ---
   const [streamProduct, setStreamProduct] = React.useState('');
@@ -507,6 +618,17 @@ export default function SellerView({
           }`}
         >
           🎙️ Live Studio & Broadcasts
+        </button>
+        <button
+          id="seller-tab-suite"
+          onClick={() => setActiveTab('suite')}
+          className={`pb-3 text-xs font-bold uppercase tracking-wider transition-all border-b-2 cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+            activeTab === 'suite'
+              ? 'border-teal-600 text-teal-600 font-extrabold'
+              : 'border-transparent text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          💼 Enterprise Seller Suite
         </button>
       </div>
 
@@ -1401,6 +1523,1416 @@ export default function SellerView({
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* 41-50: ENTERPRISE SELLER SUITE TAB CONTENTS */}
+      {activeTab === 'suite' && (
+        <div id="enterprise-seller-suite" className="space-y-12 animate-fade-in">
+          
+          {/* Main Hero Header */}
+          <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 md:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
+            <div className="absolute top-0 right-0 h-40 w-40 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 h-32 w-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="space-y-2 max-w-2xl z-10">
+              <span className="text-[10px] font-bold font-mono tracking-widest text-teal-400 bg-teal-950/80 border border-teal-800/40 px-2.5 py-1 rounded-full uppercase">
+                High-Performance Enterprise Suite
+              </span>
+              <h3 className="text-xl md:text-2xl font-black tracking-tight">Multi-Tenant Merchant Suite v5.0</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Unlock industrial-grade automation: Dynamic algorithmic pricing, localized cross-border tax matrices, Whitelabel layout editors, direct buyer query hotlines, and AI-powered specification extraction engines.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2.5 z-10">
+              <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-2xl text-center min-w-[90px]">
+                <p className="text-[9px] font-mono text-slate-500 uppercase">Suite Security</p>
+                <p className="text-xs font-bold text-teal-400">AES-256 ✓</p>
+              </div>
+              <div className="bg-slate-950/80 border border-slate-800 px-4 py-2.5 rounded-2xl text-center min-w-[90px]">
+                <p className="text-[9px] font-mono text-slate-500 uppercase">Tenant Node</p>
+                <p className="text-xs font-bold text-teal-400">Active</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Micro-services Quick Grid Jump Navigation */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 font-mono text-[9px] text-slate-400">
+            <a href="#feature-41-conversion" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <BarChart2 className="h-3.5 w-3.5 text-purple-500" />
+              <span>41. Analytics Funnel</span>
+            </a>
+            <a href="#feature-42-pricing" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <Sliders className="h-3.5 w-3.5 text-teal-500" />
+              <span>42. Dynamic Pricing</span>
+            </a>
+            <a href="#feature-43-warehouse" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <MapPin className="h-3.5 w-3.5 text-indigo-500" />
+              <span>43. Stock Splitting</span>
+            </a>
+            <a href="#feature-44-spec" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <Cpu className="h-3.5 w-3.5 text-sky-500" />
+              <span>44. AI spec extract</span>
+            </a>
+            <a href="#feature-45-messaging" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <MessageSquare className="h-3.5 w-3.5 text-pink-500" />
+              <span>45. Direct Hotline</span>
+            </a>
+            <a href="#feature-46-csv" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <FileSpreadsheet className="h-3.5 w-3.5 text-emerald-500" />
+              <span>46. CSV Sync</span>
+            </a>
+            <a href="#feature-47-tax" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <Globe className="h-3.5 w-3.5 text-amber-500" />
+              <span>47. Localized Tax</span>
+            </a>
+            <a href="#feature-48-storefront" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <Layout className="h-3.5 w-3.5 text-rose-500" />
+              <span>48. Store Customizer</span>
+            </a>
+            <a href="#feature-49-returns" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <Gauge className="h-3.5 w-3.5 text-red-500" />
+              <span>49. Return Predictions</span>
+            </a>
+            <a href="#feature-50-liquidation" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
+              <Flame className="h-3.5 w-3.5 text-orange-500" />
+              <span>50. Wholesale Liquidation</span>
+            </a>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-12 text-slate-700">
+            
+            {/* 41. REAL-TIME CONVERSION FLOW ANALYTICS (7 cols) */}
+            <div id="feature-41-conversion" className="md:col-span-7 rounded-3xl border border-slate-800 bg-slate-950 text-slate-200 p-6 shadow-xl space-y-6 scroll-mt-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 h-24 w-24 bg-purple-500/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[9px] font-mono font-black text-purple-400 bg-purple-950/80 border border-purple-800/40 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    MODULE 41 // REAL-TIME CONVERSION FLOW
+                  </span>
+                  <h4 className="text-base font-extrabold tracking-tight text-white mt-2">Conversion Abandonment Pipeline</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Track exact attrition segments from product page traffic to successful financial capture.</p>
+                </div>
+                <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-lg">
+                  <span className="h-1.5 w-1.5 rounded-full bg-purple-500 animate-pulse" />
+                  <span className="text-[8px] font-mono text-slate-400 uppercase tracking-widest">LIVE DATASTREAM</span>
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="grid grid-cols-2 gap-4 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-850 text-xs">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase block font-mono">Select Active Listing</label>
+                  <select 
+                    value={funnelProduct}
+                    onChange={(e) => {
+                      setFunnelProduct(e.target.value);
+                      setSimulatedViews(e.target.value === 'all' ? 12400 : Math.floor(2000 + Math.random() * 4000));
+                    }}
+                    className="w-full rounded-xl border border-slate-800 bg-slate-950 text-slate-200 p-2 text-xs outline-none cursor-pointer"
+                  >
+                    <option value="all">-- Aggregated All Products --</option>
+                    {sellerProducts.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase block font-mono">Traffic Multiplier</label>
+                  <div className="flex gap-1.5">
+                    {[1, 2, 5, 10].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => {
+                          setTrafficMultiplier(num);
+                          setTrafficLogs(prev => [`Simulated load set to ${num}x density. Splicing ingress threads.`, ...prev.slice(0, 5)]);
+                        }}
+                        className={`flex-1 py-1.5 rounded-lg border text-center font-mono font-bold transition-all cursor-pointer ${
+                          trafficMultiplier === num 
+                            ? 'bg-purple-900 border-purple-500 text-white' 
+                            : 'bg-slate-950 border-slate-850 text-slate-500 hover:text-slate-300'
+                        }`}
+                      >
+                        {num}x
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Funnel Stack */}
+              {(() => {
+                const totalIngress = simulatedViews * trafficMultiplier;
+                const cartAdds = Math.round(totalIngress * 0.42);
+                const checks = Math.round(totalIngress * 0.18);
+                const complete = Math.round(totalIngress * 0.038);
+                const abandons = checks - complete;
+                const convRate = ((complete / totalIngress) * 100).toFixed(2);
+
+                return (
+                  <div className="space-y-4">
+                    {/* Visual Vertical Bars Stack representing Funnel */}
+                    <div className="space-y-3">
+                      {/* Step 1: Views */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] font-mono">
+                          <span className="text-slate-400 flex items-center gap-1"><Eye className="h-3 w-3" /> 1. Initial Product Views</span>
+                          <span className="font-extrabold text-white">{totalIngress.toLocaleString()} (100%)</span>
+                        </div>
+                        <div className="h-3.5 w-full bg-slate-900 rounded-lg overflow-hidden border border-slate-850">
+                          <div className="h-full bg-purple-600 rounded-r-lg transition-all duration-500" style={{ width: '100%' }} />
+                        </div>
+                      </div>
+
+                      {/* Step 2: Cart Adds */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] font-mono">
+                          <span className="text-slate-400 flex items-center gap-1"><ShoppingCart className="h-3 w-3" /> 2. Cart Additions</span>
+                          <span className="font-extrabold text-white">{cartAdds.toLocaleString()} (42.0%)</span>
+                        </div>
+                        <div className="h-3.5 w-full bg-slate-900 rounded-lg overflow-hidden border border-slate-850">
+                          <div className="h-full bg-purple-500 rounded-r-lg transition-all duration-500" style={{ width: '42%' }} />
+                        </div>
+                      </div>
+
+                      {/* Step 3: Checkout Initiated */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] font-mono">
+                          <span className="text-slate-400 flex items-center gap-1"><Percent className="h-3 w-3" /> 3. Checkout Initiations</span>
+                          <span className="font-extrabold text-white">{checks.toLocaleString()} (18.0%)</span>
+                        </div>
+                        <div className="h-3.5 w-full bg-slate-900 rounded-lg overflow-hidden border border-slate-850">
+                          <div className="h-full bg-indigo-500 rounded-r-lg transition-all duration-500" style={{ width: '18%' }} />
+                        </div>
+                      </div>
+
+                      {/* Step 4: Complete Sales */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] font-mono">
+                          <span className="text-emerald-400 font-bold flex items-center gap-1">✓ 4. Completed Sales Capture</span>
+                          <span className="font-extrabold text-emerald-400">{complete.toLocaleString()} ({convRate}%)</span>
+                        </div>
+                        <div className="h-3.5 w-full bg-slate-900 rounded-lg overflow-hidden border border-slate-850">
+                          <div className="h-full bg-emerald-500 rounded-r-lg transition-all duration-500" style={{ width: `${Math.max(3.8, parseFloat(convRate))}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-3 gap-3 text-center">
+                      <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-850">
+                        <p className="text-[8px] font-mono text-slate-500 uppercase">Cart Abandonment</p>
+                        <p className="text-xs font-mono font-black text-rose-400 mt-1">
+                          {((1 - (complete / checks)) * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                      <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-850">
+                        <p className="text-[8px] font-mono text-slate-500 uppercase">Lost Revenue Potential</p>
+                        <p className="text-xs font-mono font-black text-slate-300 mt-1">
+                          ${(abandons * 120).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-850">
+                        <p className="text-[8px] font-mono text-slate-500 uppercase">A/B Traffic Integrity</p>
+                        <p className="text-xs font-mono font-black text-emerald-400 mt-1">99.98%</p>
+                      </div>
+                    </div>
+
+                    {/* Simulation trigger */}
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSimulatedViews(prev => prev + 500);
+                          const userLoc = ["Seattle", "Tokyo", "London", "Munich", "Sydney", "Paris", "New York"][Math.floor(Math.random() * 7)];
+                          setTrafficLogs(prev => [`[${new Date().toLocaleTimeString()}] Ingress: Spike of 500 visitors injected from node_cluster_${userLoc.toLowerCase()}.`, ...prev.slice(0, 5)]);
+                        }}
+                        className="flex-1 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-purple-500/10 flex items-center justify-center gap-1"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span>Inject +500 Traffic Ingress Spike</span>
+                      </button>
+                    </div>
+
+                    {/* Console Traffic Logs */}
+                    <div className="space-y-1.5">
+                      <span className="text-[8px] font-mono font-bold text-slate-500 uppercase block tracking-wider">Active Stream Consoles</span>
+                      <div className="bg-black/90 rounded-xl p-3 border border-slate-900 font-mono text-[9px] text-purple-300/90 space-y-1 h-24 overflow-y-auto leading-normal">
+                        {trafficLogs.map((log, idx) => (
+                          <div key={idx} className="truncate">
+                            <span className="text-purple-500 font-bold">▶</span> {log}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* 42. DYNAMIC VARIABLE PRICING ENGINES (5 cols) */}
+            <div id="feature-42-pricing" className="md:col-span-5 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-6 scroll-mt-6">
+              <div>
+                <span className="text-[9px] font-mono font-black text-teal-600 bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  MODULE 42 // ALGORITHMIC VARIABLE PRICING
+                </span>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Dynamic Elasticity Engine</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Automate real-time inventory and demand-based price shifting parameters.</p>
+              </div>
+
+              {/* Demand trigger controls */}
+              <div className="space-y-2">
+                <label className="text-[9px] font-bold text-slate-500 uppercase block font-mono">Current Market Demand Condition</label>
+                <div className="grid grid-cols-3 gap-1.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMarketDemand('low');
+                      setPricingLogs(prev => ["Market Demand adjusted to LOW. Lower elastic price targets generated.", ...prev.slice(0, 5)]);
+                    }}
+                    className={`py-2 rounded-xl border font-bold text-center transition-all cursor-pointer ${
+                      marketDemand === 'low' 
+                        ? 'bg-rose-50 border-rose-300 text-rose-700' 
+                        : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    📉 Low Demand
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMarketDemand('normal');
+                      setPricingLogs(prev => ["Market Demand normal. Default price-weight curves applied.", ...prev.slice(0, 5)]);
+                    }}
+                    className={`py-2 rounded-xl border font-bold text-center transition-all cursor-pointer ${
+                      marketDemand === 'normal' 
+                        ? 'bg-slate-800 border-transparent text-white' 
+                        : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    ⚖ Normal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMarketDemand('surge');
+                      setPricingLogs(prev => ["Market Demand set to SURGE. Maximizing margin cap thresholds.", ...prev.slice(0, 5)]);
+                    }}
+                    className={`py-2 rounded-xl border font-bold text-center transition-all cursor-pointer ${
+                      marketDemand === 'surge' 
+                        ? 'bg-amber-50 border-amber-300 text-amber-700 font-black animate-pulse' 
+                        : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    📈 Surge Supply
+                  </button>
+                </div>
+              </div>
+
+              {/* Configurable Rules List */}
+              <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
+                {sellerProducts.map((p) => {
+                  const rule = dynamicPricing[p.id] || { enabled: false, min: Math.round(p.price * 0.75), max: Math.round(p.price * 1.5) };
+                  
+                  // Compute optimal target dynamically based on rules
+                  let computedTarget = p.price;
+                  if (rule.enabled) {
+                    let modifier = 1.0;
+                    if (p.stock < 5) modifier += 0.15; // low stock scarcity premium
+                    if (marketDemand === 'low') modifier -= 0.20;
+                    if (marketDemand === 'surge') modifier += 0.35;
+                    computedTarget = Math.round(p.price * modifier);
+                    // clamp
+                    computedTarget = Math.max(rule.min, Math.min(rule.max, computedTarget));
+                  }
+
+                  const handleToggleRule = () => {
+                    const nextEnabled = !rule.enabled;
+                    setDynamicPricing(prev => ({
+                      ...prev,
+                      [p.id]: { ...rule, enabled: nextEnabled }
+                    }));
+                    setPricingLogs(prev => [
+                      `Dynamic pricing for ${p.name} ${nextEnabled ? 'ENGAGED' : 'DISENGAGED'}.`,
+                      ...prev.slice(0, 5)
+                    ]);
+                  };
+
+                  const handleRangeChange = (field: 'min' | 'max', val: number) => {
+                    setDynamicPricing(prev => ({
+                      ...prev,
+                      [p.id]: { ...rule, [field]: val }
+                    }));
+                  };
+
+                  return (
+                    <div key={p.id} className="p-3.5 rounded-2xl border border-slate-100 bg-slate-50/50 space-y-3.5">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <img src={p.image} alt={p.name} className="h-7 w-7 rounded object-cover" />
+                          <div className="min-w-0">
+                            <p className="font-bold text-slate-800 text-[11px] truncate max-w-[140px]">{p.name}</p>
+                            <span className="text-[9px] text-slate-400 font-mono">Stock: {p.stock} units</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-slate-400">Rule:</span>
+                          <button
+                            type="button"
+                            onClick={handleToggleRule}
+                            className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase transition-all cursor-pointer ${
+                              rule.enabled 
+                                ? 'bg-teal-600 text-white' 
+                                : 'bg-slate-200 text-slate-500 hover:bg-slate-300'
+                            }`}
+                          >
+                            {rule.enabled ? 'Algorithmic' : 'Fixed'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {rule.enabled && (
+                        <div className="space-y-3.5 border-t border-slate-200/50 pt-2.5 animate-scale-in">
+                          <div className="grid grid-cols-2 gap-3 text-[10px]">
+                            <div className="space-y-1">
+                              <span className="text-slate-400 block">Min Floor ($)</span>
+                              <input 
+                                type="number" 
+                                value={rule.min}
+                                onChange={(e) => handleRangeChange('min', Number(e.target.value))}
+                                className="w-full bg-white border border-slate-200 rounded-lg p-1 font-mono font-bold"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-slate-400 block">Max Ceiling ($)</span>
+                              <input 
+                                type="number" 
+                                value={rule.max}
+                                onChange={(e) => handleRangeChange('max', Number(e.target.value))}
+                                className="w-full bg-white border border-slate-200 rounded-lg p-1 font-mono font-bold"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center bg-teal-50 border border-teal-100 p-2 rounded-xl">
+                            <div>
+                              <span className="text-[8px] font-mono text-teal-600 uppercase block font-bold">Calculated Price Target</span>
+                              <span className="font-mono text-xs font-black text-teal-900">${computedTarget}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onUpdateProduct(p.id, { price: computedTarget });
+                                setPricingLogs(prev => [`[Committed] Updated ${p.name} active catalog price to $${computedTarget}.`, ...prev.slice(0, 5)]);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[9px] font-bold uppercase cursor-pointer"
+                            >
+                              Sync Catalog Price
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Pricing Logs Console */}
+              <div className="space-y-1.5 font-mono">
+                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Pricing Calculation Ledger Logs</span>
+                <div className="bg-slate-900 text-teal-400/90 rounded-xl p-3 h-24 overflow-y-auto text-[9px] border border-slate-800 space-y-1 leading-relaxed">
+                  {pricingLogs.length > 0 ? (
+                    pricingLogs.map((log, idx) => (
+                      <div key={idx} className="truncate">
+                        <span className="text-teal-500 font-bold">⚙</span> {log}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="italic text-slate-500">Enable variable pricing above to launch simulation...</p>
+                  )}
+                </div>
+              </div>
+
+            </div>
+
+            {/* 43. MULTI-WAREHOUSE STOCK SPLITTING MATRIX (12 cols) */}
+            <div id="feature-43-warehouse" className="md:col-span-12 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-6 scroll-mt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[9px] font-mono font-black text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    MODULE 43 // ENTERPRISE regional fulfillment MATRIX
+                  </span>
+                  <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Multi-Warehouse Inventory Distributer</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Split available product stock across regional logistical nodes to achieve same-day local shipping speeds.</p>
+                </div>
+                
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-slate-400 block font-bold font-mono text-[10px] uppercase">Active Item Matrix:</span>
+                  <select
+                    value={activeSplitProduct}
+                    onChange={(e) => setActiveSplitProduct(e.target.value)}
+                    className="rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none cursor-pointer"
+                  >
+                    <option value="">-- Choose Listing --</option>
+                    {sellerProducts.map(p => (
+                      <option key={p.id} value={p.id}>{p.name} (Stock: {p.stock})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {activeSplitProduct ? (() => {
+                const activeProd = products.find(p => p.id === activeSplitProduct);
+                if (!activeProd) return null;
+
+                const split = warehouseSplits[activeSplitProduct] || { east: 40, central: 30, west: 30 };
+                const totalPct = split.east + split.central + split.west;
+
+                const updateSplit = (field: 'east' | 'central' | 'west', value: number) => {
+                  setWarehouseSplits(prev => ({
+                    ...prev,
+                    [activeSplitProduct]: { ...split, [field]: value }
+                  }));
+                };
+
+                return (
+                  <div className="grid gap-6 md:grid-cols-12 text-xs border-t border-slate-100 pt-5 animate-scale-in">
+                    
+                    {/* Interactive Sliders (6 cols) */}
+                    <div className="md:col-span-6 space-y-5">
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-blue-500" /> East Hub (New York, NY)</span>
+                          <span className="font-mono font-bold text-slate-800">{split.east}% ({Math.round(activeProd.stock * split.east / 100)} SKUs)</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={split.east} 
+                          onChange={(e) => updateSplit('east', Number(e.target.value))}
+                          className="w-full accent-indigo-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-indigo-500" /> Central Hub (Chicago, IL)</span>
+                          <span className="font-mono font-bold text-slate-800">{split.central}% ({Math.round(activeProd.stock * split.central / 100)} SKUs)</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={split.central} 
+                          onChange={(e) => updateSplit('central', Number(e.target.value))}
+                          className="w-full accent-indigo-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-violet-500" /> West Hub (Los Angeles, CA)</span>
+                          <span className="font-mono font-bold text-slate-800">{split.west}% ({Math.round(activeProd.stock * split.west / 100)} SKUs)</span>
+                        </div>
+                        <input 
+                          type="range" 
+                          min="0" 
+                          max="100" 
+                          value={split.west} 
+                          onChange={(e) => updateSplit('west', Number(e.target.value))}
+                          className="w-full accent-indigo-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer"
+                        />
+                      </div>
+
+                      <div className={`p-3 rounded-xl border text-center ${
+                        totalPct === 100 
+                          ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+                          : 'bg-rose-50 border-rose-100 text-rose-800 font-bold'
+                      }`}>
+                        {totalPct === 100 ? (
+                          <p>✓ Matrix balanced: Allocation ratio perfectly matches 100% stock parameters.</p>
+                        ) : (
+                          <p>⚠️ Matrix Out of Balance: Allocation totals {totalPct}%. Ensure ratios sum to exactly 100%.</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Logistics Telemetry visual (6 cols) */}
+                    <div className="md:col-span-6 bg-slate-950 text-slate-300 p-5 rounded-3xl space-y-4 font-mono text-[10px]">
+                      <div className="flex justify-between items-center border-b border-slate-800 pb-2">
+                        <span className="text-[11px] font-bold text-indigo-400">Logistics Node Projections</span>
+                        <span className="text-[8px] bg-indigo-900/60 text-indigo-300 border border-indigo-700/30 px-1.5 py-0.5 rounded">REAL-TIME TELEMETRY</span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-slate-900 p-3 rounded-2xl border border-slate-850">
+                          <p className="text-slate-500 uppercase text-[8px]">Transit Delay Index</p>
+                          <p className="text-xs font-bold text-white mt-1">1.2 Days avg</p>
+                        </div>
+                        <div className="bg-slate-900 p-3 rounded-2xl border border-slate-850">
+                          <p className="text-slate-500 uppercase text-[8px]">Delivery Optimization</p>
+                          <p className="text-xs font-bold text-teal-400 mt-1">✓ Same-day hot</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-slate-900 p-3 rounded-2xl border border-slate-850 space-y-2">
+                        <span className="text-[8px] uppercase text-slate-500 font-bold block">Regional order volumes match</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between">
+                            <span>NY/East:</span>
+                            <span className="font-bold text-white">Heavy Density</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>LA/West:</span>
+                            <span className="font-bold text-white">Moderate</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (totalPct !== 100) {
+                            alert("Please ensure stock splits equal exactly 100% before committing log files.");
+                            return;
+                          }
+                          alert(`Warehouse stock split committed for ${activeProd.name}. Regional dispatch nodes updated.`);
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold uppercase transition-all cursor-pointer"
+                      >
+                        Publish Regional Splits Matrix
+                      </button>
+                    </div>
+
+                  </div>
+                );
+              })() : (
+                <div className="border border-dashed border-slate-200 rounded-2xl p-8 text-center italic text-xs text-slate-400">
+                  Select an inventory item in the dropdown selection box above to deploy the regional warehouse stock split matrix.
+                </div>
+              )}
+            </div>
+
+            {/* 44. AUTOMATED AI PRODUCT SPEC EXTRACTION (6 cols) */}
+            <div id="feature-44-spec" className="md:col-span-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-5 scroll-mt-6">
+              <div>
+                <span className="text-[9px] font-mono font-black text-sky-600 bg-sky-50 border border-sky-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  MODULE 44 // AUTOMATED AI SPEC EXTRACTION
+                </span>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">AI Spec Parser Engine</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Upload raw manufacturer spec blocks, and natural language model workers will extract key-value indices instantly.</p>
+              </div>
+
+              {specUploadSuccess && (
+                <div className="rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs p-3 font-semibold animate-fade-in">
+                  ✓ Specifications table committed to the database index successfully!
+                </div>
+              )}
+
+              <div className="space-y-3.5 text-xs">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-bold text-slate-600">Raw Spec Sheet Content</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSpecRawText("Manufacturer Technical Bulletin #99B-88\nApparatus: VoltAudio Studio Wave II\nCore Acoustic Transducer: 50mm dynamic copper-clad aluminum wire coil\nMaterial Frame: High-tensile magnesium-aluminum acoustic chassis (weight 310g)\nDirect Battery Span: Up to 55 Hours Playback\nSpectral Bandwidth: 6Hz - 40,000Hz Ultra High-Definition\nDirect Codecs: aptX, AAC, LDAC audio protocol supported");
+                        setExtractedSpecs(null);
+                        setSpecUploadSuccess(false);
+                      }}
+                      className="text-[10px] text-sky-600 hover:underline font-bold"
+                    >
+                      Load Sample Spec text
+                    </button>
+                  </div>
+                  <textarea
+                    rows={6}
+                    value={specRawText}
+                    onChange={(e) => setSpecRawText(e.target.value)}
+                    placeholder="Paste unformatted manufacturer PDF copy/text blocks here..."
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 font-mono text-[10px] text-slate-800 outline-none focus:border-sky-500"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={isExtractingSpec || !specRawText.trim()}
+                    onClick={() => {
+                      setIsExtractingSpec(true);
+                      setSpecUploadSuccess(false);
+                      setTimeout(() => {
+                        // Simulated parsing logic extracting parameters
+                        const specs = [
+                          { key: "Model/Apparatus", value: specRawText.includes("VoltAudio") ? "VoltAudio Studio Wave II" : "AuraSound Nexus ANC" },
+                          { key: "Chassis Frame", value: specRawText.includes("VoltAudio") ? "Magnesium-Aluminum (310g)" : "Carbon Matrix Alloy (240g)" },
+                          { key: "Transducer Driver", value: specRawText.includes("VoltAudio") ? "50mm Copper-Clad Aluminum Wire" : "45mm Bio-cellulose Dome" },
+                          { key: "Acoustic Bandwidth", value: specRawText.includes("VoltAudio") ? "6Hz - 40,000Hz" : "4Hz - 42,000Hz" },
+                          { key: "Continuous Battery", value: specRawText.includes("VoltAudio") ? "55 Hours Playback" : "48 Hours (ANC Active)" },
+                          { key: "Digital Codecs", value: "LDAC, aptX, AAC, SBC" }
+                        ];
+                        setExtractedSpecs(specs);
+                        setIsExtractingSpec(false);
+                      }, 1800);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:bg-slate-100 text-white disabled:text-slate-400 text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {isExtractingSpec ? (
+                      <>
+                        <Cpu className="h-4 w-4 animate-spin text-white" />
+                        <span>AI Parsing Ingress stream...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="h-4 w-4" />
+                        <span>AI Extract Structured Specs</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {extractedSpecs && (
+                  <div className="space-y-3 border border-sky-100 bg-sky-50/40 rounded-2xl p-4 animate-scale-in">
+                    <span className="text-[10px] font-bold font-mono text-sky-700 block uppercase tracking-wider">AI Table Extractions Completed</span>
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-collapse text-left text-[11px]">
+                        <thead>
+                          <tr className="border-b border-sky-200 text-sky-800 font-bold uppercase font-mono text-[9px]">
+                            <th className="py-1">Technical Attribute</th>
+                            <th className="py-1">Value</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-sky-100/50 text-slate-700">
+                          {extractedSpecs.map((s, index) => (
+                            <tr key={index}>
+                              <td className="py-1.5 font-bold">{s.key}</td>
+                              <td className="py-1.5 font-mono text-sky-900">{s.value}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSpecUploadSuccess(true);
+                          setExtractedSpecs(null);
+                        }}
+                        className="w-full py-2 rounded-lg bg-sky-800 hover:bg-sky-950 text-white font-extrabold uppercase text-[10px] transition-colors"
+                      >
+                        Commit to Database Indices
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+
+            {/* 45. SELLER-TO-BUYER DIRECT MESSAGING GATEWAYS (6 cols) */}
+            <div id="feature-45-messaging" className="md:col-span-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-5 scroll-mt-6">
+              <div>
+                <span className="text-[9px] font-mono font-black text-pink-600 bg-pink-50 border border-pink-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  MODULE 45 // SELLER-TO-BUYER MESSAGE HOTLINE
+                </span>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Direct Customization Gateway</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Handle complex customization enquiries while keeping your personal email coordinates private.</p>
+              </div>
+
+              <div className="grid grid-cols-12 gap-4 h-96 border border-slate-100 rounded-3xl overflow-hidden">
+                {/* Channels lists (4 cols) */}
+                <div className="col-span-4 border-r border-slate-100 bg-slate-50/50 flex flex-col divide-y divide-slate-100 text-[10px]">
+                  {threads.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setActiveThreadId(t.id)}
+                      className={`p-3 text-left transition-all hover:bg-slate-100 cursor-pointer ${
+                        activeThreadId === t.id ? 'bg-white font-bold border-l-2 border-pink-500' : ''
+                      }`}
+                    >
+                      <p className="font-bold text-slate-800 truncate">{t.buyerName}</p>
+                      <span className="text-[8px] text-slate-400 font-mono truncate block">{t.productName}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Conversation screen (8 cols) */}
+                {(() => {
+                  const thread = threads.find(t => t.id === activeThreadId);
+                  if (!thread) return null;
+
+                  const handleSendMessage = (e: React.FormEvent) => {
+                    e.preventDefault();
+                    if (!newMsgInput.trim()) return;
+
+                    const newMsg = { sender: 'seller' as const, text: newMsgInput.trim(), date: "Just now" };
+                    const updatedMessages = [...thread.messages, newMsg];
+                    
+                    setThreads(prev => prev.map(t => t.id === thread.id ? { ...t, messages: updatedMessages } : t));
+                    setNewMsgInput('');
+
+                    // Trigger simulated response after 1.5 seconds!
+                    setTimeout(() => {
+                      const autoReplyText = `[Simulated Buyer Reply] Yes, that sounds amazing. Thank you so much for the clarification! I will complete the Checkout with transaction tags.`;
+                      setThreads(prev => prev.map(t => t.id === thread.id ? {
+                        ...t,
+                        messages: [...updatedMessages, { sender: 'buyer', text: autoReplyText, date: "Just now" }]
+                      } : t));
+                    }, 1500);
+                  };
+
+                  return (
+                    <div className="col-span-8 flex flex-col justify-between h-full bg-slate-50/20">
+                      {/* Messages scroll body */}
+                      <div className="p-3 overflow-y-auto space-y-3.5 flex-1 max-h-[290px]">
+                        {thread.messages.map((m, idx) => (
+                          <div 
+                            key={idx} 
+                            className={`max-w-[85%] rounded-2xl p-3 text-[11px] leading-relaxed shadow-3xs transition-all ${
+                              m.sender === 'seller'
+                                ? 'bg-slate-800 text-white rounded-tr-none ml-auto'
+                                : 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
+                            }`}
+                          >
+                            {/* Primitive Markdown render helper */}
+                            <div>
+                              {m.text.split(/(\*\*.*?\*\*|`.*?`)/g).map((chunk, i) => {
+                                if (chunk.startsWith('**') && chunk.endsWith('**')) {
+                                  return <strong key={i} className="font-extrabold">{chunk.slice(2, -2)}</strong>;
+                                }
+                                if (chunk.startsWith('`') && chunk.endsWith('`')) {
+                                  return <code key={i} className="font-mono text-[9px] bg-slate-100 text-pink-600 px-1 py-0.5 rounded border border-slate-200/50">{chunk.slice(1, -1)}</code>;
+                                }
+                                return chunk;
+                              })}
+                            </div>
+                            <span className="block text-[8px] mt-1 text-slate-400 font-mono text-right">{m.date}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Controls input bar */}
+                      <form onSubmit={handleSendMessage} className="p-2 bg-white border-t border-slate-100 space-y-2">
+                        {/* Markdown hotkeys */}
+                        <div className="flex gap-1.5 font-mono text-[8px] text-slate-400">
+                          <button
+                            type="button"
+                            onClick={() => setNewMsgInput(prev => prev + "**Bold**")}
+                            className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 hover:bg-slate-200 hover:text-slate-600 cursor-pointer font-bold"
+                          >
+                            B
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewMsgInput(prev => prev + "`Code`")}
+                            className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 hover:bg-slate-200 hover:text-slate-600 cursor-pointer font-mono"
+                          >
+                            &lt;/&gt;
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewMsgInput(prev => prev + "\n- Item")}
+                            className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 hover:bg-slate-200 hover:text-slate-600 cursor-pointer font-bold"
+                          >
+                            List
+                          </button>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newMsgInput}
+                            onChange={(e) => setNewMsgInput(e.target.value)}
+                            placeholder="Type safe encryption message..."
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs outline-none focus:border-pink-500"
+                          />
+                          <button
+                            type="submit"
+                            className="px-3 rounded-xl bg-pink-600 hover:bg-pink-700 text-white flex items-center justify-center cursor-pointer"
+                          >
+                            <Send className="h-3.5 w-3.5 fill-current" />
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* 46. BULK CSV INVENTORY SYNCHRONIZERS (6 cols) */}
+            <div id="feature-46-csv" className="md:col-span-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-5 scroll-mt-6">
+              <div>
+                <span className="text-[9px] font-mono font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  MODULE 46 // BULK CSV SYNCHRONIZER
+                </span>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">CSV High-Frequency Sync</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Parse, validate, and write tens of thousands of catalog inventory rows over the edge network instantly.</p>
+              </div>
+
+              <div className="space-y-4 text-xs">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <label className="font-bold text-slate-600">CSV Spreadsheet Payload</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const template = sellerProducts.map(p => `${p.id},${p.price + 5},${p.stock + 10},${p.brand}`).join("\n");
+                        setCsvContent(`id,price,stock,brand\n${template}`);
+                        setSyncLogs([]);
+                        setSyncProgress(0);
+                      }}
+                      className="text-emerald-600 hover:underline font-bold"
+                    >
+                      Regenerate from current inventory
+                    </button>
+                  </div>
+                  <textarea
+                    rows={5}
+                    value={csvContent}
+                    onChange={(e) => setCsvContent(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 p-2.5 font-mono text-[10px] text-slate-800 outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {isSyncingCSV ? (
+                  <div className="space-y-2 animate-pulse">
+                    <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                      <span>Stream Processing index...</span>
+                      <span>{syncProgress}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${syncProgress}%` }} />
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSyncingCSV(true);
+                      setSyncProgress(0);
+                      
+                      // Progress count timer
+                      const interval = setInterval(() => {
+                        setSyncProgress(prev => {
+                          if (prev >= 100) {
+                            clearInterval(interval);
+                            setIsSyncingCSV(false);
+
+                            // Actually execute database modifications!
+                            const rows = csvContent.split("\n").slice(1);
+                            let updatedCount = 0;
+                            rows.forEach(r => {
+                              const [id, priceStr, stockStr, brand] = r.split(",");
+                              if (id && priceStr && stockStr) {
+                                const matched = products.find(p => p.id === id.trim());
+                                if (matched) {
+                                  onUpdateProduct(matched.id, {
+                                    price: Number(priceStr.trim()),
+                                    stock: Number(stockStr.trim()),
+                                    brand: brand ? brand.trim() : matched.brand
+                                  });
+                                  updatedCount++;
+                                }
+                              }
+                            });
+
+                            setSyncLogs(prevLogs => [
+                              `[SUCCESS] Synchronized ${updatedCount} active listings in platform cache.`,
+                              "Validation constraint matches: 100% SUCCESS.",
+                              ...prevLogs
+                            ]);
+                            return 100;
+                          }
+                          return prev + 25;
+                        });
+                      }, 400);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-500/10"
+                  >
+                    <Upload className="h-4 w-4" />
+                    <span>Compile & Synchronize CSV Payload</span>
+                  </button>
+                )}
+
+                {/* Audit Console Logs */}
+                <div className="space-y-1.5 font-mono">
+                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Sync Event Stream Audit</span>
+                  <div className="bg-slate-900 text-emerald-400 rounded-xl p-3 h-24 overflow-y-auto text-[9px] border border-slate-800 space-y-1 leading-normal">
+                    {syncLogs.length > 0 ? (
+                      syncLogs.map((log, idx) => (
+                        <div key={idx} className="truncate">
+                          <span className="text-emerald-500 font-bold">⚙</span> {log}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="italic text-slate-500">Initiate bulk synchronization to display telemetry output...</p>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* 47. CROSS-BORDER LOCALIZED TAX CALCULATORS (6 cols) */}
+            <div id="feature-47-tax" className="md:col-span-6 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-5 scroll-mt-6">
+              <div>
+                <span className="text-[9px] font-mono font-black text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  MODULE 47 // CROSS-BORDER LOCALIZED TAX CALCULATORS
+                </span>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Geographic Tariff Ledger</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Determine customs duties, border levies, and regional value-added tax liabilities instantly without third-party integrations.</p>
+              </div>
+
+              {(() => {
+                const getTaxSpecs = () => {
+                  switch (taxRegion) {
+                    case 'US-CA': return { label: "🇺🇸 United States (California)", vat: 0, customs: 3.5, local: 8.875, border: 1.5 };
+                    case 'EU-DE': return { label: "🇩🇪 Germany (EU-VAT Zone)", vat: 19.0, customs: 4.5, local: 0, border: 2.5 };
+                    case 'UK-GB': return { label: "🇬🇧 United Kingdom (VAT-PostBrexit)", vat: 20.0, customs: 5.0, local: 0, border: 3.0 };
+                    case 'JP-TO': return { label: "🇯🇵 Japan (Consumption Tax)", vat: 10.0, customs: 2.8, local: 0, border: 1.0 };
+                    case 'BR-SP': return { label: "🇧🇷 Brazil (Mercosur ICMS Tariff)", vat: 18.0, customs: 14.5, local: 4.0, border: 8.5 };
+                  }
+                };
+
+                const specs = getTaxSpecs();
+                const vatAmt = Math.round(taxBaseAmount * specs.vat / 100);
+                const tariffAmt = Math.round(taxBaseAmount * specs.customs / 100);
+                const localAmt = Math.round(taxBaseAmount * specs.local / 100);
+                const borderAmt = Math.round(taxBaseAmount * specs.border / 100);
+                const finalSum = taxBaseAmount + vatAmt + tariffAmt + localAmt + borderAmt;
+
+                return (
+                  <div className="space-y-4 text-xs animate-scale-in">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase block font-mono">Recipient Region</span>
+                        <select
+                          value={taxRegion}
+                          onChange={(e: any) => setTaxRegion(e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none cursor-pointer font-bold"
+                        >
+                          <option value="US-CA">🇺🇸 United States (California)</option>
+                          <option value="EU-DE">🇩🇪 Germany (EU-VAT Zone)</option>
+                          <option value="UK-GB">🇬🇧 United Kingdom (VAT Zone)</option>
+                          <option value="JP-TO">🇯🇵 Japan (Consumption)</option>
+                          <option value="BR-SP">🇧🇷 Brazil (ICMS Internal)</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase block font-mono">Invoice Amount ($)</span>
+                        <input
+                          type="number"
+                          value={taxBaseAmount}
+                          onChange={(e) => setTaxBaseAmount(Number(e.target.value))}
+                          className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs font-mono font-bold outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3.5">
+                      <div className="flex justify-between items-center border-b border-slate-200/60 pb-1.5 text-[10px] font-mono font-bold text-slate-500">
+                        <span>Liabilities breakdown</span>
+                        <span>{specs.label}</span>
+                      </div>
+
+                      <div className="space-y-2 text-slate-600 font-mono text-[11px]">
+                        <div className="flex justify-between">
+                          <span>Base Net Value:</span>
+                          <span className="font-bold text-slate-800">${taxBaseAmount}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Import VAT / GST ({specs.vat}%):</span>
+                          <span className="font-bold text-slate-800">${vatAmt}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Customs Tariff Duty ({specs.customs}%):</span>
+                          <span className="font-bold text-slate-800">${tariffAmt}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Local State Sales Tax ({specs.local}%):</span>
+                          <span className="font-bold text-slate-800">${localAmt}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Border Clearance Fee ({specs.border}%):</span>
+                          <span className="font-bold text-slate-800">${borderAmt}</span>
+                        </div>
+
+                        <div className="flex justify-between border-t border-slate-200/80 pt-2 text-sm text-amber-800 font-bold font-sans">
+                          <span>Total Projected Landed Cost:</span>
+                          <span className="font-mono font-black">${finalSum}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-50 border border-amber-100 p-3 rounded-2xl text-[10px] text-amber-800 font-medium flex items-center gap-2 leading-relaxed">
+                      <ShieldAlert className="h-4 w-4 shrink-0" />
+                      <p>Compliance validation logged in multi-tenant ledgers: Fully cleared for secure cross-border fulfillment.</p>
+                    </div>
+
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* 48. WHITELABEL BRAND STOREFRONT BUILDERS (12 cols) */}
+            <div id="feature-48-storefront" className="md:col-span-12 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-6 scroll-mt-6">
+              <div>
+                <span className="text-[9px] font-mono font-black text-rose-600 bg-rose-50 border border-rose-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  MODULE 48 // WHITELABEL BRAND STOREFRONT DESIGNER
+                </span>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Visual Landing Page Workspace</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Customize bespoke visual styles, typography setups, and landing layouts dynamically while keeping branding clean.</p>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-12 text-xs">
+                {/* Style panel controls (4 cols) */}
+                <div className="md:col-span-4 bg-slate-50 border border-slate-100 p-4 rounded-3xl space-y-4">
+                  <span className="text-[10px] font-bold font-mono text-slate-400 block uppercase tracking-wider">Customizer workspace</span>
+                  
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Store Theme Presets</label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {(['slate', 'cream', 'teal', 'cyberpunk'] as const).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setStoreTheme(t)}
+                          className={`py-1.5 rounded-lg border text-[10px] font-bold capitalize transition-colors cursor-pointer ${
+                            storeTheme === t 
+                              ? 'bg-rose-500 border-transparent text-white' 
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          {t} theme
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Banner Image URL</label>
+                    <input 
+                      type="url"
+                      value={storeBanner}
+                      onChange={(e) => setStoreBanner(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-600 uppercase">Headline Text</label>
+                    <input 
+                      type="text"
+                      value={storeHeadline}
+                      onChange={(e) => setStoreHeadline(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-600 uppercase">Font Pairing</label>
+                      <select
+                        value={storeFont}
+                        onChange={(e: any) => setStoreFont(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none cursor-pointer font-bold"
+                      >
+                        <option value="sans">sans-serif (Inter)</option>
+                        <option value="serif">serif (Editorial)</option>
+                        <option value="mono">mono (Technical)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-600 uppercase">Grid Columns</label>
+                      <select
+                        value={storeCols}
+                        onChange={(e) => setStoreCols(Number(e.target.value))}
+                        className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none cursor-pointer font-bold"
+                      >
+                        <option value={2}>2 Column Grid</option>
+                        <option value={3}>3 Column Grid</option>
+                        <option value={4}>4 Column Grid</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {storeSaved && (
+                    <p className="text-emerald-600 text-xs font-semibold animate-pulse">✓ Layout committed and saved on cloud server!</p>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStoreSaved(true);
+                      setTimeout(() => setStoreSaved(false), 3000);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold uppercase transition-colors"
+                  >
+                    Save & Deploy Whitelabel Storefront
+                  </button>
+                </div>
+
+                {/* Visual Live Preview (8 cols) */}
+                <div className="md:col-span-8 border border-slate-200 rounded-3xl overflow-hidden flex flex-col justify-between shadow-xs bg-slate-100">
+                  <div className="p-3 bg-white border-b border-slate-200 text-[10px] font-mono text-slate-400 flex justify-between items-center">
+                    <span>LIVE BRAND PREVIEW FRAME</span>
+                    <span className="text-[8px] bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded font-extrabold">WHITELABEL RUNNING</span>
+                  </div>
+
+                  {/* Real visual preview content */}
+                  {(() => {
+                    const themeClasses = {
+                      slate: "bg-slate-950 text-slate-100 border-slate-800",
+                      cream: "bg-amber-50/40 text-slate-800 border-amber-100",
+                      teal: "bg-teal-950 text-teal-100 border-teal-800",
+                      cyberpunk: "bg-purple-950 text-pink-300 border-pink-500/20"
+                    }[storeTheme];
+
+                    const fontClass = {
+                      sans: "font-sans",
+                      serif: "font-serif italic",
+                      mono: "font-mono text-xs"
+                    }[storeFont];
+
+                    return (
+                      <div className={`p-6 space-y-6 ${themeClasses} ${fontClass} flex-1 min-h-[300px]`}>
+                        {/* Custom Banner */}
+                        <div className="relative h-28 rounded-2xl overflow-hidden border border-white/5 shadow-md flex items-center justify-center">
+                          <img src={storeBanner} alt="Store banner" className="absolute inset-0 h-full w-full object-cover opacity-65" />
+                          <div className="absolute inset-0 bg-black/40" />
+                          <h4 className="absolute text-center px-4 text-xs md:text-sm font-black text-white tracking-wide uppercase drop-shadow-sm">
+                            {storeHeadline}
+                          </h4>
+                        </div>
+
+                        {/* Store Catalog Items representation */}
+                        <div className="space-y-2">
+                          <span className="text-[9px] font-mono opacity-50 uppercase tracking-widest block font-bold">Featured catalog</span>
+                          <div className={`grid gap-3 ${
+                            storeCols === 2 ? 'grid-cols-2' : storeCols === 3 ? 'grid-cols-3' : 'grid-cols-4'
+                          }`}>
+                            {sellerProducts.slice(0, 4).map(p => (
+                              <div key={p.id} className="rounded-xl border border-slate-800/20 bg-white/5 p-2 space-y-1.5 shadow-2xs">
+                                <img src={p.image} alt={p.name} className="h-16 w-full object-cover rounded-lg" />
+                                <div className="leading-tight text-[10px]">
+                                  <p className="font-bold truncate">{p.name}</p>
+                                  <span className="font-mono text-[9px] opacity-75">${p.price}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+
+            {/* 49. RETURN-RATE PREDICTION DASHBOARD (7 cols) */}
+            <div id="feature-49-returns" className="md:col-span-7 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-6 scroll-mt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[9px] font-mono font-black text-red-600 bg-red-50 border border-red-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                    MODULE 49 // DEFECTIVE BATCH TELEMETRY
+                  </span>
+                  <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Return-Rate Prediction Dial</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Analyze defect telemetry and customer complaints to flag potentially defective manufacturing batches before heavy volume returns.</p>
+                </div>
+
+                <select
+                  value={defectSelectedProd}
+                  onChange={(e) => setDefectSelectedProd(e.target.value)}
+                  className="rounded-xl border border-slate-200 bg-white p-2 text-xs outline-none cursor-pointer"
+                >
+                  <option value="">-- Select Product --</option>
+                  {sellerProducts.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {defectSelectedProd ? (() => {
+                const prod = products.find(p => p.id === defectSelectedProd);
+                if (!prod) return null;
+
+                // Create deterministic telemetry based on ID string
+                const score = (prod.name.charCodeAt(0) % 25) + 2.5;
+                const batch = `B-BATCH-${(prod.name.charCodeAt(1) % 8) + 12}`;
+                
+                let riskColor = "text-emerald-600 bg-emerald-50 border-emerald-100";
+                let badgeLabel = "LOW DEFECT RISK";
+                if (score > 12) {
+                  riskColor = "text-rose-600 bg-rose-50 border-rose-100 animate-pulse";
+                  badgeLabel = "CRITICAL DEFECT THRESHOLD DETECTED";
+                } else if (score > 6) {
+                  riskColor = "text-amber-600 bg-amber-50 border-amber-100";
+                  badgeLabel = "MODERATE FLAGGED DEV";
+                }
+
+                return (
+                  <div className="space-y-5 text-xs animate-scale-in border-t border-slate-100 pt-4">
+                    <div className="grid grid-cols-3 gap-3 text-center font-mono">
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <span className="text-slate-400 text-[8px] uppercase block">Assigned Batch</span>
+                        <span className="text-xs font-bold text-slate-800 mt-1 block">{batch}</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <span className="text-slate-400 text-[8px] uppercase block">Predicted Returns</span>
+                        <span className="text-xs font-bold text-slate-800 mt-1 block">{score.toFixed(1)}%</span>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                        <span className="text-slate-400 text-[8px] uppercase block">Telemetry Health</span>
+                        <span className="text-xs font-bold text-slate-800 mt-1 block">{(100 - score).toFixed(1)}%</span>
+                      </div>
+                    </div>
+
+                    <div className={`p-4 border rounded-2xl space-y-3 ${riskColor}`}>
+                      <div className="flex justify-between items-center text-[10px] font-mono font-bold uppercase tracking-wider">
+                        <span>Diagnostic Alert:</span>
+                        <span>{badgeLabel}</span>
+                      </div>
+                      
+                      <p className="text-[11px] leading-relaxed font-medium">
+                        {score > 12 
+                          ? `⚠️ ALERT: Batch ${batch} of the ${prod.name} has crossed critical return parameters. Internal acoustics and mechanical calibration sensors indicate a high correlation of diaphragm misalignment on Assembly Line #4.`
+                          : `✓ Batch ${batch} demonstrates stable physical telemetry. Internal tolerance drift measurements are fully compliant with QA certifications.`
+                        }
+                      </p>
+                    </div>
+
+                    {/* Breakdown Reasons SVG horizontal segment */}
+                    <div className="space-y-1.5">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase block font-mono">Top Complaint Correlations</span>
+                      <div className="h-5 w-full bg-slate-100 rounded-lg overflow-hidden flex font-mono text-[9px] font-bold text-white text-center">
+                        <div className="bg-red-500 h-full flex items-center justify-center transition-all" style={{ width: '60%' }} title="Acoustic Distortion">Distort (60%)</div>
+                        <div className="bg-amber-500 h-full flex items-center justify-center transition-all" style={{ width: '25%' }} title="Chassis fitment">Fitment (25%)</div>
+                        <div className="bg-blue-500 h-full flex items-center justify-center transition-all" style={{ width: '15%' }} title="Other">Other (15%)</div>
+                      </div>
+                    </div>
+
+                    {/* Expert Action Recommendations */}
+                    <div className="bg-slate-900 text-slate-300 p-4 rounded-2xl space-y-2">
+                      <span className="text-[9px] font-mono font-bold text-indigo-400 uppercase tracking-wider block">Recommended mitigation</span>
+                      <ul className="list-disc pl-4 space-y-1 text-[11px] leading-relaxed">
+                        <li>{score > 12 ? "Immediately halt active fabrication lines at Factory Segment B-4." : "Proceed with default production scheduling."}</li>
+                        <li>{score > 12 ? "Launch deep acoustic sensor sweeps for drivers packaged after July 1st." : "Maintain current 5-day QA sweep interval."}</li>
+                        <li>Consider enabling automatic variable discounts to offload flagged units to secondary wholesale category markets.</li>
+                      </ul>
+                    </div>
+
+                  </div>
+                );
+              })() : (
+                <div className="border border-dashed border-slate-200 rounded-2xl p-8 text-center italic text-xs text-slate-400">
+                  Select an inventory product from the dropdown above to run return-rate prediction analysis.
+                </div>
+              )}
+            </div>
+
+            {/* 50. LIQUIDATION CLEARINGHOUSE PIPELINES (5 cols) */}
+            <div id="feature-50-liquidation" className="md:col-span-5 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-5 scroll-mt-6">
+              <div>
+                <span className="text-[9px] font-mono font-black text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  MODULE 50 // LIQUIDATION CLEARINGHOUSE PIPELINES
+                </span>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Slow-Moving Excess Pipeline</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Flush sluggish inventory stocks directly to secondary discounted wholesale pipelines with a single click.</p>
+              </div>
+
+              {/* Items matching slow moving status (stock > 5) */}
+              {(() => {
+                const slowMovingItems = sellerProducts.filter(p => p.stock >= 5);
+
+                return (
+                  <div className="space-y-4 text-xs">
+                    <span className="text-[9px] font-bold text-slate-500 uppercase block font-mono">Flagged Overstocked Inventory SKUs ({slowMovingItems.length})</span>
+                    
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {slowMovingItems.map((p) => (
+                        <div key={p.id} className="p-3 rounded-2xl border border-slate-100 bg-slate-50/50 flex justify-between items-center text-xs">
+                          <div className="flex items-center gap-2">
+                            <img src={p.image} alt={p.name} className="h-8 w-8 rounded object-cover" />
+                            <div>
+                              <p className="font-bold text-slate-800 text-[11px] truncate max-w-[150px]">{p.name}</p>
+                              <span className="text-[9px] text-slate-400 font-mono">Current Stock: {p.stock} units</span>
+                            </div>
+                          </div>
+
+                          <span className="font-mono font-black text-rose-500">-${Math.round(p.price * 0.60)} (60% Off)</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {isLiquidating ? (
+                      <div className="p-4 bg-orange-50 rounded-2xl text-center space-y-2 animate-pulse text-[11px] font-bold text-orange-800 border border-orange-200">
+                        <Flame className="h-6 w-6 text-orange-500 mx-auto animate-bounce" />
+                        <p>Redirecting excess units to Wholesaler category routes...</p>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={slowMovingItems.length === 0}
+                        onClick={() => {
+                          setIsLiquidating(true);
+                          setLiquidationLog([]);
+                          setTimeout(() => {
+                            // Shifting stock prices in actual catalog listings!
+                            slowMovingItems.forEach(p => {
+                              onUpdateProduct(p.id, {
+                                price: Math.round(p.price * 0.40), // 60% discount
+                                stock: Math.max(2, p.stock - 3) // shift 3 units to wholesale buyers
+                              });
+                            });
+
+                            setIsLiquidating(false);
+                            setLiquidationLog([
+                              `[COMPLETED] Shifted excess units to the Wholesale clearinghouse directory.`,
+                              `Prices synchronized with a 60% liquidation reduction markup.`,
+                              "Logistics transfer manifest logged with tenant courier nodes."
+                            ]);
+                          }, 1600);
+                        }}
+                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 text-white font-black text-xs uppercase tracking-wider shadow-md shadow-orange-500/15 cursor-pointer hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <Flame className="h-4 w-4" />
+                        <span>Flush Slow Stocks to wholesale</span>
+                      </button>
+                    )}
+
+                    {/* Liquidation Log output */}
+                    {liquidationLog.length > 0 && (
+                      <div className="space-y-1.5 font-mono">
+                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider block">Logistics Routing Manifest</span>
+                        <div className="bg-slate-900 text-orange-300 rounded-xl p-3 text-[9px] border border-slate-800 space-y-1 leading-relaxed">
+                          {liquidationLog.map((log, idx) => (
+                            <div key={idx} className="truncate">
+                              <span className="text-orange-500 font-bold">⚡</span> {log}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+                );
+              })()}
+            </div>
+
+          </div>
+
         </div>
       )}
 
