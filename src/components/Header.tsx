@@ -226,6 +226,17 @@ export default function Header({
             🏢 B2B Enterprise
           </button>
 
+          {/* AI Edge Lab Button */}
+          <button
+            id="nav-edge-btn"
+            onClick={() => setActiveView('edge')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1 ${
+              activeView === 'edge' ? 'text-teal-600 bg-teal-50 font-bold border border-teal-200/50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+            }`}
+          >
+            ⚡ AI Edge Lab
+          </button>
+
           <div className="h-4 w-[1px] bg-slate-200"></div>
 
           {/* Wishlist Link */}

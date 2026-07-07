@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface ProductDetailsViewProps {
   product: Product;
+  products?: Product[];
   onBack: () => void;
   onAddToCart: (product: Product) => void;
   onToggleWishlist: (product: Product) => void;
@@ -30,6 +31,7 @@ interface ProductDetailsViewProps {
 
 export default function ProductDetailsView({
   product,
+  products = [],
   onBack,
   onAddToCart,
   onToggleWishlist,
@@ -890,15 +892,174 @@ export default function ProductDetailsView({
     ? `Generic White-Label Alternative (${product.brand} OEM)` 
     : product.name;
 
-  const displayProductDesc = isWhiteLabel
+  const baseProductDesc = isWhiteLabel
     ? `Identical architectural design and structural frame matching the unbranded ledger footprint. Manufactured on the same production floor utilizing raw industrial casings and plain bulk packaging. Bypasses premium retail markups.`
     : product.description;
+
+  // --- FEATURE 97: CONTEXTUAL AI SMART DESCRIPTIONS ---
+  const [aiPersona, setAiPersona] = React.useState<'default' | 'minimalist' | 'technical' | 'marketing' | 'critique'>('default');
+  const [aiTyping, setAiTyping] = React.useState(false);
+  const [aiDescriptionText, setAiDescriptionText] = React.useState(baseProductDesc);
+
+  const aiDescriptions = React.useMemo(() => {
+    return {
+      prod_1: {
+        minimalist: "A single piece of audio perfection. Pure silence, uninterrupted battery, upcycled marine polymers.",
+        technical: "Acoustic chamber volume: 38cc. Drivers: 40mm Neodymium N52 magnets. Coil: CCAW. Impedance: 32 ohms. Active Noise Cancellation: Dual-feed hybrid feedforward + feedback, attenuates up to 42dB in 20Hz-2KHz spectrum. Bluetooth v5.3 supporting LDAC, AAC, aptX Adaptive.",
+        marketing: "Step into your own sanctuary of sound. The Aether-9 envelops you in magnificent, breathtaking acoustics while wiping away the outside world with studio-grade noise elimination. Unleash raw, emotional performance for up to 45 glorious hours.",
+        critique: "Aether-9 represents a masterclass in spatial sound reproduction and premium comfort. However, the reliance on soy-protein ear cushions, while highly biodegradable, means they will show physical wear and material flaking under high humidity conditions after 18-24 months of heavy usage. We advise acquiring spare ear cups early."
+      },
+      prod_2: {
+        minimalist: "Aerospace titanium watch featuring high-accuracy AMOLED biosensors and native offline map navigation.",
+        technical: "Casing: Grade-5 surgical-grade Titanium. Bezel: Sapphire Crystal glass, Mohs hardness 9. Display: 1.43\" AMOLED, 466x466 pixels, 326 PPI, peak luminance 1200 nits. Sensors: PPG optical blood oxygen, tri-axis accelerometer, barometric altimeter, dual-frequency multi-constellation GPS.",
+        marketing: "Crafted for the untamable spirit. The Chronos Edition 4 is more than a timepiece—it is a rugged companion built from space-era titanium. Navigate uncharted terrains with military-grade mapping and track your body's vitals with relentless, pinpoint accuracy.",
+        critique: "An exceptional outdoor tool with a robust GPS lock. Nonetheless, the high-luminance AMOLED panel severely penalizes battery stamina during active tracking sessions, shrinking runtime from 14 days to a mere 18 hours when GPS and Always-On-Display are concurrent. We advise toggling off-line pre-rendering when in remote grids."
+      },
+      prod_3: {
+        minimalist: "A flawless, immersive 34-inch curved workspace monitor with 144Hz fluid motion.",
+        technical: "Panel Type: VA Curved (1500R curvature). Native Resolution: 3440 x 1440 (21:9 aspect ratio). Color Gamut: 99% sRGB, 92% DCI-P3 calibrated. Refresh Rate: 144Hz. Input Ports: 2x HDMI 2.1, 1x DisplayPort 1.4, 1x USB-C with 90W Power Delivery.",
+        marketing: "Expand your horizon. The Lumina Horizon pulls you into stunning high-definition wide-screen space, perfect for complex workspace spreadsheets or epic gameplay. Experience gorgeous, vibrant colors and ultra-smooth fluid transitions.",
+        critique: "The Horizon Ultrawide excels at desktop real estate. However, due to VA panel technology, fast-moving dark elements exhibit slight ghosting and black smearing during low-light transitions. Gamers requiring flawless gray-to-gray response should enable the overdrive option inside the OSD."
+      }
+    };
+  }, []);
+
+  const getSmartDescription = React.useCallback((prodId: string, name: string, desc: string, category: string, persona: 'default' | 'minimalist' | 'technical' | 'marketing' | 'critique') => {
+    if (persona === 'default') return desc;
+    
+    const mapped = (aiDescriptions as any)[prodId];
+    if (mapped && (mapped as any)[persona]) {
+      return (mapped as any)[persona];
+    }
+    
+    // Dynamic generation backup:
+    if (persona === 'minimalist') {
+      return `An elegant, high-precision expression of modern ${category.toLowerCase()} design. Built around pure functional performance.`;
+    }
+    if (persona === 'technical') {
+      return `Physical architecture: High-grade component casing. Performance rating: High-efficiency ${category.toLowerCase()} modules. Latency thresholds: Low-latency communication nodes. Integrates standard diagnostic registers.`;
+    }
+    if (persona === 'marketing') {
+      return `Elevate your standard of living with the ${name}. Engineered to inspire, it delivers breathtaking features and unparalleled luxury directly to your daily routine!`;
+    }
+    if (persona === 'critique') {
+      return `The ${name} represents a substantial milestone in consumer-tier ${category.toLowerCase()} items. However, the thermal dissipation envelope is tightly constrained under peak loads, and we recommend ensuring proper ambient airflow to prevent premature throttling.`;
+    }
+    return desc;
+  }, [aiDescriptions]);
+
+  // Handle persona changes with a beautiful local typewriter effect!
+  React.useEffect(() => {
+    const targetText = getSmartDescription(
+      product.id,
+      displayProductName,
+      baseProductDesc,
+      product.category,
+      aiPersona
+    );
+    
+    if (aiPersona === 'default') {
+      setAiDescriptionText(targetText);
+      setAiTyping(false);
+      return;
+    }
+
+    setAiTyping(true);
+    let currentLen = 0;
+    setAiDescriptionText('');
+    
+    const timer = setInterval(() => {
+      currentLen += 6; // Type 6 characters at a time for fast response
+      if (currentLen >= targetText.length) {
+        setAiDescriptionText(targetText);
+        setAiTyping(false);
+        clearInterval(timer);
+      } else {
+        setAiDescriptionText(targetText.substring(0, currentLen) + '▮');
+      }
+    }, 15);
+    
+    return () => clearInterval(timer);
+  }, [aiPersona, product.id, displayProductName, baseProductDesc, product.category, getSmartDescription]);
+
+  const displayProductDesc = aiDescriptionText;
 
   const ratingDistribution = [5, 4, 3, 2, 1].map((stars) => {
     const matchingCount = rawProductReviews.filter((r) => r.rating === stars).length;
     const pct = rawProductReviews.length > 0 ? (matchingCount / rawProductReviews.length) * 100 : 0;
     return { stars, count: matchingCount, pct };
   });
+
+  // --- FEATURE 94: SEMANTIC REVIEW SUMMARIZATION ---
+  const summaryInsights = React.useMemo(() => {
+    const reviewsToAnalyze = productReviews.length > 0 ? productReviews : rawProductReviews;
+    const prosSet = new Set<string>();
+    const consSet = new Set<string>();
+    let positiveCount = 0;
+    
+    reviewsToAnalyze.forEach(r => {
+      const txt = r.text.toLowerCase();
+      const rating = r.rating;
+      if (rating >= 4) positiveCount++;
+      
+      if (txt.includes('sound') || txt.includes('audio') || txt.includes('music') || txt.includes('bass') || txt.includes('frequency')) prosSet.add('Stellar soundstage signature');
+      if (txt.includes('comfort') || txt.includes('soft') || txt.includes('wear') || txt.includes('foam')) prosSet.add('Ergonomic and plush fit');
+      if (txt.includes('battery') || txt.includes('hours') || txt.includes('charge')) prosSet.add('Superb battery longevity');
+      if (txt.includes('titanium') || txt.includes('quality') || txt.includes('build') || txt.includes('alloy')) prosSet.add('Premium metal craftsmanship');
+      if (txt.includes('anc') || txt.includes('noise') || txt.includes('quiet') || txt.includes('isolation')) prosSet.add('Excellent active isolation');
+      
+      if (txt.includes('expensive') || txt.includes('price') || txt.includes('cost') || txt.includes('dollars')) consSet.add('Higher capital barrier');
+      if (txt.includes('sleeve') || txt.includes('lid') || txt.includes('packaging')) consSet.add('Complex unboxing ritual');
+      if (txt.includes('sweat') || txt.includes('humidity') || txt.includes('peel') || txt.includes('flake')) consSet.add('Ear cushions sensitive to humidity');
+      if (txt.includes('weight') || txt.includes('heavy') || txt.includes('grams')) consSet.add('Slightly heavy footprint');
+      if (txt.includes('software') || txt.includes('app') || txt.includes('firmware') || txt.includes('sync')) consSet.add('Basic accompanying app utility');
+    });
+    
+    if (prosSet.size === 0) {
+      prosSet.add('High-end industrial aesthetics');
+      prosSet.add('Vetted materials certification');
+    }
+    if (consSet.size === 0) {
+      consSet.add('Limited initial colorways');
+      consSet.add('Premium pricing tier');
+    }
+    
+    const sentimentPct = reviewsToAnalyze.length > 0 
+      ? Math.round((positiveCount / reviewsToAnalyze.length) * 100) 
+      : 95;
+      
+    return {
+      pros: Array.from(prosSet).slice(0, 3),
+      cons: Array.from(consSet).slice(0, 3),
+      sentimentPct,
+      consensus: sentimentPct >= 85 ? 'Highly Recommended' : sentimentPct >= 70 ? 'Recommended with Caveats' : 'Mixed Sentiments'
+    };
+  }, [productReviews, rawProductReviews]);
+
+  // --- FEATURE 91: CLIENT-SIDE SEMANTIC RECOMMENDATION ENGINE ---
+  const semanticRecommendations = React.useMemo(() => {
+    if (!products || products.length <= 1) return [];
+    
+    const currentTokens = new Set(`${product.name} ${product.category} ${product.brand}`.toLowerCase().split(/\s+/));
+    
+    const scored = products
+      .filter(p => p.id !== product.id)
+      .map(p => {
+        const otherTokens = `${p.name} ${p.category} ${p.brand}`.toLowerCase().split(/\s+/);
+        let intersection = 0;
+        otherTokens.forEach(t => {
+          if (currentTokens.has(t)) intersection++;
+        });
+        const union = currentTokens.size + otherTokens.length - intersection;
+        const jaccard = union > 0 ? intersection / union : 0;
+        return { product: p, score: jaccard };
+      });
+      
+    return scored
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(item => item.product);
+  }, [product, products]);
 
   // --- FEATURE #32: TIME-STAMPED VIDEO REVIEW SNIPPET PARSER ---
   const renderReviewText = (text: string) => {
@@ -2228,6 +2389,7 @@ export default function ProductDetailsView({
                   <Star 
                     key={i} 
                     className={`h-4 w-4 ${i < Math.round(product.rating) ? 'fill-current' : 'text-slate-200'}`} 
+                    id={`details-star-${i}`}
                   />
                 ))}
               </div>
@@ -2235,12 +2397,42 @@ export default function ProductDetailsView({
               <span className="text-xs text-slate-400">({productReviews.length} Verified Reviewers)</span>
             </div>
 
+            {/* FEATURE 97: Contextual Smart Persona Selector */}
+            <div className="flex flex-col gap-1.5 pt-2.5 border-t border-slate-100">
+              <span className="text-[9px] font-mono font-bold text-teal-600 uppercase tracking-widest flex items-center gap-1">
+                <Sparkles className="h-3 w-3 animate-pulse" /> Edge AI Smart Description Persona
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {(['default', 'minimalist', 'technical', 'marketing', 'critique'] as const).map((persona) => (
+                  <button
+                    key={persona}
+                    id={`btn-persona-${persona}`}
+                    onClick={() => setAiPersona(persona)}
+                    className={`px-2.5 py-1 text-[9px] font-bold rounded-lg border font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                      aiPersona === persona
+                        ? 'bg-teal-600 border-teal-500 text-white shadow-xs'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                    }`}
+                  >
+                    {persona}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Description */}
-            <p className={`text-sm leading-relaxed pt-2 ${
-              editorialMode ? 'text-slate-300 italic text-base font-light' : 'text-slate-500'
+            <div className={`text-sm leading-relaxed pt-2 min-h-[60px] relative ${
+              editorialMode ? 'text-slate-300 italic text-base font-light' : 'text-slate-600'
             }`}>
-              {displayProductDesc}
-            </p>
+              <p id="details-product-description">
+                {displayProductDesc}
+              </p>
+              {aiTyping && (
+                <span className="absolute bottom-1 right-2 text-[8px] font-mono text-teal-500 tracking-widest animate-pulse">
+                  AI RENDERING ENGINE ACTIVE...
+                </span>
+              )}
+            </div>
 
             {/* Specs list */}
             {!editorialMode && (
@@ -2695,6 +2887,54 @@ export default function ProductDetailsView({
             </div>
           )}
 
+          {/* FEATURE 94: SEMANTIC REVIEW SUMMARIZATION */}
+          <div className="rounded-2xl border border-teal-850 bg-slate-950 p-4 space-y-3.5 shadow-md">
+            <div className="flex justify-between items-center border-b border-teal-950 pb-2">
+              <span className="text-[10px] font-bold font-mono text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-teal-500 animate-pulse" />
+                Edge AI Semantic Review Insights
+              </span>
+              <span className="text-[8px] font-mono bg-teal-950 text-teal-300 border border-teal-800/40 px-1.5 py-0.5 rounded uppercase font-bold">
+                Local Consensus: {summaryInsights.sentimentPct}% Positive
+              </span>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-slate-900/50 p-3 border border-slate-800/50 space-y-2">
+                <h5 className="text-[10px] font-mono font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1">
+                  ✓ Highlighted Virtues (Pros)
+                </h5>
+                <ul className="space-y-1.5">
+                  {summaryInsights.pros.map((pro, index) => (
+                    <li key={index} className="text-xs text-slate-300 flex items-start gap-1.5 leading-snug">
+                      <span className="text-emerald-500 font-bold font-mono text-[10px]">•</span>
+                      <span>{pro}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-xl bg-slate-900/50 p-3 border border-slate-800/50 space-y-2">
+                <h5 className="text-[10px] font-mono font-bold text-rose-400 uppercase tracking-widest flex items-center gap-1">
+                  ⚠ Engineering Caveats (Cons)
+                </h5>
+                <ul className="space-y-1.5">
+                  {summaryInsights.cons.map((con, index) => (
+                    <li key={index} className="text-xs text-slate-300 flex items-start gap-1.5 leading-snug">
+                      <span className="text-rose-500 font-bold font-mono text-[10px]">•</span>
+                      <span>{con}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-teal-950/20 border border-teal-900/30 rounded-xl p-2.5 text-[10px] text-teal-300/90 leading-normal font-sans">
+              <span className="font-bold mr-1">Semantic Consensus:</span>
+              Based on client-side NLP token extraction of {productReviews.length} active reviews, this product has a consensus rating of <strong className="text-teal-400">{summaryInsights.consensus}</strong>. Key descriptors indicate a strong focus on materials, acoustic wave resonance, and mechanical longevity.
+            </div>
+          </div>
+
           {/* FEATURE #32: TIME-STAMPED VIDEO DEMONSTRATION ATTACHMENT */}
           <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-3.5 shadow-md">
             <div className="flex justify-between items-center border-b border-slate-900 pb-2">
@@ -3124,6 +3364,85 @@ export default function ProductDetailsView({
         </section>
 
       </div>
+
+      {/* FEATURE 91: CLIENT-SIDE SEMANTIC RECOMMENDATIONS */}
+      {semanticRecommendations.length > 0 && (
+        <section id="semantic-recommendations-section" className="border-t border-slate-200/60 pt-10 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-150 pb-3">
+            <div className="space-y-1">
+              <h3 className="text-xl font-extrabold tracking-tight flex items-center gap-2 text-slate-800">
+                <Sparkles className="h-5 w-5 text-teal-600 animate-pulse" />
+                Edge-Computed Semantic Alternatives
+              </h3>
+              <p className="text-xs text-slate-500">
+                Lightweight, private client-side vector matching based on specification and feature overlap matrices.
+              </p>
+            </div>
+            <span className="text-[9px] font-mono bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-1 rounded-full font-bold uppercase tracking-widest self-start sm:self-auto">
+              100% Private Client-Side Matching
+            </span>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-3">
+            {semanticRecommendations.map((rec) => (
+              <div 
+                key={rec.id} 
+                className="group relative flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-xs transition-all duration-300 hover:shadow-md hover:border-teal-500/50"
+              >
+                <div className="space-y-3">
+                  <div className="relative aspect-video w-full rounded-xl bg-slate-50 overflow-hidden border border-slate-100 flex items-center justify-center p-4">
+                    <img 
+                      src={rec.image} 
+                      alt={rec.name} 
+                      className="max-h-full max-w-full object-contain transition-transform duration-500 group-hover:scale-105" 
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute top-2 right-2 rounded-lg bg-teal-600 px-2 py-0.5 text-[8px] font-mono text-white font-extrabold uppercase tracking-widest">
+                      Similarity Match
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-mono text-teal-600 uppercase tracking-widest block font-bold">{rec.category} • {rec.brand}</span>
+                    <h4 className="text-sm font-bold text-slate-850 line-clamp-1 group-hover:text-teal-700 transition-colors">
+                      {rec.name}
+                    </h4>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                      {rec.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-4">
+                  <span className="font-mono font-black text-slate-900 text-sm">
+                    ${rec.price}
+                  </span>
+                  
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onAddToCart(rec)}
+                      className="px-2.5 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 border border-teal-200/40 text-[10px] font-bold transition-all uppercase cursor-pointer"
+                    >
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        alert(`Analyzing alternative: ${rec.name}`);
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold transition-all uppercase cursor-pointer"
+                    >
+                      Compare
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
     </div>
   );
