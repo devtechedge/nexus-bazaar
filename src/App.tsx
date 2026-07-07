@@ -33,6 +33,7 @@ import StylingRoomView from './views/StylingRoomView';
 import CurationsView from './views/CurationsView';
 import LoyaltyView from './views/LoyaltyView';
 import SecurityVaultView from './views/SecurityVaultView';
+import B2BWholesaleView from './views/B2BWholesaleView';
 import ConciergeChatbot from './components/ConciergeChatbot';
 import { ShieldAlert, RefreshCw, Radio, Bell, Volume2, Play, Square, X as CloseIcon } from 'lucide-react';
 
@@ -100,7 +101,7 @@ export default function App() {
   });
 
   // 3. Routing views
-  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist' | 'guilds' | 'styling' | 'curations' | 'loyalty' | 'security'>('storefront');
+  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist' | 'guilds' | 'styling' | 'curations' | 'loyalty' | 'security' | 'b2b'>('storefront');
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
 
   // 4. Shared filters search inputs
@@ -257,18 +258,28 @@ export default function App() {
   const isSuspended = currentUser.isBanned;
 
   // Shopping cart modifiers
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: Product, customQty?: number) => {
     if (isSuspended) return;
     if (product.stock <= 0) return;
 
+    // Dynamically insert into products list if it's a dynamic contract product (not in original dbState.products)
+    const existsInDb = dbState.products.some((p) => p.id === product.id);
+    if (!existsInDb) {
+      updateDbState((prev) => ({
+        ...prev,
+        products: [product, ...prev.products]
+      }));
+    }
+
     setCart((prev) => {
       const existing = prev.find((item) => item.productId === product.id);
+      const addedQty = customQty !== undefined ? customQty : 1;
       if (existing) {
         // Prevent exceeding stock capacity
-        const newQty = Math.min(product.stock, existing.quantity + 1);
+        const newQty = Math.min(product.stock, existing.quantity + addedQty);
         return prev.map((item) => item.productId === product.id ? { ...item, quantity: newQty } : item);
       }
-      return [...prev, { productId: product.id, quantity: 1 }];
+      return [...prev, { productId: product.id, quantity: addedQty }];
     });
   };
 
@@ -687,6 +698,15 @@ export default function App() {
         return (
           <SecurityVaultView
             currentUser={currentUser}
+            setActiveView={setActiveView}
+          />
+        );
+      case 'b2b':
+        return (
+          <B2BWholesaleView
+            currentUser={currentUser}
+            products={dbState.products}
+            onAddToCart={handleAddToCart}
             setActiveView={setActiveView}
           />
         );

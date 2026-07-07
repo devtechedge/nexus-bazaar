@@ -215,6 +215,17 @@ export default function Header({
             Styling Lab
           </button>
 
+          {/* B2B Wholesale & Enterprise */}
+          <button
+            id="nav-b2b-btn"
+            onClick={() => setActiveView('b2b')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1 ${
+              activeView === 'b2b' ? 'text-indigo-600 bg-indigo-50 font-bold border border-indigo-200/50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+            }`}
+          >
+            🏢 B2B Enterprise
+          </button>
+
           <div className="h-4 w-[1px] bg-slate-200"></div>
 
           {/* Wishlist Link */}
