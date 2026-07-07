@@ -107,6 +107,7 @@ export interface Order {
   predictiveLagDays?: number;
   splitDeliveryAddresses?: Record<string, string>;
   recurringInterval?: string;
+  isZeroKnowledgeEncrypted?: boolean;
 }
 
 export interface PromoCode {

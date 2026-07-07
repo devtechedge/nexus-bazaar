@@ -76,6 +76,75 @@ export default function SearchView({
   const [infinitePageCount, setInfinitePageCount] = React.useState(1);
   const [isInfiniteLoading, setIsInfiniteLoading] = React.useState(false);
 
+  // --- BATCH 8: 76. RATE-LIMITED SEARCH PROTECTION ---
+  const [searchCount, setSearchCount] = React.useState<number>(0);
+  const [rateLimitedActive, setRateLimitedActive] = React.useState<boolean>(false);
+  const [rateLimitCooldown, setRateLimitCooldown] = React.useState<number>(0);
+  const [isCaptchaVerified, setIsCaptchaVerified] = React.useState<boolean>(false);
+  const [showCaptcha, setShowCaptcha] = React.useState<boolean>(false);
+  const [captchaValue, setCaptchaValue] = React.useState<string>('');
+  const [captchaSolution, setCaptchaSolution] = React.useState<string>('');
+
+  // Rate Limiter tracking effect
+  React.useEffect(() => {
+    if (!searchQuery) return;
+    setSearchCount(prev => prev + 1);
+
+    const timer = setTimeout(() => {
+      setSearchCount(0);
+    }, 5000); // reset window every 5 seconds
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // If search count exceeds 15 queries in 5s (due to typing super fast), trigger protective lock
+  React.useEffect(() => {
+    if (searchCount > 15 && !isCaptchaVerified && !rateLimitedActive) {
+      setRateLimitedActive(true);
+      setRateLimitCooldown(15); // 15 second lock
+      setShowCaptcha(true);
+      const code = Math.random().toString(36).substring(2, 7).toUpperCase();
+      setCaptchaSolution(code);
+      setCaptchaValue('');
+
+      // Log rate limit event
+      const logs = (() => {
+        const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+        return stored ? JSON.parse(stored) : [];
+      })();
+      logs.unshift({
+        id: `sec_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        event: 'RATE_LIMIT_BREACH',
+        severity: 'medium',
+        message: `Rapid catalog indexing detected. Threshold of 15 queries/5s breached. Verification screen deployed.`,
+        origin: 'RATE_LIMITER_SERVICE',
+        userId: currentUser.id,
+        userName: currentUser.name
+      });
+      localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+    }
+  }, [searchCount, isCaptchaVerified, currentUser, rateLimitedActive]);
+
+  // Countdown timer for cooldown
+  React.useEffect(() => {
+    if (!rateLimitedActive) return;
+    const interval = setInterval(() => {
+      setRateLimitCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setRateLimitedActive(false);
+          setIsCaptchaVerified(false);
+          setShowCaptcha(false);
+          setSearchCount(0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [rateLimitedActive]);
+
   // Feature #8: Cross-Category Compatibility Graph State
   const [assemblyRig, setAssemblyRig] = React.useState<Product[]>([]);
   const [compatGraphActiveNode, setCompatGraphActiveNode] = React.useState<string | null>(null);
@@ -448,6 +517,68 @@ export default function SearchView({
   return (
     <div id="search-view-container" className="pb-16 max-w-7xl mx-auto">
       
+      {/* 76. RATE-LIMITER ANTI-SCRAPER CAPTCHA GATING OVERLAY */}
+      {rateLimitedActive && (
+        <div className="bg-rose-950 text-white rounded-2xl p-6 shadow-xl space-y-4 mb-8 border border-rose-700">
+          <div className="flex items-start gap-4">
+            <span className="text-3xl">🛡️</span>
+            <div className="space-y-1">
+              <h3 className="text-sm font-black uppercase tracking-wider text-rose-200">76. Adaptive Anti-Scraper Protection Deployed</h3>
+              <p className="text-xs text-rose-100 leading-relaxed max-w-3xl">
+                Our scraping prevention daemon detected search indexing velocities exceeding standard human capacity. Standard queries are throttled. Please solve the cryptographic CAPTCHA below or wait for the cooling cycles to drain.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-slate-950/80 p-4 rounded-xl border border-rose-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500">CAPTCHA Key:</span>
+              <span className="bg-slate-900 border border-slate-750 px-4 py-2 rounded text-lg font-black tracking-widest text-emerald-400 select-all font-mono">
+                {captchaSolution}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Type CAPTCHA..."
+                value={captchaValue}
+                onChange={(e) => {
+                  const val = e.target.value.toUpperCase();
+                  setCaptchaValue(val);
+                  if (val === captchaSolution) {
+                    setIsCaptchaVerified(true);
+                    setRateLimitedActive(false);
+                    setShowCaptcha(false);
+                    setSearchCount(0);
+                    // Log success to security ledger
+                    const logs = (() => {
+                      const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+                      return stored ? JSON.parse(stored) : [];
+                    })();
+                    logs.unshift({
+                      id: `sec_${Date.now()}`,
+                      timestamp: new Date().toISOString(),
+                      event: 'CAPTCHA_SOLVED',
+                      severity: 'low',
+                      message: `Anti-Scraper CAPTCHA solved successfully. Rate limiting shield disengaged.`,
+                      origin: 'RATE_LIMITER_SERVICE',
+                      userId: currentUser.id,
+                      userName: currentUser.name
+                    });
+                    localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+                  }
+                }}
+                className="bg-slate-900 border border-slate-750 text-white rounded px-3 py-2 text-xs font-bold w-full sm:w-36 focus:outline-none focus:ring-1 focus:ring-rose-500 font-mono"
+              />
+              <span className="text-[11px] font-mono text-rose-300 font-bold whitespace-nowrap bg-rose-900 px-2.5 py-1.5 rounded border border-rose-800">
+                Cooling: {rateLimitCooldown}s
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. DISCOVERY NAVIGATION HEADER TABS */}
       <div className="border-b border-slate-200 bg-white rounded-2xl p-4 shadow-sm space-y-4 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -900,7 +1031,9 @@ export default function SearchView({
 
               {/* Grid of cards */}
               {filteredProducts.length > 0 ? (
-                <div id="results-grid" className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div id="results-grid" className={`grid gap-6 sm:grid-cols-2 xl:grid-cols-3 transition-all duration-300 ${
+                  rateLimitedActive ? 'blur-md pointer-events-none select-none opacity-50' : ''
+                }`}>
                   {filteredProducts.map((prod) => (
                     <ProductCard
                       key={prod.id}

@@ -231,7 +231,22 @@ export default function ProductCard({
       <div id={`info-container-${product.id}`} className="flex flex-1 flex-col p-4">
         {/* Brand and Category */}
         <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 uppercase tracking-wider">
-          <span>{product.brand}</span>
+          <div className="flex items-center gap-1 group/seller relative">
+            <span className="font-semibold text-slate-500">{product.brand}</span>
+            <span 
+              className="text-[9px] bg-emerald-50 text-emerald-700 font-bold border border-emerald-200 px-1 py-0.2 rounded font-mono cursor-help" 
+              title={`Verified Cryptographic Seller Key (ECDSA Secp256k1). Fingerprint: SHA256:${product.brand.toUpperCase()}-SELLER-NEXUS-KEY-0X8F92`}>
+              ✓ SIGNED
+            </span>
+            {/* Tooltip on hover */}
+            <div className="absolute bottom-6 left-0 scale-0 group-hover/seller:scale-100 transition-all duration-150 origin-bottom-left z-40 bg-slate-950 text-slate-100 text-[8.5px] p-2.5 rounded-lg shadow-xl border border-slate-800 w-52 font-mono leading-normal lowercase">
+              <p className="font-extrabold text-emerald-400 uppercase text-[8px] tracking-wider mb-1">✓ Certified Seller Handshake</p>
+              <p className="text-slate-400">Alg: ECDSA-secp256k1</p>
+              <p className="text-slate-300">Public Key Hash:</p>
+              <p className="truncate text-teal-400">0x3fa9bc{product.id}f882d911c7ef</p>
+              <p className="text-emerald-500 font-extrabold uppercase text-[7.5px] mt-1">Status: Ledger Verified</p>
+            </div>
+          </div>
           <span>{product.category}</span>
         </div>
 

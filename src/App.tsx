@@ -32,6 +32,7 @@ import GuildsView from './views/GuildsView';
 import StylingRoomView from './views/StylingRoomView';
 import CurationsView from './views/CurationsView';
 import LoyaltyView from './views/LoyaltyView';
+import SecurityVaultView from './views/SecurityVaultView';
 import ConciergeChatbot from './components/ConciergeChatbot';
 import { ShieldAlert, RefreshCw, Radio, Bell, Volume2, Play, Square, X as CloseIcon } from 'lucide-react';
 
@@ -99,7 +100,7 @@ export default function App() {
   });
 
   // 3. Routing views
-  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist' | 'guilds' | 'styling' | 'curations' | 'loyalty'>('storefront');
+  const [activeView, setActiveView] = React.useState<'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist' | 'guilds' | 'styling' | 'curations' | 'loyalty' | 'security'>('storefront');
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
 
   // 4. Shared filters search inputs
@@ -679,6 +680,13 @@ export default function App() {
             currentUser={currentUser}
             products={dbState.products}
             onAddToCart={handleAddToCart}
+            setActiveView={setActiveView}
+          />
+        );
+      case 'security':
+        return (
+          <SecurityVaultView
+            currentUser={currentUser}
             setActiveView={setActiveView}
           />
         );

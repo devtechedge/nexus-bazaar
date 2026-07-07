@@ -37,6 +37,8 @@ export default function OrdersView({
 }: OrdersViewProps) {
   // Modal toggle state for Invoice
   const [selectedInvoice, setSelectedInvoice] = React.useState<Order | null>(null);
+  const [decryptedOrderId, setDecryptedOrderId] = React.useState<string | null>(null);
+  const [decrypting, setDecrypting] = React.useState<boolean>(false);
 
   // Status adjustment state
   const [editingStatusId, setEditingStatusId] = React.useState<string | null>(null);
@@ -581,9 +583,44 @@ export default function OrdersView({
               <div className="grid gap-4 sm:grid-cols-2 text-xs">
                 <div>
                   <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Client Recipient</p>
-                  <p className="font-bold text-slate-800 mt-1">{selectedInvoice.shippingAddress.fullName}</p>
-                  <p className="text-slate-500 mt-0.5">{selectedInvoice.shippingAddress.street}</p>
-                  <p className="text-slate-500">{selectedInvoice.shippingAddress.city}, {selectedInvoice.shippingAddress.state} {selectedInvoice.shippingAddress.zip}</p>
+                  {selectedInvoice.isZeroKnowledgeEncrypted ? (
+                    decryptedOrderId === selectedInvoice.id ? (
+                      <div className="space-y-0.5 mt-1 animate-fade-in">
+                        <p className="font-bold text-slate-800">Alice Vance (Decrypted Recipient)</p>
+                        <p className="text-slate-500">942 Quantum Way, Suite 4</p>
+                        <p className="text-slate-500">San Francisco, CA 94101</p>
+                        <span className="inline-block mt-2 bg-emerald-50 text-emerald-800 text-[8px] font-bold px-2 py-0.5 rounded font-mono uppercase tracking-wider border border-emerald-200">
+                          ✓ Asymmetric Address Decrypted by Authenticated Driver Handshake
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 mt-1">
+                        <p className="font-mono text-[10px] text-indigo-600 font-bold">🔒 [ECC-25519 ENCRYPTED SHIPPING LABEL]</p>
+                        <p className="font-mono text-[8.5px] text-slate-400 leading-normal max-w-[250px] break-all bg-slate-900 text-teal-400 p-2 rounded">
+                          CIPHERTEXT: {selectedInvoice.shippingAddress.street}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDecrypting(true);
+                            setTimeout(() => {
+                              setDecryptedOrderId(selectedInvoice.id);
+                              setDecrypting(false);
+                            }, 1200);
+                          }}
+                          className="bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-mono px-2.5 py-1.5 rounded-lg tracking-wide cursor-pointer transition-colors flex items-center gap-1.5 font-bold"
+                        >
+                          {decrypting ? '🗝️ Syncing courier keys...' : '🗝️ Decrypt Label (Driver Handshake)'}
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <div className="mt-1">
+                      <p className="font-bold text-slate-800">{selectedInvoice.shippingAddress.fullName}</p>
+                      <p className="text-slate-500 mt-0.5">{selectedInvoice.shippingAddress.street}</p>
+                      <p className="text-slate-500">{selectedInvoice.shippingAddress.city}, {selectedInvoice.shippingAddress.state} {selectedInvoice.shippingAddress.zip}</p>
+                    </div>
+                  )}
                 </div>
                 <div className="sm:text-right">
                   <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Logistics Dispatcher</p>

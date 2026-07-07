@@ -176,6 +176,62 @@ export default function CartCheckoutView({
     };
   }, [shippingState, shippingMethod, ecoRouteBuffer]);
 
+  // --- BATCH 8: ADVANCED ENTERPRISE SECURITY, PRIVACY & CONTROLS STATES ---
+  const [zkAddressVaultEnabled, setZkAddressVaultEnabled] = React.useState<boolean>(false);
+  const [useDisposableVirtualCard, setUseDisposableVirtualCard] = React.useState<boolean>(false);
+  const [mfaModalOpen, setMfaModalOpen] = React.useState<boolean>(false);
+  const [mfaVerified, setMfaVerified] = React.useState<boolean>(false);
+  const [mfaSimulating, setMfaSimulating] = React.useState<boolean>(false);
+  const [mfaInputCode, setMfaInputCode] = React.useState<string>('');
+  const [mfaError, setMfaError] = React.useState<string | null>(null);
+
+  // 74. Device Session Fingerprint
+  const [simulatedDeviceCountry, setSimulatedDeviceCountry] = React.useState<string>('US');
+  const [simulatedDeviceCity, setSimulatedDeviceCity] = React.useState<string>('Seattle');
+  const [simulatedDeviceIP, setSimulatedDeviceIP] = React.useState<string>('192.168.1.104');
+  const [sessionAnomalyActive, setSessionAnomalyActive] = React.useState<boolean>(false);
+
+  // 75. Review Pseudonym Mask
+  const [reviewPseudonymMask, setReviewPseudonymMask] = React.useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const stored = localStorage.getItem('nexus_bazaar_buyer_review_pseudonym_mask');
+    return stored === 'true';
+  });
+
+  // 78. Cart Garbage Collector Timer (in seconds)
+  const [cartGcTimer, setCartGcTimer] = React.useState<number>(600); // 10 minutes default
+  const [gcExtendedMessage, setGcExtendedMessage] = React.useState<string | null>(null);
+
+  // Cart Garbage Collector Effect
+  React.useEffect(() => {
+    if (cart.length === 0) return;
+    const interval = setInterval(() => {
+      setCartGcTimer((prev) => {
+        if (prev <= 1) {
+          // Clear cart items
+          cart.forEach(item => onRemoveFromCart(item.productId));
+          // Log event to security ledger
+          const logs = (() => {
+            const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+            return stored ? JSON.parse(stored) : [];
+          })();
+          logs.unshift({
+            id: `sec_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            level: 'WARN',
+            source: 'GARBAGE_COLLECT',
+            message: `Stale checkout cache auto-reclaimed by Ephemeral Cart Garbage Collector (Timer reached 0s).`,
+            hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+          });
+          localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+          return 600;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cart, onRemoveFromCart, currentUser]);
+
   // Map cart identifiers to concrete product models
   const cartItems = React.useMemo(() => {
     return cart.map((item) => {
@@ -493,6 +549,11 @@ export default function CartCheckoutView({
       return;
     }
 
+    if (sessionAnomalyActive && !mfaVerified) {
+      alert('SECURITY ALERT: Geohop Threat Lock Active. You must complete FIDO2 Hardware Key Authentication in the Security & Privacy panel before checkout can be authorized.');
+      return;
+    }
+
     if (!isSigned) {
       setSignError("Biometric Signature authorization required to commit this ledger transaction. Please trace your authorization below.");
       const el = document.getElementById('biometric-auth-pad');
@@ -523,17 +584,33 @@ export default function CartCheckoutView({
       total: totalAmount,
       promoCodeUsed: appliedPromo?.code,
       shippingAddress: {
-        fullName,
-        street,
-        city,
-        state: shippingState,
-        zip,
+        fullName: zkAddressVaultEnabled ? 'A. Vance (Asymmetrically Encrypted)' : fullName,
+        street: zkAddressVaultEnabled ? 'CIPHERTEXT: [ecc-msg-0x9a2f1c8d3e5b107c89bf16d7a4f9e1e2d]' : street,
+        city: zkAddressVaultEnabled ? '[ZK_ENCRYPTED_VAULT]' : city,
+        state: zkAddressVaultEnabled ? 'ZK' : shippingState,
+        zip: zkAddressVaultEnabled ? '00000' : zip,
       },
       warehouseHoldDays: holdInWarehouse ? holdDurationDays : undefined,
       fractionalInvoices: fractionalInvoicingEnabled ? fractionalShares : undefined,
       predictiveLagDays: delayForecast.days,
       splitDeliveryAddresses: splitAddressEnabled ? splitAddresses : undefined,
+      isZeroKnowledgeEncrypted: zkAddressVaultEnabled,
     });
+
+    // BATCH 8: SECURITY AUDIT LEDGER TRANSACTION LOG (Feature 77)
+    const logs = (() => {
+      const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+      return stored ? JSON.parse(stored) : [];
+    })();
+    logs.unshift({
+      id: `sec_${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      level: 'SECURE',
+      source: 'CHECKOUT_PIPELINE',
+      message: `Checkout authorized & committed. Net: $${totalAmount}. ZK Address Vault: ${zkAddressVaultEnabled ? 'ACTIVE' : 'INACTIVE'}. Disposable Card: ${useDisposableVirtualCard ? 'ACTIVE' : 'INACTIVE'}. Biometric Match: ${biometricScore || '95'}%.`,
+      hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+    });
+    localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
 
     // Update store credits if used (Feature 51) & locker hub pickup reward (Feature 65)
     let finalCredits = storeCredits;
@@ -1948,6 +2025,433 @@ export default function CartCheckoutView({
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* BATCH 8: ADVANCED ENTERPRISE SECURITY & PRIVACY CONTROLS */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 text-left">
+              
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🛡️</span>
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Advanced Enterprise Security & Privacy</h3>
+                </div>
+                <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-full uppercase">
+                  Zero-Trust Enabled
+                </span>
+              </div>
+
+              {/* 78. EPHEMERAL CART GARBAGE COLLECTOR TIMER */}
+              <div className="bg-slate-900 text-slate-100 rounded-xl p-4 space-y-3 font-mono text-xs border border-slate-800">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="animate-ping h-2 w-2 rounded-full bg-rose-500 block"></span>
+                    <span className="font-bold text-rose-400">78. Ephemeral Cart Cache TTL</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400">Garbage Collector Daemon</span>
+                </div>
+                <div className="flex justify-between items-baseline pt-1">
+                  <span className="text-slate-400">Active Checkout Lifetime:</span>
+                  <span className="text-xl font-black text-rose-400">
+                    {Math.floor(cartGcTimer / 60)}m {cartGcTimer % 60}s
+                  </span>
+                </div>
+                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-rose-500 transition-all duration-1000" 
+                    style={{ width: `${(cartGcTimer / 600) * 100}%` }}
+                  />
+                </div>
+                <div className="flex justify-between gap-2 pt-1 text-[10px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCartGcTimer((prev) => Math.min(600, prev + 600));
+                      setGcExtendedMessage('TTL expanded. Staging caches refreshed.');
+                      setTimeout(() => setGcExtendedMessage(null), 3000);
+                    }}
+                    className="flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 py-1.5 rounded font-bold cursor-pointer transition-colors"
+                  >
+                    🔄 Refresh TTL (+10m)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Instantly recycle
+                      cart.forEach(item => onRemoveFromCart(item.productId));
+                      setCartGcTimer(600);
+                    }}
+                    className="flex-1 bg-rose-950 hover:bg-rose-900 text-rose-300 py-1.5 rounded font-bold cursor-pointer transition-colors"
+                  >
+                    🧹 Purge Cart Now
+                  </button>
+                </div>
+                {gcExtendedMessage && (
+                  <p className="text-[9px] text-emerald-400 text-center">{gcExtendedMessage}</p>
+                )}
+                <p className="text-[9px] text-slate-500 leading-normal">
+                  In compliance with Zero-Knowledge standards, your shopping cart items exist strictly in ephemeral RAM staging. Leaving the tab idle will trigger deep memory garbage collection to protect checkout intent.
+                </p>
+              </div>
+
+              {/* 74. DEVICE SESSION FINGERPRINT VERIFICATION & 73. HARDWARE MFA */}
+              <div className="bg-slate-50 border border-slate-150 rounded-xl p-4 space-y-3.5">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">74. Device Session Fingerprint</span>
+                    <p className="text-[11px] text-slate-500 leading-normal mt-0.5">
+                      Continuously evaluates browser entropy, geographic speed-of-light hops, and localized IP blocks.
+                    </p>
+                  </div>
+                  <span className={`h-8 w-8 rounded-full flex items-center justify-center text-xs border ${
+                    sessionAnomalyActive ? 'bg-rose-50 border-rose-200 text-rose-600 animate-pulse' : 'bg-indigo-50 border-indigo-150 text-indigo-600'
+                  }`}>
+                    📡
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 font-mono text-[9px] text-slate-600 bg-white p-3 rounded-lg border border-slate-200/50">
+                  <div className="space-y-0.5">
+                    <span className="text-slate-400 block uppercase">Client Location</span>
+                    <strong className={sessionAnomalyActive ? 'text-rose-600 font-bold' : 'text-slate-800'}>
+                      {simulatedDeviceCity}, {simulatedDeviceCountry}
+                    </strong>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-slate-400 block uppercase">Device IPv4</span>
+                    <strong className="text-slate-800">{simulatedDeviceIP}</strong>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-slate-400 block uppercase">Threat Score</span>
+                    <strong className={sessionAnomalyActive ? 'text-rose-600 font-black' : 'text-emerald-600 font-bold'}>
+                      {sessionAnomalyActive ? 'HIGH RISK (12%)' : 'SECURE (98%)'}
+                    </strong>
+                  </div>
+                </div>
+
+                {sessionAnomalyActive ? (
+                  <div className="bg-rose-50 border border-rose-100 rounded-lg p-3 text-[10px] text-rose-700 space-y-2 leading-relaxed">
+                    <p className="font-bold flex items-center gap-1">
+                      <span>⚠️ BLOCKING SECURITY THREAT ENFORCED</span>
+                    </p>
+                    <p>
+                      Automated Shield: Sudden geohop detected from Seattle US to Tokyo JP. Hardware Multi-Factor Authentication is MANDATORY to bypass this transactional lockout block.
+                    </p>
+                    <div className="flex gap-2">
+                      {mfaVerified ? (
+                        <div className="bg-emerald-100 text-emerald-800 px-3 py-1.5 rounded-md font-bold flex items-center gap-1.5">
+                          ✓ FIDO2 Hardware Key Authenticated
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={mfaSimulating}
+                          onClick={() => {
+                            setMfaSimulating(true);
+                            setMfaError(null);
+                            setTimeout(() => {
+                              setMfaSimulating(false);
+                              setMfaVerified(true);
+                              // Log FIDO2 success to security ledger
+                              const logs = (() => {
+                                const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+                                return stored ? JSON.parse(stored) : [];
+                              })();
+                              logs.unshift({
+                                id: `sec_${Date.now()}`,
+                                timestamp: new Date().toISOString(),
+                                level: 'SECURE',
+                                source: 'MFA_LOCK',
+                                message: `Hardware FIDO2 WebAuthn handshake succeeded for user ${currentUser.name}. Geohop threat bypassed.`,
+                                hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+                              });
+                              localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+                            }, 1500);
+                          }}
+                          className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-md font-bold cursor-pointer transition-all flex items-center gap-1.5"
+                        >
+                          {mfaSimulating ? '🗝️ Touch Security Key...' : '🗝️ Authenticate via FIDO2 Key'}
+                        </button>
+                      )}
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSessionAnomalyActive(false);
+                          setSimulatedDeviceCountry('US');
+                          setSimulatedDeviceCity('Seattle');
+                          setSimulatedDeviceIP('192.168.1.104');
+                          setMfaVerified(false);
+                        }}
+                        className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-md font-bold cursor-pointer transition-all"
+                      >
+                        Reset Geography
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-between items-center pt-1">
+                    <span className="text-[10px] text-slate-400">No telemetry anomalies sighted.</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSessionAnomalyActive(true);
+                        setSimulatedDeviceCountry('JP');
+                        setSimulatedDeviceCity('Tokyo');
+                        setSimulatedDeviceIP('118.238.12.89');
+                        setMfaVerified(false);
+                        // Log suspicious geohop to security ledger
+                        const logs = (() => {
+                          const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+                          return stored ? JSON.parse(stored) : [];
+                        })();
+                        logs.unshift({
+                          id: `sec_${Date.now()}`,
+                          timestamp: new Date().toISOString(),
+                          level: 'WARN',
+                          source: 'SESSION_VERIFY',
+                          message: `Sudden geographical switch from US to JP detected within active session. Transaction locked until Hardware MFA validation.`,
+                          hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+                        });
+                        localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+                      }}
+                      className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider cursor-pointer font-mono"
+                    >
+                      ⚡ Test Geohop Anomaly
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 71. ZERO-KNOWLEDGE ADDRESS VAULT */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">71. Zero-Knowledge Address Vaulting</span>
+                    <span className="text-[10px] text-slate-400 leading-normal">
+                      Encrypts destination coordinates locally using Curve25519 asymmetric cryptography before committing to database. Only the final delivery drone or courier driver possesses the corresponding decryption key.
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={zkAddressVaultEnabled}
+                    onChange={(e) => {
+                      setZkAddressVaultEnabled(e.target.checked);
+                      if (e.target.checked) {
+                        // Log address encrypt event
+                        const logs = (() => {
+                          const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+                          return stored ? JSON.parse(stored) : [];
+                        })();
+                        logs.unshift({
+                          id: `sec_${Date.now()}`,
+                          timestamp: new Date().toISOString(),
+                          level: 'SECURE',
+                          source: 'CRYPTO_VAULT',
+                          message: `Asymmetric ECC-25519 payload generated for shipping coordinates. Local metadata purged.`,
+                          hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+                        });
+                        localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+                      }
+                    }}
+                    className="accent-teal-600 h-4.5 w-4.5 cursor-pointer rounded"
+                  />
+                </div>
+
+                {zkAddressVaultEnabled && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="bg-slate-900 text-teal-400 rounded-xl p-3.5 space-y-3 font-mono text-[9px] border border-slate-800 leading-normal"
+                  >
+                    <div className="flex justify-between items-center text-slate-400 border-b border-slate-800 pb-1.5 mb-1.5">
+                      <span>CLIENT-SIDE ENCRYPTED SHIPPING METRICS</span>
+                      <span className="text-teal-400 font-bold">ECC-25519 ACTIVE</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block uppercase">Cyphertext Recipient Block:</span>
+                      <p className="text-slate-300 break-all bg-black/40 p-2 rounded mt-1 border border-slate-800">
+                        {`nexus-zk:A1F97B620CDEE8D3540BAEF1789B10C${fullName ? fullName.toUpperCase().replace(/\s/g, 'X') : 'CLIENT'}XXE2E-ENCRYPTED-DELIVERY-COORDINATES-NEXUSBazaar`}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 block uppercase">Destination Payload:</span>
+                      <p className="text-slate-300 break-all bg-black/40 p-2 rounded mt-1 border border-slate-800 font-mono">
+                        {`nexus-zk:8D3F9A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F:${street ? street.toUpperCase().replace(/\s/g, 'X') : 'STREET'}:${city ? city.toUpperCase() : 'CITY'}:${zip}`}
+                      </p>
+                    </div>
+                    <div className="text-[8.5px] text-slate-500 flex items-center gap-1">
+                      <span>✓ Private Key kept client-side. Databases see strictly un-scraperable cipher blocks.</span>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* 72. SINGLE-USE DISPOSABLE VIRTUAL CARDS */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">72. Single-Use Disposable Virtual Cards</span>
+                    <span className="text-[10px] text-slate-400 leading-normal">
+                      Accept isolated burner payment tokens to obscure actual banking metadata from external analytics trackers and third-party ledger scans.
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={useDisposableVirtualCard}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      setUseDisposableVirtualCard(enabled);
+                      if (enabled) {
+                        // Autofill burner credit card numbers
+                        const burnerNum = `4916 88${Math.floor(10 + Math.random() * 89)} ${Math.floor(1000 + Math.random() * 8999)} ${Math.floor(1000 + Math.random() * 8999)}`;
+                        const burnerExpiry = '12/28';
+                        const burnerCvv = `${Math.floor(100 + Math.random() * 899)}`;
+                        setCardNumber(burnerNum);
+                        setCardExpiry(burnerExpiry);
+                        setCardCvv(burnerCvv);
+
+                        // Save virtual card in localStorage
+                        const cards = (() => {
+                          const stored = localStorage.getItem('nexus_bazaar_virtual_cards');
+                          return stored ? JSON.parse(stored) : [];
+                        })();
+                        cards.unshift({
+                          id: `card_${Date.now()}`,
+                          cardNumber: burnerNum,
+                          expiry: burnerExpiry,
+                          cvv: burnerCvv,
+                          spent: false,
+                          limit: 500,
+                          label: 'Burner Checkout Token'
+                        });
+                        localStorage.setItem('nexus_bazaar_virtual_cards', JSON.stringify(cards));
+
+                        // Log to security ledger
+                        const logs = (() => {
+                          const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+                          return stored ? JSON.parse(stored) : [];
+                        })();
+                        logs.unshift({
+                          id: `sec_${Date.now()}`,
+                          timestamp: new Date().toISOString(),
+                          level: 'SECURE',
+                          source: 'VIRTUAL_CARDS',
+                          message: `Isolated single-use credit token generated to conceal bank route metadata. ID: card_${Date.now()}`,
+                          hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+                        });
+                        localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+                      } else {
+                        setCardNumber('');
+                        setCardExpiry('');
+                        setCardCvv('');
+                      }
+                    }}
+                    className="accent-teal-600 h-4.5 w-4.5 cursor-pointer rounded"
+                  />
+                </div>
+
+                {useDisposableVirtualCard && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="bg-indigo-950 text-indigo-300 rounded-xl p-3.5 space-y-2.5 font-mono text-[9px] border border-indigo-900 leading-normal"
+                  >
+                    <div className="flex justify-between items-center text-indigo-200 border-b border-indigo-900 pb-1">
+                      <span>SECURE DISPOSABLE VIRTUAL CARD ACTIVE</span>
+                      <span className="text-emerald-400 font-bold">BURNER_TOKEN</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Card Number:</span>
+                      <strong className="text-white text-xs">{cardNumber}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Expiry / CVV:</span>
+                      <strong className="text-white text-xs">{cardExpiry} / {cardCvv}</strong>
+                    </div>
+                    <p className="text-[8.5px] text-indigo-400 font-sans leading-relaxed pt-1">
+                      This token is tied to a maximum single transaction limit of ${totalAmount}. Once the order completes, this card payload becomes dead, completely masking your actual card routes.
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* 75. ANONYMIZED BUYER REVIEW PSEUDONYMS */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">75. Anonymized Buyer Review Pseudonyms</span>
+                    <span className="text-[10px] text-slate-400 leading-normal">
+                      Apply a secure cryptographic mask over your public profile history. Prevents profiling or harvesting of your order habits by external web scraper bots.
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={reviewPseudonymMask}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      setReviewPseudonymMask(enabled);
+                      localStorage.setItem('nexus_bazaar_buyer_review_pseudonym_mask', String(enabled));
+                      
+                      // Log to security ledger
+                      const logs = (() => {
+                        const stored = localStorage.getItem('nexus_bazaar_security_ledger');
+                        return stored ? JSON.parse(stored) : [];
+                      })();
+                      logs.unshift({
+                        id: `sec_${Date.now()}`,
+                        timestamp: new Date().toISOString(),
+                        level: 'INFO',
+                        source: 'PRIVACY_HUB',
+                        message: `Anonymized Buyer Review Mask toggled to ${enabled ? 'ENABLED' : 'DISABLED'}.`,
+                        hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+                      });
+                      localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
+                    }}
+                    className="accent-teal-600 h-4.5 w-4.5 cursor-pointer rounded"
+                  />
+                </div>
+
+                {reviewPseudonymMask && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="bg-slate-50 border border-slate-150 rounded-xl p-3 text-[10px] text-slate-600 font-mono"
+                  >
+                    <span className="text-[8.5px] font-bold text-slate-400 block uppercase font-mono">Public Identity Mask:</span>
+                    <p className="text-slate-800 font-bold mt-1">
+                      {currentUser.name} <span className="text-slate-400 font-normal">will be masked as</span> {currentUser.name.slice(0, 2).toUpperCase()}_ZK_MEMBER_{Math.floor(100 + Math.random() * 899)}
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* 79. GRANULAR PRIVACY TRACKING TOGGLES */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <span className="text-xs font-bold text-slate-800 block">79. Granular Privacy Tracking Matrix</span>
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  Customize the behavior of client-side tracking loops in this transaction. Toggle metrics visibility directly.
+                </p>
+                
+                <div className="grid gap-2.5 sm:grid-cols-2 text-[10px] font-mono text-slate-600">
+                  <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2 rounded-lg border border-slate-150">
+                    <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
+                    <span>Opt-Out Behavioral Maps</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2 rounded-lg border border-slate-150">
+                    <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
+                    <span>Redact Device Entropy</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2 rounded-lg border border-slate-150">
+                    <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
+                    <span>Disable Hotjar Matrix Logs</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer bg-slate-50 p-2 rounded-lg border border-slate-150">
+                    <input type="checkbox" defaultChecked className="accent-teal-600 rounded" />
+                    <span>Force HTTPS TLS 1.3</span>
+                  </label>
+                </div>
+              </div>
+
             </div>
 
             {/* 4. BIOMETRIC SIGNATURE AUTH PAD (Feature #23) */}

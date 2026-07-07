@@ -182,6 +182,17 @@ export default function Header({
             Loyalty Hub
           </button>
 
+          {/* Security Vault */}
+          <button
+            id="nav-security-btn"
+            onClick={() => setActiveView('security')}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              activeView === 'security' ? 'text-teal-600 bg-teal-50 font-bold' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+            }`}
+          >
+            Security Vault
+          </button>
+
           {/* Guilds */}
           <button
             id="nav-guilds-btn"
