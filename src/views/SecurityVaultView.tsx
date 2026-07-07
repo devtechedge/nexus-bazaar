@@ -52,7 +52,7 @@ export default function SecurityVaultView({ currentUser, setActiveView }: Securi
         timestamp: new Date(Date.now() - 3600000 * 2.5).toISOString(),
         level: 'SECURE',
         source: 'CRYPTO_VAULT',
-        message: 'Zero-Knowledge asymmetric address registry synchronized with master drivers keyring',
+        message: 'Ultra-Private Shipping Lock synchronized with delivery driver keys',
         hash: 'b5a8e2f9d6c4a3b2e5f1c7d8a9b0c1e2f3d4c5a6'
       },
       {
@@ -310,10 +310,10 @@ export default function SecurityVaultView({ currentUser, setActiveView }: Securi
         <div className="text-left">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🛡️</span>
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Enterprise Security & Privacy Vault</h2>
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight">My Security & Privacy Settings</h2>
           </div>
           <p className="text-xs text-slate-500 leading-normal mt-1">
-            Configure asymmetric cryptosystems, virtual single-use cards, biometric access thresholds, and auditing logs.
+            Manage your security locks, create temporary shopping cards, check your logs, and configure secure fingerprint login.
           </p>
         </div>
 

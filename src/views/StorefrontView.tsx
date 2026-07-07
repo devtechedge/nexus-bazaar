@@ -74,14 +74,14 @@ export default function StorefrontView({
         <div className="relative z-10 max-w-2xl space-y-6">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-3 py-1 text-xs font-mono font-bold text-teal-400 border border-teal-500/20">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>PLATFORM ONLINE v2.1</span>
+            <span>SHOPPING SIMPLIFIED</span>
           </div>
           <h2 id="hero-heading" className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
-            The Multi-Role <br />
-            <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">E-Commerce Arena</span>
+            Your Friendly <br />
+            <span className="bg-gradient-to-r from-teal-400 to-emerald-400 bg-clip-text text-transparent">Shopping Marketplace</span>
           </h2>
           <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-lg">
-            Experience role-based execution as a Buyer searching and checking out, a Seller organizing custom listings, or an Admin managing global platform memberships.
+            Find high-quality gear, bid on live auctions, join group buys to save 25%, or customize your items to the perfect fit.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <button
@@ -110,8 +110,8 @@ export default function StorefrontView({
       <section id="storefront-categories" className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-bold text-slate-900 tracking-tight">Browse Premium Segments</h3>
-            <p className="text-xs text-slate-400 mt-0.5">Filter the bazaar directly by curated product collections</p>
+            <h3 className="text-xl font-bold text-slate-900 tracking-tight">Shop by Category</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Quickly find exactly what you're looking for</p>
           </div>
           <button 
             id="all-categories-link" 
@@ -154,12 +154,12 @@ export default function StorefrontView({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-600"></span>
                 </span>
-                <span>🎙️ Live Stream & Active Auctions</span>
+                <span>🎙️ Live Auctions (Bid Now!)</span>
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Real-time sub-second synced auctions transmitting directly from merchant garages</p>
+              <p className="text-xs text-slate-400 mt-0.5">Bid live on rare items being shown off right now by their sellers</p>
             </div>
             <div className="font-mono text-[10px] text-rose-500 font-bold bg-rose-50 px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
-              ● SYNC ACTIVE
+              ● LIVE
             </div>
           </div>
 
@@ -248,9 +248,9 @@ export default function StorefrontView({
         <div>
           <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
             <Flame className="h-5 w-5 text-teal-600 animate-pulse" />
-            <span>Immersive Lookbook Canvas</span>
+            <span>Interactive Vibe Rooms</span>
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">Explore premium custom gear set pieces inside their styled high-fidelity environments</p>
+          <p className="text-xs text-slate-400 mt-0.5">See how our top-rated items look in real setups, and click any item to see details</p>
         </div>
 
         {/* Parallax Lookbook Viewfinder */}
@@ -367,9 +367,9 @@ export default function StorefrontView({
         <div>
           <h3 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
             <Video className="h-5 w-5 text-purple-600" />
-            <span>Instant Video Shoppable Feed</span>
+            <span>Short Video Shop</span>
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">Scroll through short demonstrations and purchase directly with high-efficiency overlays</p>
+          <p className="text-xs text-slate-400 mt-0.5">Watch quick product demos and add them straight to your basket while you watch</p>
         </div>
 
         {(() => {
@@ -550,8 +550,8 @@ export default function StorefrontView({
       {/* 4. FEATURED PRODUCTS */}
       <section id="storefront-featured" className="space-y-4">
         <div>
-          <h3 className="text-xl font-bold text-slate-900 tracking-tight">Current Spotlight Listings</h3>
-          <p className="text-xs text-slate-400 mt-0.5">High-quality, verified gear with fast priority shipping logistics</p>
+          <h3 className="text-xl font-bold text-slate-900 tracking-tight">Stuff we think you'll love</h3>
+          <p className="text-xs text-slate-400 mt-0.5">Handpicked, high-quality gear verified by our community</p>
         </div>
         <div id="featured-products-grid" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {products.slice(0, 4).map((prod) => (

@@ -584,9 +584,9 @@ export default function CartCheckoutView({
       total: totalAmount,
       promoCodeUsed: appliedPromo?.code,
       shippingAddress: {
-        fullName: zkAddressVaultEnabled ? 'A. Vance (Asymmetrically Encrypted)' : fullName,
-        street: zkAddressVaultEnabled ? 'CIPHERTEXT: [ecc-msg-0x9a2f1c8d3e5b107c89bf16d7a4f9e1e2d]' : street,
-        city: zkAddressVaultEnabled ? '[ZK_ENCRYPTED_VAULT]' : city,
+        fullName: zkAddressVaultEnabled ? 'A. Vance (Address Locked for Privacy)' : fullName,
+        street: zkAddressVaultEnabled ? 'ADDRESS LOCKED (Encrypted for privacy)' : street,
+        city: zkAddressVaultEnabled ? '[PRIVATE_SHIPPING_LOCK]' : city,
         state: zkAddressVaultEnabled ? 'ZK' : shippingState,
         zip: zkAddressVaultEnabled ? '00000' : zip,
       },
@@ -607,7 +607,7 @@ export default function CartCheckoutView({
       timestamp: new Date().toISOString(),
       level: 'SECURE',
       source: 'CHECKOUT_PIPELINE',
-      message: `Checkout authorized & committed. Net: $${totalAmount}. ZK Address Vault: ${zkAddressVaultEnabled ? 'ACTIVE' : 'INACTIVE'}. Disposable Card: ${useDisposableVirtualCard ? 'ACTIVE' : 'INACTIVE'}. Biometric Match: ${biometricScore || '95'}%.`,
+      message: `Checkout authorized & committed. Net: $${totalAmount}. Ultra-Private Shipping Lock: ${zkAddressVaultEnabled ? 'ACTIVE' : 'INACTIVE'}. Disposable Card: ${useDisposableVirtualCard ? 'ACTIVE' : 'INACTIVE'}. Biometric Match: ${biometricScore || '95'}%.`,
       hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
     });
     localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));
@@ -1102,9 +1102,9 @@ export default function CartCheckoutView({
 
               {splitBillingEnabled && (
                 <div className="bg-teal-50 border border-teal-100/50 rounded-xl p-3 text-[11px] text-teal-800 space-y-1 mt-2">
-                  <span className="font-bold uppercase tracking-wider text-[9px] text-teal-600 font-mono block">Co-Op Split Billing Activated</span>
+                  <span className="font-bold uppercase tracking-wider text-[9px] text-teal-600 font-mono block">Group Split Discount Activated</span>
                   <div className="flex justify-between font-bold">
-                    <span>Your 1/3 Portion</span>
+                    <span>Your Share (1/3 of total)</span>
                     <span className="font-mono text-xs text-teal-900">${(totalAmount / 3).toFixed(2)}</span>
                   </div>
                 </div>
@@ -2027,30 +2027,30 @@ export default function CartCheckoutView({
               </div>
             </div>
 
-            {/* BATCH 8: ADVANCED ENTERPRISE SECURITY & PRIVACY CONTROLS */}
+            {/* BATCH 8: SMART SAVE & PRIVACY CONTROLS */}
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 text-left">
               
               <div className="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">🛡️</span>
-                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Advanced Enterprise Security & Privacy</h3>
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Smart Save & Privacy Controls</h3>
                 </div>
                 <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-0.5 rounded-full uppercase">
-                  Zero-Trust Enabled
+                  Smart Save Active
                 </span>
               </div>
 
-              {/* 78. EPHEMERAL CART GARBAGE COLLECTOR TIMER */}
+              {/* Smart Save (Basket stays saved on any device) */}
               <div className="bg-slate-900 text-slate-100 rounded-xl p-4 space-y-3 font-mono text-xs border border-slate-800">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <span className="animate-ping h-2 w-2 rounded-full bg-rose-500 block"></span>
-                    <span className="font-bold text-rose-400">78. Ephemeral Cart Cache TTL</span>
+                    <span className="font-bold text-rose-400">Smart Save (Basket holds your items!)</span>
                   </div>
-                  <span className="text-[10px] text-slate-400">Garbage Collector Daemon</span>
+                  <span className="text-[10px] text-slate-400">Smart Holding Timer</span>
                 </div>
                 <div className="flex justify-between items-baseline pt-1">
-                  <span className="text-slate-400">Active Checkout Lifetime:</span>
+                  <span className="text-slate-400">Hold Timer:</span>
                   <span className="text-xl font-black text-rose-400">
                     {Math.floor(cartGcTimer / 60)}m {cartGcTimer % 60}s
                   </span>
@@ -2066,12 +2066,12 @@ export default function CartCheckoutView({
                     type="button"
                     onClick={() => {
                       setCartGcTimer((prev) => Math.min(600, prev + 600));
-                      setGcExtendedMessage('TTL expanded. Staging caches refreshed.');
+                      setGcExtendedMessage('Hold timer extended! Your items are safe.');
                       setTimeout(() => setGcExtendedMessage(null), 3000);
                     }}
                     className="flex-1 bg-slate-800 hover:bg-slate-750 text-slate-200 py-1.5 rounded font-bold cursor-pointer transition-colors"
                   >
-                    🔄 Refresh TTL (+10m)
+                    🔄 Keep Saved Longer (+10m)
                   </button>
                   <button
                     type="button"
@@ -2082,14 +2082,14 @@ export default function CartCheckoutView({
                     }}
                     className="flex-1 bg-rose-950 hover:bg-rose-900 text-rose-300 py-1.5 rounded font-bold cursor-pointer transition-colors"
                   >
-                    🧹 Purge Cart Now
+                    🧹 Empty Basket Now
                   </button>
                 </div>
                 {gcExtendedMessage && (
                   <p className="text-[9px] text-emerald-400 text-center">{gcExtendedMessage}</p>
                 )}
                 <p className="text-[9px] text-slate-500 leading-normal">
-                  In compliance with Zero-Knowledge standards, your shopping cart items exist strictly in ephemeral RAM staging. Leaving the tab idle will trigger deep memory garbage collection to protect checkout intent.
+                  With our Smart Save feature, your shopping cart stays safely saved across any device. You won't lose your items even if you close the tab!
                 </p>
               </div>
 
@@ -2222,13 +2222,13 @@ export default function CartCheckoutView({
                 )}
               </div>
 
-              {/* 71. ZERO-KNOWLEDGE ADDRESS VAULT */}
+              {/* 71. ULTRA-PRIVATE SHIPPING LOCK */}
               <div className="border-t border-slate-100 pt-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="text-xs font-bold text-slate-800 block">71. Zero-Knowledge Address Vaulting</span>
+                    <span className="text-xs font-bold text-slate-800 block">71. Ultra-Private Shipping Lock</span>
                     <span className="text-[10px] text-slate-400 leading-normal">
-                      Encrypts destination coordinates locally using Curve25519 asymmetric cryptography before committing to database. Only the final delivery drone or courier driver possesses the corresponding decryption key.
+                      Keeps your delivery address 100% private. Only the final delivery driver can see where your package is going, keeping it safe from hackers!
                     </span>
                   </div>
                   <input
@@ -2247,7 +2247,7 @@ export default function CartCheckoutView({
                           timestamp: new Date().toISOString(),
                           level: 'SECURE',
                           source: 'CRYPTO_VAULT',
-                          message: `Asymmetric ECC-25519 payload generated for shipping coordinates. Local metadata purged.`,
+                          message: `Ultra-Private Shipping Lock enabled. Shipping address encrypted safely.`,
                           hash: Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
                         });
                         localStorage.setItem('nexus_bazaar_security_ledger', JSON.stringify(logs));

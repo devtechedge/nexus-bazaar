@@ -1565,7 +1565,7 @@ export default function SellerView({
             </a>
             <a href="#feature-42-pricing" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
               <Sliders className="h-3.5 w-3.5 text-teal-500" />
-              <span>42. Dynamic Pricing</span>
+              <span>42. Live Price Adjuster</span>
             </a>
             <a href="#feature-43-warehouse" className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100/50 hover:text-slate-800 transition-all flex items-center gap-1.5 font-bold">
               <MapPin className="h-3.5 w-3.5 text-indigo-500" />
@@ -1778,10 +1778,10 @@ export default function SellerView({
             <div id="feature-42-pricing" className="md:col-span-5 rounded-3xl border border-slate-100 bg-white p-6 shadow-md space-y-6 scroll-mt-6">
               <div>
                 <span className="text-[9px] font-mono font-black text-teal-600 bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  MODULE 42 // ALGORITHMIC VARIABLE PRICING
+                  Live Price Adjuster
                 </span>
-                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Dynamic Elasticity Engine</h4>
-                <p className="text-[11px] text-slate-400 mt-0.5">Automate real-time inventory and demand-based price shifting parameters.</p>
+                <h4 className="text-base font-extrabold tracking-tight text-slate-800 mt-2">Automatic Live Price Adjuster</h4>
+                <p className="text-[11px] text-slate-400 mt-0.5">Set your items to automatically adjust their prices based on how popular they are and how many you have in stock.</p>
               </div>
 
               {/* Demand trigger controls */}

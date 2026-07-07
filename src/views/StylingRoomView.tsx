@@ -471,7 +471,7 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
               </div>
             </div>
 
-            {/* Selected Item Parametric Adjustment Panel */}
+            {/* Selected Item Sizing & Customization (Perfect Fit Slider) */}
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col justify-between">
               {selectedItemId && canvasItems.find(i => i.id === selectedItemId) ? (() => {
                 const item = canvasItems.find(i => i.id === selectedItemId)!;
@@ -479,7 +479,7 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
                   <>
                     <div className="flex justify-between items-start border-b border-slate-100 pb-1.5">
                       <div className="leading-none">
-                        <span className="text-[9px] font-mono text-slate-400 block uppercase">Selected Module</span>
+                        <span className="text-[9px] font-mono text-slate-400 block uppercase font-bold">Selected Item</span>
                         <span className="text-xs font-extrabold text-slate-900 truncate max-w-[150px] block" title={item.product.name}>{item.product.name}</span>
                       </div>
                       <button 
@@ -491,7 +491,7 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
                       </button>
                     </div>
 
-                    {/* Parametric adjustment sliders & buttons */}
+                    {/* Perfect Fit Sizing sliders & buttons */}
                     <div className="grid grid-cols-4 gap-2 py-2 items-center text-center">
                       <button
                         onClick={() => handleRotateItem(item.id)}
@@ -505,19 +505,19 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
                       <button
                         onClick={() => handleScaleItem(item.id, 0.15)}
                         className="flex flex-col items-center justify-center p-1 border border-slate-100 rounded-lg hover:bg-slate-50 cursor-pointer"
-                        title="Scale Up"
+                        title="Perfect Fit Slider - Scale Up"
                       >
                         <Plus className="h-4 w-4 text-slate-500 mb-0.5" />
-                        <span className="text-[8px] font-mono text-slate-400">Scale +</span>
+                        <span className="text-[8px] font-mono text-slate-400">Perfect Fit +</span>
                       </button>
 
                       <button
                         onClick={() => handleScaleItem(item.id, -0.15)}
                         className="flex flex-col items-center justify-center p-1 border border-slate-100 rounded-lg hover:bg-slate-50 cursor-pointer"
-                        title="Scale Down"
+                        title="Perfect Fit Slider - Scale Down"
                       >
                         <span className="h-4 flex items-center justify-center text-slate-500 font-bold mb-0.5 text-xs">-</span>
-                        <span className="text-[8px] font-mono text-slate-400">Scale -</span>
+                        <span className="text-[8px] font-mono text-slate-400">Perfect Fit -</span>
                       </button>
 
                       <div className="flex flex-col items-center justify-center">
@@ -528,7 +528,7 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
 
                     {/* Micro-positioning adjustments */}
                     <div className="flex items-center justify-between pt-1 border-t border-slate-50">
-                      <span className="text-[9px] font-mono text-slate-400 uppercase">Micro Shift</span>
+                      <span className="text-[9px] font-mono text-slate-400 uppercase">Move Item</span>
                       <div className="flex gap-1">
                         <button onClick={() => handleMoveItem(item.id, 'left')} className="px-1.5 py-0.5 border border-slate-200 text-[10px] rounded hover:bg-slate-50 cursor-pointer">←</button>
                         <button onClick={() => handleMoveItem(item.id, 'up')} className="px-1.5 py-0.5 border border-slate-200 text-[10px] rounded hover:bg-slate-50 cursor-pointer">↑</button>
@@ -541,8 +541,8 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
               })() : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-400 py-6">
                   <Move className="h-5 w-5 text-slate-300 mb-1" />
-                  <p className="text-[10px] font-mono uppercase font-bold text-slate-500">Node Inspector Standby</p>
-                  <p className="text-[9px] text-slate-400">Select any component on the grid to adjust scaling, rotate vector dimensions, or shift offsets.</p>
+                  <p className="text-[10px] font-mono uppercase font-bold text-slate-500">Item Customizer Panel</p>
+                  <p className="text-[9px] text-slate-400">Click on any item on the board to change its size, rotate it, or move it around!</p>
                 </div>
               )}
             </div>

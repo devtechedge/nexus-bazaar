@@ -609,7 +609,7 @@ export default function SearchView({
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
-            <span>Faceted Catalog</span>
+            <span>Quick Filters</span>
           </button>
 
           <button
@@ -622,7 +622,7 @@ export default function SearchView({
             }`}
           >
             <ImageIcon className="h-4 w-4" />
-            <span>Mood Board Matcher</span>
+            <span>"Vibe Search" / Picture Matcher</span>
           </button>
 
           <button
@@ -746,7 +746,7 @@ export default function SearchView({
                 <div className="border-t border-slate-100 pt-4 space-y-4">
                   <div className="flex items-center gap-1.5 bg-teal-50 px-2 py-1 rounded">
                     <Sparkles className="h-3 w-3 text-teal-600" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 font-mono">Faceted Attribute Matrix</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 font-mono">Quick Filters (Sort by what matters to you)</span>
                   </div>
 
                   {selectedCategory === 'Electronics' && (
@@ -1069,7 +1069,7 @@ export default function SearchView({
         )}
 
         {/* ===================================================================
-            2. FEATURE #1: CONTEXTUAL MOOD BOARD SEARCH
+            2. FEATURE #1: "VIBE SEARCH" / PICTURE MATCHER
            =================================================================== */}
         {searchMode === 'moodboard' && (
           <motion.div
@@ -1083,15 +1083,15 @@ export default function SearchView({
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-5 w-5 text-teal-600" />
-                  <h3 className="font-bold text-slate-900 text-sm">Visual Lookbook & Mood Board Aesthetic Match</h3>
+                  <h3 className="font-bold text-slate-900 text-sm">Find Your Vibe / Match Your Style</h3>
                 </div>
                 <span className="text-[10px] font-mono bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-bold">
-                  BLOB_VECTOR_PIPELINE
+                  Smart Style Matcher
                 </span>
               </div>
 
               <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
-                Skip keyboard inputs entirely. Drag-and-drop your custom styling lookbook, or select a pre-composed visual archetype node. Our neural network processes color spectrum signatures, materials, and form aesthetics to match matching catalog components instantly.
+                Just pick a vibe below to instantly see items that match that look and style! No typing needed.
               </p>
 
               {/* Presets Grid */}
