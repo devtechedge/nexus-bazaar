@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trash2, 
   Tag, 
@@ -21,7 +22,9 @@ import {
   PenTool,
   Activity,
   Info,
-  Sparkles
+  Sparkles,
+  ArrowRight,
+  Database
 } from 'lucide-react';
 import { Product, PromoCode, User, OrderItem, Order } from '../lib/db';
 
@@ -54,6 +57,27 @@ export default function CartCheckoutView({
 }: CartCheckoutViewProps) {
   const [activeStep, setActiveStep] = React.useState<'cart' | 'checkout'>('cart');
   
+  // --- BATCH 7: SUSTAINABILITY & CIRCULAR ECONOMY STATES (Features #61, #63, #65, #69) ---
+  const [ecoPackagingToggle, setEcoPackagingToggle] = React.useState<boolean>(false);
+  const [deliveryChoice, setDeliveryChoice] = React.useState<'home' | 'hub'>('home');
+  const [selectedLockerHub, setSelectedLockerHub] = React.useState<string>('hub_alpha');
+  const [donationPortalMode, setDonationPortalMode] = React.useState<'round_up' | 'percentage'>('round_up');
+  const [donationPercentage, setDonationPercentage] = React.useState<number>(3); // 1%, 3%, 5%
+  const [selectedNGO, setSelectedNGO] = React.useState<string>('ocean_cleanup');
+
+  const ngoCatalog = React.useMemo(() => [
+    { id: 'ocean_cleanup', name: 'The Ocean Cleanup Foundation', mission: 'Deploying high-efficiency passive marine cleanup interceptors.' },
+    { id: 'carbon180', name: 'Carbon180 Atmospheric Recovery', mission: 'Vetting micro-capture systems to filter atmospheric carbon molecules.' },
+    { id: 'one_tree', name: 'One Tree Planted Initiative', mission: 'Active biodiverse reforestation in key tropical and urban zones.' },
+    { id: 'ewaste_circular', name: 'E-Waste Circularity Alliance', mission: 'Reclaiming high-grade copper and gold trace lines from discarded electronics.' }
+  ], []);
+
+  const lockerHubs = React.useMemo(() => [
+    { id: 'hub_alpha', name: 'Nexus Locker Hub Alpha (Seattle-East)', distance: '1.2 miles', bonusCredits: 5.00 },
+    { id: 'hub_beta', name: 'Nexus Locker Hub Beta (Downtown Grid)', distance: '3.4 miles', bonusCredits: 5.00 },
+    { id: 'hub_gamma', name: 'Neighborhood Circular Node (Subang North)', distance: '2.1 miles', bonusCredits: 5.00 }
+  ], []);
+
   // Checkout Shipping Form State
   const [fullName, setFullName] = React.useState(currentUser.name);
   const [street, setStreet] = React.useState('');
@@ -237,19 +261,66 @@ export default function CartCheckoutView({
     return Number((taxableSubtotal * taxRate).toFixed(2));
   }, [subtotal, discountAmount, greenDiscount, taxRate]);
 
+  // --- BATCH 7: DYNAMIC CARBON FOOTPRINT EMISSIONS CALCULATOR ---
+  const packageMetrics = React.useMemo(() => {
+    let totalWeight = cartItems.reduce((acc, item) => {
+      let weight = 0.5; // default 0.5kg
+      const name = item.product.name.toLowerCase();
+      if (name.includes('keyboard')) weight = 1.4;
+      if (name.includes('headphones')) weight = 0.45;
+      if (name.includes('watch')) weight = 0.22;
+      if (name.includes('lens') || name.includes('camera')) weight = 0.85;
+      if (name.includes('deck') || name.includes('console')) weight = 1.25;
+      return acc + (weight * item.quantity);
+    }, 0);
+    if (totalWeight === 0) totalWeight = 0.5;
+
+    let distance = 150; // miles/km
+    if (deliveryChoice === 'hub') {
+      distance = selectedLockerHub === 'hub_alpha' ? 12 : selectedLockerHub === 'hub_beta' ? 34 : 21;
+    } else {
+      if (shippingState === 'NY') distance = 2800;
+      else if (shippingState === 'TX') distance = 1500;
+      else if (shippingState === 'CA') distance = 180;
+      else if (shippingState === 'OR') distance = 450;
+      else if (shippingState === 'WA') distance = 600;
+      else distance = 800;
+    }
+
+    let transportCoeff = 0.0006;
+    if (ecoRoute === 'drone') transportCoeff = 0.00012;
+    else if (ecoRoute === 'maglev') transportCoeff = 0.00028;
+    else if (ecoRoute === 'hyperloop') transportCoeff = 0.00006;
+
+    const rawEmissions = totalWeight * distance * transportCoeff;
+    const finalEmissions = Number(rawEmissions.toFixed(3)); // in kg CO2
+
+    return {
+      totalWeight: Number(totalWeight.toFixed(2)),
+      distance,
+      emissions: finalEmissions,
+    };
+  }, [cartItems, deliveryChoice, selectedLockerHub, shippingState, ecoRoute]);
+
   // Donation Amount Calculation
   const donationAmount = React.useMemo(() => {
     if (!roundUpDonation) return 0;
     const baseTotal = subtotal - discountAmount - greenDiscount + shippingCost + taxAmount;
-    const nextFive = Math.ceil(baseTotal / 5) * 5;
-    const diff = Number((nextFive - baseTotal).toFixed(2));
-    return diff === 0 ? 5.00 : diff;
-  }, [roundUpDonation, subtotal, discountAmount, greenDiscount, shippingCost, taxAmount]);
+    if (donationPortalMode === 'round_up') {
+      const nextFive = Math.ceil(baseTotal / 5) * 5;
+      const diff = Number((nextFive - baseTotal).toFixed(2));
+      return diff === 0 ? 5.00 : diff;
+    } else {
+      const taxableSubtotal = Math.max(0, subtotal - discountAmount - greenDiscount);
+      return Number((taxableSubtotal * (donationPercentage / 100)).toFixed(2));
+    }
+  }, [roundUpDonation, donationPortalMode, donationPercentage, subtotal, discountAmount, greenDiscount, shippingCost, taxAmount]);
 
   const totalAmountBeforeCredits = React.useMemo(() => {
-    const base = Number((subtotal - discountAmount - greenDiscount + shippingCost + taxAmount).toFixed(2));
+    const packagingSavings = ecoPackagingToggle ? 1.50 : 0;
+    const base = Number((subtotal - discountAmount - greenDiscount + shippingCost + taxAmount - packagingSavings).toFixed(2));
     return Number((base + (roundUpDonation ? donationAmount : 0)).toFixed(2));
-  }, [subtotal, discountAmount, greenDiscount, shippingCost, taxAmount, roundUpDonation, donationAmount]);
+  }, [subtotal, discountAmount, greenDiscount, shippingCost, taxAmount, roundUpDonation, donationAmount, ecoPackagingToggle]);
 
   const appliedCredits = React.useMemo(() => {
     if (!useStoreCredits) return 0;
@@ -464,13 +535,15 @@ export default function CartCheckoutView({
       splitDeliveryAddresses: splitAddressEnabled ? splitAddresses : undefined,
     });
 
-    // Update store credits if used (Feature 51)
-    if (appliedCredits > 0) {
-      const nextCredits = Number((storeCredits - appliedCredits).toFixed(2));
-      localStorage.setItem('nexus_bazaar_store_credit', nextCredits.toFixed(2));
-      
+    // Update store credits if used (Feature 51) & locker hub pickup reward (Feature 65)
+    let finalCredits = storeCredits;
+    const txHistory = (() => {
       const storedTx = localStorage.getItem('nexus_bazaar_loyalty_ledger');
-      const txHistory = storedTx ? JSON.parse(storedTx) : [];
+      return storedTx ? JSON.parse(storedTx) : [];
+    })();
+
+    if (appliedCredits > 0) {
+      finalCredits = Number((finalCredits - appliedCredits).toFixed(2));
       const newTx = {
         id: `tx_spend_${Date.now()}`,
         type: 'spend',
@@ -479,8 +552,22 @@ export default function CartCheckoutView({
         date: new Date().toISOString().split('T')[0]
       };
       txHistory.unshift(newTx);
-      localStorage.setItem('nexus_bazaar_loyalty_ledger', JSON.stringify(txHistory));
     }
+
+    if (deliveryChoice === 'hub') {
+      finalCredits = Number((finalCredits + 5.00).toFixed(2));
+      const newTx = {
+        id: `tx_hub_pickup_${Date.now()}`,
+        type: 'earn',
+        amount: 5.00,
+        description: `Bonus credits for locker hub delivery pickup selection`,
+        date: new Date().toISOString().split('T')[0]
+      };
+      txHistory.unshift(newTx);
+    }
+
+    localStorage.setItem('nexus_bazaar_store_credit', finalCredits.toFixed(2));
+    localStorage.setItem('nexus_bazaar_loyalty_ledger', JSON.stringify(txHistory));
 
     // Update lifetime spend milestones (Feature 52)
     const storedSpend = localStorage.getItem('nexus_bazaar_lifetime_spend');
@@ -1366,6 +1453,277 @@ export default function CartCheckoutView({
               </div>
             </div>
 
+            {/* BATCH 7: SUSTAINABILITY & CIRCULAR ECONOMY (Features 61, 63, 65, 69) */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 text-slate-800 text-left">
+              
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🌿</span>
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Circular Sustainability Dispatch</h3>
+                </div>
+                <span className="text-[9px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full uppercase">
+                  Zero Carbon Protocol
+                </span>
+              </div>
+
+              {/* 61. DYNAMIC CARBON-FOOTPRINT CALCULATOR */}
+              <div className="space-y-3 bg-slate-50 border border-slate-150 rounded-xl p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">61. Live Transit Carbon Footprint</span>
+                    <span className="text-[11px] text-slate-500 leading-normal">Dynamic math modeling of freight density & transit vector.</span>
+                  </div>
+                  <span className="h-7 w-7 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xs border border-emerald-500/20">
+                    📊
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center pt-1">
+                  <div className="bg-white rounded-lg p-2 border border-slate-200/50">
+                    <span className="text-[8px] font-mono text-slate-400 uppercase block">Cargo Weight</span>
+                    <strong className="text-xs font-mono text-slate-800">{packageMetrics.totalWeight} kg</strong>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 border border-slate-200/50">
+                    <span className="text-[8px] font-mono text-slate-400 uppercase block">Distance</span>
+                    <strong className="text-xs font-mono text-slate-800">{packageMetrics.distance} miles</strong>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 border border-slate-200/50">
+                    <span className="text-[8px] font-mono text-slate-400 uppercase block">Transit Method</span>
+                    <strong className="text-xs font-mono text-slate-800 uppercase">{ecoRoute}</strong>
+                  </div>
+                </div>
+
+                <div className="bg-emerald-950 text-emerald-300 rounded-xl p-3 flex items-center justify-between border border-emerald-900 font-mono">
+                  <div className="space-y-0.5 text-left">
+                    <span className="text-[8px] text-emerald-400 uppercase tracking-wider block">Estimated Emissions footprint</span>
+                    <span className="text-sm font-black text-emerald-400">{packageMetrics.emissions} kg CO₂</span>
+                  </div>
+                  <span className="text-[8.5px] font-sans text-emerald-200 leading-tight max-w-[150px] text-right">
+                    Equivalent to planting {Math.max(1, Math.round(packageMetrics.emissions * 0.05))} saplings.
+                  </span>
+                </div>
+              </div>
+
+              {/* 63. MINIMALIST ECO-PACKAGING TOGGLE */}
+              <div className="border-t border-slate-100 pt-4 space-y-2">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ecoPackagingToggle}
+                    onChange={(e) => setEcoPackagingToggle(e.target.checked)}
+                    className="mt-0.5 h-4.5 w-4.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <div className="text-left">
+                    <span className="text-xs font-bold text-slate-800 block flex items-center gap-1.5">
+                      <span>63. Minimalist Eco-Packaging</span>
+                      <span className="bg-emerald-100 text-emerald-800 text-[8px] font-mono font-bold px-1.5 py-0.2 rounded-full">
+                        -$1.50 Eco Credit
+                      </span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 leading-normal block mt-0.5">
+                      Opt-out of retail presentation boxes, varnished color branding, and unnecessary print materials. Cargo ships securely in raw, high-density unbleached 100% compostable protective wrapping.
+                    </span>
+                  </div>
+                </label>
+
+                {ecoPackagingToggle && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="bg-emerald-50 border border-emerald-150 rounded-xl p-2.5 text-[9.5px] text-emerald-800 font-mono flex items-center gap-2"
+                  >
+                    <span>🍃</span>
+                    <span><strong>Active Offset:</strong> -1.5kg cardboard paper discarded. Transaction balance credited -$1.50.</span>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* 65. LOCALIZED HUB COLLECTION MULTIPLIERS */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <div>
+                  <span className="text-xs font-bold text-slate-800 block">65. Delivery Destination Vector</span>
+                  <span className="text-[10px] text-slate-400 leading-normal">
+                    Fulfill to your home address or pick up from a neighborhood hub to reduce delivery vehicle emissions and earn store credit.
+                  </span>
+                </div>
+
+                <div className="grid gap-2 text-xs">
+                  <label className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                    deliveryChoice === 'home' ? 'border-teal-500 bg-teal-50/5' : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
+                  }`}>
+                    <div className="flex items-center gap-2.5">
+                      <input
+                        type="radio"
+                        name="deliveryChoice"
+                        checked={deliveryChoice === 'home'}
+                        onChange={() => setDeliveryChoice('home')}
+                        className="h-4 w-4 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                      />
+                      <div className="text-left">
+                        <span className="font-bold block text-slate-800">Direct Home Delivery</span>
+                        <span className="text-[9px] text-slate-400">Courier drops parcel at your shipping address.</span>
+                      </div>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-start justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+                    deliveryChoice === 'hub' ? 'border-teal-500 bg-teal-50/5' : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
+                  }`}>
+                    <div className="flex items-start gap-2.5">
+                      <input
+                        type="radio"
+                        name="deliveryChoice"
+                        checked={deliveryChoice === 'hub'}
+                        onChange={() => setDeliveryChoice('hub')}
+                        className="mt-0.5 h-4 w-4 text-teal-600 focus:ring-teal-500 cursor-pointer"
+                      />
+                      <div className="text-left">
+                        <span className="font-bold block text-slate-800 flex items-center gap-1.5">
+                          <span>Decentralized Neighborhood Locker Hub</span>
+                          <span className="bg-emerald-100 text-emerald-800 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase font-mono">
+                            +$5.00 Bonus Credit
+                          </span>
+                        </span>
+                        <span className="text-[9px] text-slate-400">Opt-in to pick up and trigger collection multipliers on your loyalty ledger!</span>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                {deliveryChoice === 'hub' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-2.5 text-left"
+                  >
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Select locker hub location:</label>
+                    <div className="grid gap-2 text-left">
+                      {lockerHubs.map((hub) => {
+                        const isSelected = selectedLockerHub === hub.id;
+                        return (
+                          <div
+                            key={hub.id}
+                            onClick={() => setSelectedLockerHub(hub.id)}
+                            className={`p-2.5 rounded-lg border text-xs cursor-pointer flex justify-between items-center transition-all ${
+                              isSelected ? 'bg-white border-teal-500 shadow-2xs' : 'bg-slate-100/50 border-slate-150 hover:bg-slate-100'
+                            }`}
+                          >
+                            <div className="text-left">
+                              <span className="font-bold block text-slate-800">{hub.name}</span>
+                              <span className="text-[9px] font-mono text-slate-400">Distance: {hub.distance}</span>
+                            </div>
+                            <span className="text-[10px] font-mono font-bold text-emerald-600">
+                              +${hub.bonusCredits.toFixed(2)} Credit
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[9px] text-slate-400 leading-normal pt-1 font-mono">
+                      🔒 pickup token will be generated inside your profile view once transaction completes.
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* 69. PRODUCT-TO-DONATION DIRECT PORTALS */}
+              <div className="border-t border-slate-100 pt-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">69. Product-to-Donation Direct Portal</span>
+                    <span className="text-[10px] text-slate-400 leading-normal">
+                      Vetted atmospheric capture and marine cleaning NGOs. Directly allocate transaction proceeds on checkout.
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={roundUpDonation}
+                    onChange={(e) => setRoundUpDonation(e.target.checked)}
+                    className="accent-teal-600 h-4.5 w-4.5 cursor-pointer"
+                  />
+                </div>
+
+                {roundUpDonation && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="bg-slate-50 border border-slate-150 rounded-xl p-3 space-y-3.5 text-left"
+                  >
+                    {/* Mode Tabs */}
+                    <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-200/60 rounded-lg text-center text-[10px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setDonationPortalMode('round_up')}
+                        className={`rounded py-1 transition-all cursor-pointer ${
+                          donationPortalMode === 'round_up' ? 'bg-white text-slate-800 shadow-3xs' : 'text-slate-400'
+                        }`}
+                      >
+                        Round-Up Total
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDonationPortalMode('percentage')}
+                        className={`rounded py-1 transition-all cursor-pointer ${
+                          donationPortalMode === 'percentage' ? 'bg-white text-slate-800 shadow-3xs' : 'text-slate-400'
+                        }`}
+                      >
+                        Transaction Split %
+                      </button>
+                    </div>
+
+                    {donationPortalMode === 'percentage' && (
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-mono text-slate-400 uppercase block">Percentage allocation:</label>
+                        <div className="flex gap-1.5">
+                          {[1, 3, 5, 10].map((pct) => (
+                            <button
+                              key={pct}
+                              type="button"
+                              onClick={() => setDonationPercentage(pct)}
+                              className={`flex-1 rounded-lg py-1 text-xs font-mono font-bold border transition-all cursor-pointer ${
+                                donationPercentage === pct
+                                  ? 'bg-teal-600 border-teal-600 text-white'
+                                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                              }`}
+                            >
+                              {pct}%
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* NGO Selector */}
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[9px] font-mono text-slate-400 uppercase block">Vetted Restoration Partner:</label>
+                      <select
+                        value={selectedNGO}
+                        onChange={(e) => setSelectedNGO(e.target.value)}
+                        className="w-full rounded-lg border border-slate-200 bg-white p-2 text-xs text-slate-800 outline-none cursor-pointer"
+                      >
+                        {ngoCatalog.map((ngo) => (
+                          <option key={ngo.id} value={ngo.id}>
+                            {ngo.name}
+                          </option>
+                        ))}
+                      </select>
+                      
+                      <div className="bg-emerald-50 text-emerald-800 rounded-lg p-2.5 border border-emerald-100 text-[10px] leading-relaxed">
+                        <strong className="block text-emerald-950 font-bold mb-0.5 text-left">NGO Mission Objective:</strong>
+                        {ngoCatalog.find((ngo) => ngo.id === selectedNGO)?.mission}
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-2.5 border border-slate-150 flex justify-between items-center font-mono">
+                      <span className="text-[9px] text-slate-400 uppercase">Allocated Contribution:</span>
+                      <strong className="text-sm text-emerald-600 font-bold">${donationAmount.toFixed(2)}</strong>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+
+            </div>
+
             {/* FEATURE #23 & #27: MICRO-FULFILLMENT HOLD & PREDICTIVE DELAY PANELS */}
             <div className="grid gap-4 sm:grid-cols-2">
               {/* Feature #23: Hold Registry */}
@@ -1713,6 +2071,18 @@ export default function CartCheckoutView({
                     <div className="flex justify-between text-emerald-600 font-medium animate-fade-in">
                       <span>Green Route Offset (5%)</span>
                       <span id="recap-green-discount" className="font-mono font-bold">-${greenDiscount}</span>
+                    </div>
+                  )}
+                  {ecoPackagingToggle && (
+                    <div className="flex justify-between text-emerald-600 font-medium animate-fade-in">
+                      <span>Eco-Packaging Offset</span>
+                      <span className="font-mono font-bold">-$1.50</span>
+                    </div>
+                  )}
+                  {roundUpDonation && donationAmount > 0 && (
+                    <div className="flex justify-between text-teal-600 font-medium animate-fade-in">
+                      <span className="truncate max-w-[150px]">NGO restoration</span>
+                      <span className="font-mono font-bold">+${donationAmount.toFixed(2)}</span>
                     </div>
                   )}
                 </div>

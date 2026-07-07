@@ -43,6 +43,24 @@ export default function ProductDetailsView({
   onPlayPodcast,
   podcastPlaying = false,
 }: ProductDetailsViewProps) {
+  // --- BATCH 7: SUSTAINABILITY & CIRCULAR ECONOMY MEMO (Features #64, #66, #67, #68, #70) ---
+  const ecoData = React.useMemo(() => {
+    return {
+      materialLifespan: product.materialDegradationLifespan || "Recyclable circular polymer composites. Housing (300-400 years lifecycle), logic circuit boards (98% certified heavy metals recovery rate).",
+      biodegradability: product.biodegradabilityScore || 54,
+      recyclingIndex: product.recyclingViabilityIndex || 85,
+      isUpcycled: !!product.upcycled,
+      upcycledHistory: product.upcycledHistory || "Formed from premium upcycled industrial material offcuts retrieved directly from vetted sustainable component suppliers.",
+      repairability: product.repairabilityScore || 7.8,
+      spareParts: product.repairSparePartsAvailability || "Official battery packs, screen plates, and frame components stocked in the NexusBazaar parts ledger for rapid courier dispatch.",
+      repairTools: product.repairToolAccessibility || "Standard Phillips screwdriver bits and flat spudger. Simple internal clip structures designed with zero permanent epoxy glues.",
+      fairTrade: !!product.fairTradeVerified || product.id === 'prod_1' || product.id === 'prod_4' || product.id === 'prod_5',
+      fairTradeFactory: product.fairTradeFactory || "Accredited Circular Labor Assembly Co-Op - Subang, West Java",
+      fairTradeWage: product.fairTradeWageRating || "Verified pays 1.35x standard regional median living wage, complete air purification venting, and safe shift-limits.",
+      fairTradeAudit: product.fairTradeAuditLink || "Fair Labor Association Registry Audit: #FLA-NEXUS-2025"
+    };
+  }, [product]);
+
   // --- FEATURE #11: CO-OP POOL BUYING STATES ---
   const [joinedPool, setJoinedPool] = React.useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
@@ -126,8 +144,8 @@ export default function ProductDetailsView({
   const [editorialMode, setEditorialMode] = React.useState(false);
 
   // Specifications Tabs Panel
-  // 'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku' | 'demo' | 'unboxing' | 'compare' | 'lighting'
-  const [techTab, setTechTab] = React.useState<'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku' | 'demo' | 'unboxing' | 'compare' | 'lighting'>('parametric');
+  // 'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku' | 'demo' | 'unboxing' | 'compare' | 'lighting' | 'sustainability'
+  const [techTab, setTechTab] = React.useState<'parametric' | 'revision' | 'audio' | 'hologram' | 'custom' | 'sku' | 'demo' | 'unboxing' | 'compare' | 'lighting' | 'sustainability'>('sustainability');
 
   // --- BATCH 4 PRODUCT DETAILS INTERACTIVE STATES ---
   const [demoVolume, setDemoVolume] = React.useState(50);
@@ -1016,6 +1034,17 @@ export default function ProductDetailsView({
               <div className="flex flex-wrap gap-1">
                 <button
                   type="button"
+                  onClick={() => setTechTab('sustainability')}
+                  className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                    techTab === 'sustainability' 
+                      ? 'bg-emerald-600 text-white shadow-[0_0_8px_rgba(16,185,129,0.4)]' 
+                      : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  🌱 Eco-Ledger
+                </button>
+                <button
+                  type="button"
                   onClick={() => setTechTab('parametric')}
                   className={`px-2 py-1 rounded text-[9px] font-bold font-mono uppercase tracking-wider transition-all cursor-pointer ${
                     techTab === 'parametric' 
@@ -1129,6 +1158,192 @@ export default function ProductDetailsView({
 
             <AnimatePresence mode="wait">
               
+              {/* BATCH 7: SUSTAINABILITY & CIRCULAR ECONOMY LEDGER */}
+              {techTab === 'sustainability' && (
+                <motion.div
+                  key="tab-sustainability"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-6 text-slate-100"
+                >
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h4 className="text-xs font-black font-mono text-emerald-400 tracking-widest uppercase flex items-center gap-2">
+                      <span>🌱 Circular & Sustainability Ledger</span>
+                    </h4>
+                    <span className="text-[8px] font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-900 px-2 py-0.5 rounded uppercase">
+                      SECURE METRIC HASH v2.0
+                    </span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    NexusBazaar monitors and ledger-stamps all raw materials, worker wages, repairability indices, and end-of-life biodegradability scores for custom cargo. Browse the verified credentials of this item below.
+                  </p>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    
+                    {/* Column 1: Biodegradability & Materials Lifecycle (Feature #66) */}
+                    <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-4 space-y-4">
+                      <div className="flex items-center gap-1.5 border-b border-slate-900 pb-2">
+                        <span className="text-base">♻️</span>
+                        <h5 className="text-[10.5px] font-bold font-mono text-slate-300 uppercase">Biodegradability & Lifecycle</h5>
+                      </div>
+
+                      {/* Material degradation lifespan */}
+                      <div className="space-y-1">
+                        <span className="text-[9px] text-slate-500 font-mono font-bold uppercase tracking-wider block">Raw Material Dispersal Lifespan</span>
+                        <p className="text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-lg border border-slate-800/50 leading-relaxed">
+                          {ecoData.materialLifespan}
+                        </p>
+                      </div>
+
+                      {/* Score metrics */}
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        {/* Biodegradability rating */}
+                        <div className="bg-slate-900/40 border border-slate-900/60 p-2.5 rounded-lg space-y-1.5">
+                          <span className="text-[8px] text-slate-500 font-mono font-bold uppercase tracking-wider block">Biodegradability</span>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-black text-emerald-400 font-mono">{ecoData.biodegradability}</span>
+                            <span className="text-[9px] text-slate-500">/ 100</span>
+                          </div>
+                          {/* Mini visual bar */}
+                          <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-400" style={{ width: `${ecoData.biodegradability}%` }} />
+                          </div>
+                          <span className="text-[8px] text-slate-500 font-mono block">Organic dispersion</span>
+                        </div>
+
+                        {/* Recycling viability index */}
+                        <div className="bg-slate-900/40 border border-slate-900/60 p-2.5 rounded-lg space-y-1.5">
+                          <span className="text-[8px] text-slate-500 font-mono font-bold uppercase tracking-wider block">Recycling Index</span>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-xl font-black text-teal-400 font-mono">{ecoData.recyclingIndex}</span>
+                            <span className="text-[9px] text-slate-500">/ 100</span>
+                          </div>
+                          {/* Mini visual bar */}
+                          <div className="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-teal-400" style={{ width: `${ecoData.recyclingIndex}%` }} />
+                          </div>
+                          <span className="text-[8px] text-slate-500 font-mono block">Primary metals retrieval</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Column 2: Repairability Index Scorecard (Feature #68) */}
+                    <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-4 space-y-4">
+                      <div className="flex items-center gap-1.5 border-b border-slate-900 pb-2">
+                        <span className="text-base">🛠️</span>
+                        <h5 className="text-[10.5px] font-bold font-mono text-slate-300 uppercase">Repairability Scorecard</h5>
+                      </div>
+
+                      {/* Score rating gauge */}
+                      <div className="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-900/60">
+                        <div className="leading-none">
+                          <span className="text-[8px] text-slate-500 font-mono font-bold uppercase block">Accredited Score</span>
+                          <span className="text-[10px] font-bold text-emerald-400 font-mono mt-1 block">
+                            {ecoData.repairability >= 8.5 ? "✓ EXCELLENT REPAIR VALUE" : "MODERATE REPAIR VALUE"}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-0.5 bg-slate-950 border border-slate-800 px-3 py-1 rounded-lg">
+                          <span className="text-xl font-black text-emerald-400 font-mono">{ecoData.repairability}</span>
+                          <span className="text-[9px] text-slate-500">/ 10</span>
+                        </div>
+                      </div>
+
+                      {/* Parts and tools details */}
+                      <div className="space-y-3 text-[11px] leading-relaxed text-slate-400">
+                        <div className="space-y-0.5">
+                          <span className="text-[8px] text-slate-500 font-mono font-bold uppercase block">Spare Parts Ledger:</span>
+                          <p className="text-slate-200 text-xs">{ecoData.spareParts}</p>
+                        </div>
+                        <div className="space-y-0.5">
+                          <span className="text-[8px] text-slate-500 font-mono font-bold uppercase block">Required Repair Tools:</span>
+                          <p className="text-slate-200 text-xs">{ecoData.repairTools}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Refurbished Ledger - Full detail section if certified refurbished (Feature #64) */}
+                  {product.isRefurbished && (
+                    <div className="bg-gradient-to-r from-teal-950/40 via-slate-950 to-teal-950/40 border border-teal-850/40 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center justify-between border-b border-teal-950 pb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-base">🛡️</span>
+                          <span className="text-[10.5px] font-bold font-mono text-teal-300 uppercase">Certified Refurbishment Grid</span>
+                        </div>
+                        <span className="text-[9px] bg-teal-950 text-teal-400 border border-teal-850 px-2 py-0.5 rounded font-bold font-mono">
+                          ACCREDITED CIRCULAR UNIT
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        This specific unit is marked as certified pre-owned hardware from our <strong>Circular Repair Grid</strong>. It has completed a strict component lifecycle check, structural battery cells diagnostic, and micro-substrate cleanup.
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2 bg-slate-950/60 p-3 rounded-lg border border-teal-900/30 text-[10px] font-mono text-slate-400">
+                        <div>
+                          <span className="text-slate-500 uppercase block">Certified Repair Partner:</span>
+                          <span className="text-teal-400 font-bold">{product.refurbishedRepairer}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 uppercase block">Quality Verification Score:</span>
+                          <span className="text-emerald-400 font-extrabold">{product.refurbishedScore}/100 Grade-A</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upcycled Raw Materials lineage if upcycled (Feature #67) */}
+                  {ecoData.isUpcycled && (
+                    <div className="bg-gradient-to-r from-emerald-950/40 via-slate-950 to-emerald-950/40 border border-emerald-850/40 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-1.5 border-b border-emerald-950 pb-1.5">
+                        <span className="text-base">🌱</span>
+                        <span className="text-[10.5px] font-bold font-mono text-emerald-300 uppercase">Upcycled Variant Markers & Lineage</span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        <strong>Upcycled Lineage Verified:</strong> {ecoData.upcycledHistory}
+                      </p>
+                      <span className="text-[8px] font-mono text-emerald-500 uppercase block">
+                        ★ Diverts scrap polymer substrates from incinerator pipelines.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Fair Trade Certification Ledger (Feature #70) */}
+                  {ecoData.fairTrade && (
+                    <div className="bg-slate-950 border border-slate-800/80 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-900 pb-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-base">🤝</span>
+                          <span className="text-[10.5px] font-bold font-mono text-slate-300 uppercase">Fair-Trade Assembly & Labor Ledger</span>
+                        </div>
+                        <span className="text-[8px] bg-emerald-950 text-emerald-400 border border-emerald-900 px-2 py-0.5 rounded font-mono font-bold">
+                          FAIR-TRADE VERIFIED
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-300 leading-relaxed">
+                        This item was assembled in a certified fair-trade facility. Standard workers benefit from democratic union representation, certified clean-air assembly rooms, and full community-level education grants.
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2 bg-slate-900/50 p-2.5 rounded-lg border border-slate-800 font-mono text-[10px] text-slate-400">
+                        <div>
+                          <span className="text-slate-500 uppercase block">Accredited Assembly Hub:</span>
+                          <span className="text-slate-200 font-bold">{ecoData.fairTradeFactory}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 uppercase block">Worker Wage Ratio Rating:</span>
+                          <span className="text-emerald-400 font-bold">{ecoData.fairTradeWage}</span>
+                        </div>
+                      </div>
+                      <div className="text-[9px] text-slate-500 font-mono flex items-center gap-1.5">
+                        <span>🛡️ Cryptographic Ledger Record:</span>
+                        <span className="text-teal-400 underline cursor-pointer">{ecoData.fairTradeAudit}</span>
+                      </div>
+                    </div>
+                  )}
+
+                </motion.div>
+              )}
+
               {/* FEATURE #2: DYNAMIC PARAMETRIC SIZING MATRIX PANEL */}
               {techTab === 'parametric' && (
                 <motion.div

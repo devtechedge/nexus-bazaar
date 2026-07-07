@@ -81,7 +81,7 @@ export default function SearchView({
   const [compatGraphActiveNode, setCompatGraphActiveNode] = React.useState<string | null>(null);
 
   // Core Categories List
-  const categories = ['All', 'Electronics', 'Wearables', 'Workspace', 'Accessories'];
+  const categories = ['All', 'Electronics', 'Wearables', 'Workspace', 'Accessories', 'Refurbished Grid'];
 
   // Extract unique brands dynamically
   const brands = React.useMemo(() => {
@@ -150,7 +150,11 @@ export default function SearchView({
 
     // Category
     if (selectedCategory !== 'All') {
-      list = list.filter((p) => p.category === selectedCategory);
+      if (selectedCategory === 'Refurbished Grid') {
+        list = list.filter((p) => p.isRefurbished);
+      } else {
+        list = list.filter((p) => p.category === selectedCategory);
+      }
     }
 
     // Brand
@@ -846,6 +850,26 @@ export default function SearchView({
 
             {/* Faceted Results Container */}
             <div id="search-results-container" className="flex-1 space-y-6">
+              
+              {/* Refurbished Grid Banner (Feature #64) */}
+              {selectedCategory === 'Refurbished Grid' && (
+                <div className="bg-gradient-to-r from-teal-950 via-slate-900 to-teal-950 text-white rounded-3xl border border-teal-500/30 p-6 shadow-md relative overflow-hidden">
+                  <div className="absolute top-0 right-0 h-32 w-32 bg-teal-500/10 blur-3xl rounded-full" />
+                  <div className="flex items-start gap-4 relative z-10">
+                    <span className="text-3xl">🛡️</span>
+                    <div className="space-y-1">
+                      <h4 className="text-base font-extrabold tracking-tight text-teal-300">Refurbished Grid Certification Ledger</h4>
+                      <p className="text-xs text-slate-300 leading-relaxed">
+                        Welcome to the dedicated circular economy vertical. Every item on the Refurbished Grid has been thoroughly certified, repaired, and re-tested by accredited third-party engineers. We track cryptographic quality verification scores and strict component lifecycle assessments to divert premium electronics from e-waste streams.
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 font-mono text-[9px] text-teal-400">
+                        <span>● STRICT COMPONENT LIFECYCLE AUDITS</span>
+                        <span>● GUARANTEED MIN. 95% REPAIR SCORE</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {/* Results Actionbar */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-2xl p-4 shadow-sm border border-slate-100">

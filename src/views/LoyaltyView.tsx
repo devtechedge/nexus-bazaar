@@ -212,6 +212,60 @@ export default function LoyaltyView({ currentUser, products, onAddToCart, setAct
     return stored ? JSON.parse(stored) : defaultReserves;
   });
 
+  // --- BATCH 7: CIRCULAR TRADE-IN EVALUATION ENGINE STATES (Feature #62) ---
+  const [tradeStep, setTradeStep] = React.useState<1 | 2 | 3>(1);
+  const [selectedTradeItem, setSelectedTradeItem] = React.useState<{ id: string; name: string; originalPrice: number; image: string } | null>(null);
+  
+  const [diagFunctional, setDiagFunctional] = React.useState<boolean>(true);
+  const [diagCosmetic, setDiagCosmetic] = React.useState<boolean>(true);
+  const [diagBox, setDiagBox] = React.useState<boolean>(false);
+  const [diagBattery, setDiagBattery] = React.useState<boolean>(true);
+
+  const tradeInOptions = [
+    { id: 'trade_1', name: 'Aether-9 ANC Headphones (Prev Gen)', originalPrice: 299, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=150&h=150&q=80' },
+    { id: 'trade_2', name: 'Pro-Ergo Split Key Assembly', originalPrice: 189, image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=150&h=150&q=80' },
+    { id: 'trade_3', name: 'Chronos SmartWatch (Prev Gen)', originalPrice: 349, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=150&h=150&q=80' }
+  ];
+
+  const tradeInValue = React.useMemo(() => {
+    if (!selectedTradeItem) return 0;
+    let multiplier = 0.25; // base trade-in value is 25% of retail
+    if (diagFunctional) multiplier += 0.20;
+    if (diagCosmetic) multiplier += 0.15;
+    if (diagBox) multiplier += 0.05;
+    if (diagBattery) multiplier += 0.10;
+    return Math.round(selectedTradeItem.originalPrice * multiplier);
+  }, [selectedTradeItem, diagFunctional, diagCosmetic, diagBox, diagBattery]);
+
+  const handleExecuteTradeIn = () => {
+    if (!selectedTradeItem) return;
+    const value = tradeInValue;
+    setStoreCredits(prev => prev + value);
+    
+    // Add transaction to history
+    const newTx: LedgerTx = {
+      id: `tx_trade_${Date.now()}`,
+      type: 'earn',
+      amount: value,
+      description: `Circular Trade-In Approved: Returned ${selectedTradeItem.name}`,
+      date: new Date().toISOString().split('T')[0]
+    };
+    setLedgerHistory(prev => [newTx, ...prev]);
+
+    // Update spend volume (recycling adds loyalty status credit too!)
+    setLifetimeSpend(prev => prev + value * 0.5);
+
+    alert(`♻️ Circular Trade-In Approved!\nInstant credit of $${value.toFixed(2)} has been added to your NexusBazaar store credits balance.`);
+    
+    // Reset wizard
+    setTradeStep(1);
+    setSelectedTradeItem(null);
+    setDiagFunctional(true);
+    setDiagCosmetic(true);
+    setDiagBox(false);
+    setDiagBattery(true);
+  };
+
   // 8. Active Category Quests (Feature 56)
   const questCatalog = [
     {
@@ -986,6 +1040,242 @@ export default function LoyaltyView({ currentUser, products, onAddToCart, setAct
               <div className="pt-2 border-t border-slate-50 text-[9px] font-mono text-slate-400">
                 <span>🔒 Deposit goes to escrow; fully refundable if cancelled.</span>
               </div>
+            </div>
+
+            {/* 62. CIRCULAR TRADE-IN EVALUATION ENGINE */}
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-5 text-slate-800">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">♻️</span>
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Circular Trade-In Evaluation Engine</h3>
+                </div>
+                <span className="text-[9px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full uppercase">
+                  Instant Credit
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Repurpose past purchases and divert physical hardware from landfills. Use our automated diagnostic engine to generate an instant marketplace credit quote.
+              </p>
+
+              {/* Progress Steps Indicator */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 font-mono text-[9px] text-slate-400">
+                <div className={`flex items-center gap-1 ${tradeStep === 1 ? 'text-teal-600 font-bold' : ''}`}>
+                  <span className="h-4 w-4 rounded-full bg-slate-100 flex items-center justify-center border text-[8px]">1</span>
+                  <span>Select Unit</span>
+                </div>
+                <div className="h-px bg-slate-200 flex-1 mx-2" />
+                <div className={`flex items-center gap-1 ${tradeStep === 2 ? 'text-teal-600 font-bold' : ''}`}>
+                  <span className="h-4 w-4 rounded-full bg-slate-100 flex items-center justify-center border text-[8px]">2</span>
+                  <span>Diagnostics</span>
+                </div>
+                <div className="h-px bg-slate-200 flex-1 mx-2" />
+                <div className={`flex items-center gap-1 ${tradeStep === 3 ? 'text-teal-600 font-bold' : ''}`}>
+                  <span className="h-4 w-4 rounded-full bg-slate-100 flex items-center justify-center border text-[8px]">3</span>
+                  <span>Claim Credit</span>
+                </div>
+              </div>
+
+              <AnimatePresence mode="wait">
+                {tradeStep === 1 && (
+                  <motion.div
+                    key="trade-step-1"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="space-y-4"
+                  >
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Select a registered past purchase:</p>
+                    <div className="grid gap-2.5">
+                      {tradeInOptions.map((opt) => {
+                        const isSelected = selectedTradeItem?.id === opt.id;
+                        return (
+                          <div
+                            key={opt.id}
+                            onClick={() => setSelectedTradeItem(opt)}
+                            className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                              isSelected 
+                                ? 'border-teal-500 bg-teal-500/5' 
+                                : 'border-slate-100 bg-slate-50/50 hover:bg-slate-50'
+                            }`}
+                          >
+                            <img src={opt.image} alt={opt.name} className="h-10 w-10 rounded-lg object-cover border border-slate-200 shrink-0" />
+                            <div className="flex-1 min-w-0 text-left">
+                              <span className="text-[10px] font-bold text-slate-800 block truncate">{opt.name}</span>
+                              <span className="text-[9px] font-mono text-slate-400">Original Price: ${opt.originalPrice}</span>
+                            </div>
+                            {isSelected && (
+                              <span className="h-5 w-5 rounded-full bg-teal-500 text-white flex items-center justify-center text-[10px] shrink-0 font-bold">
+                                ✓
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                      <button
+                        type="button"
+                        disabled={!selectedTradeItem}
+                        onClick={() => setTradeStep(2)}
+                        className="rounded-xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 text-white px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                      >
+                        Run Diagnostics <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {tradeStep === 2 && selectedTradeItem && (
+                  <motion.div
+                    key="trade-step-2"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="space-y-4"
+                  >
+                    <div className="bg-slate-50 p-3 rounded-xl border border-slate-150 flex items-center gap-2 text-xs text-slate-700">
+                      <span className="font-bold">Target Cargo:</span>
+                      <span className="truncate text-slate-500">{selectedTradeItem.name}</span>
+                    </div>
+
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide text-left">Select current unit diagnostics:</p>
+                    
+                    <div className="grid gap-2 text-xs text-slate-700 text-left">
+                      
+                      <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={diagFunctional}
+                          onChange={(e) => setDiagFunctional(e.target.checked)}
+                          className="rounded border-slate-350 text-teal-600 focus:ring-teal-500 h-4.5 w-4.5 cursor-pointer"
+                        />
+                        <div>
+                          <span className="font-bold block text-slate-800">Functional Integrity</span>
+                          <span className="text-[9px] text-slate-400">All drivers, inputs, and components boot up and respond instantly.</span>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={diagCosmetic}
+                          onChange={(e) => setDiagCosmetic(e.target.checked)}
+                          className="rounded border-slate-350 text-teal-600 focus:ring-teal-500 h-4.5 w-4.5 cursor-pointer"
+                        />
+                        <div>
+                          <span className="font-bold block text-slate-800">Cosmetic Score (Grade-A)</span>
+                          <span className="text-[9px] text-slate-400">No deep hairline structural cracks, only minor aesthetic wear.</span>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={diagBattery}
+                          onChange={(e) => setDiagBattery(e.target.checked)}
+                          className="rounded border-slate-350 text-teal-600 focus:ring-teal-500 h-4.5 w-4.5 cursor-pointer"
+                        />
+                        <div>
+                          <span className="font-bold block text-slate-800">Battery Capacity (&gt;80% SoC)</span>
+                          <span className="text-[9px] text-slate-400">Internal battery retains original discharge cycles cleanly.</span>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center gap-2.5 p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50/50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={diagBox}
+                          onChange={(e) => setDiagBox(e.target.checked)}
+                          className="rounded border-slate-350 text-teal-600 focus:ring-teal-500 h-4.5 w-4.5 cursor-pointer"
+                        />
+                        <div>
+                          <span className="font-bold block text-slate-800">Retained Retail Packaging</span>
+                          <span className="text-[9px] text-slate-400">Ships in the original clean packaging with accessories.</span>
+                        </div>
+                      </label>
+
+                    </div>
+
+                    <div className="bg-slate-950 rounded-xl p-3 flex items-center justify-between border border-slate-850">
+                      <div className="text-left">
+                        <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wide block">Estimated Return Value:</span>
+                        <span className="text-xl font-mono font-black text-emerald-400">${tradeInValue}</span>
+                      </div>
+                      <span className="text-[9px] font-mono text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded">
+                        {Math.round((tradeInValue / selectedTradeItem.originalPrice) * 100)}% of original retail
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setTradeStep(1)}
+                        className="rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 px-3.5 py-2 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Back
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTradeStep(3)}
+                        className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                      >
+                        Generate Quote <ArrowRight className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {tradeStep === 3 && selectedTradeItem && (
+                  <motion.div
+                    key="trade-step-3"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 10 }}
+                    className="space-y-4"
+                  >
+                    <div className="bg-gradient-to-br from-emerald-50/60 to-teal-50/30 border border-emerald-200/60 rounded-2xl p-5 text-center space-y-3">
+                      <div className="h-10 w-10 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center text-base mx-auto animate-pulse">
+                        🛡️
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[9px] font-mono text-emerald-700 uppercase tracking-widest block font-bold text-center">Verified Instantly</span>
+                        <h4 className="text-xs font-extrabold text-slate-800 text-center">{selectedTradeItem.name}</h4>
+                        <p className="text-[10px] text-slate-500 text-center">
+                          Diagnostics check confirmed. Instant circular ledger release prepared.
+                        </p>
+                      </div>
+
+                      <div className="bg-white border border-emerald-100 rounded-xl py-3 px-4 inline-block font-mono">
+                        <span className="text-[8px] text-slate-400 uppercase tracking-wider block">Claimable Store Credit:</span>
+                        <span className="text-3xl font-black text-emerald-600">${tradeInValue.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-[9px] text-slate-400 text-center leading-normal">
+                      By confirming, your credit is immediately activated on the platform. A pre-paid, zero-emission carbon-neutral cargo label will be generated for your mailer automatically.
+                    </p>
+
+                    <div className="flex justify-between pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setTradeStep(2)}
+                        className="rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 px-3.5 py-2 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Adjust Specs
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleExecuteTradeIn}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 text-xs font-bold transition-all shadow-[0_0_8px_rgba(16,185,129,0.3)] hover:shadow-[0_0_12px_rgba(16,185,129,0.5)] cursor-pointer"
+                      >
+                        Confirm Trade-In & Claim Credit
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
           </div>

@@ -153,6 +153,26 @@ export default function ProductCard({
 
         {/* Badge Stack */}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5 items-start z-10">
+          {product.isRefurbished && (
+            <div 
+              id={`refurbished-badge-${product.id}`}
+              className="flex items-center gap-1 rounded-full bg-teal-500 text-slate-950 font-black px-2.5 py-1 text-[8px] tracking-wide shadow-md uppercase"
+              title={`Accredited repair quality score: ${product.refurbishedScore}/100`}
+            >
+              ♻️ Refurbished • {product.refurbishedScore}% Score
+            </div>
+          )}
+
+          {product.upcycled && (
+            <div 
+              id={`upcycled-badge-${product.id}`}
+              className="flex items-center gap-1 rounded-full bg-emerald-600/90 text-white font-extrabold px-2.5 py-1 text-[8px] tracking-wide shadow-md uppercase"
+              title="Molded 100% from upcycled raw material components"
+            >
+              🌱 Upcycled Material
+            </div>
+          )}
+
           {product.isElite && (
             <div 
               id={`elite-badge-${product.id}`}
@@ -224,6 +244,22 @@ export default function ProductCard({
         >
           {product.name}
         </h3>
+
+        {/* Circular / Sustainability Highlight Panel (Features #64, #67) */}
+        {product.isRefurbished && (
+          <div className="mt-1 flex items-center gap-1.5 bg-teal-500/10 border border-teal-500/15 px-2 py-0.5 rounded text-[9px] font-mono text-teal-800" title={`Certified repaired by ${product.refurbishedRepairer}`}>
+            <span className="font-bold">🛡️ Repair Grid</span>
+            <span className="opacity-45">|</span>
+            <span className="truncate max-w-[150px]">{product.refurbishedRepairer}</span>
+          </div>
+        )}
+        {product.upcycled && (
+          <div className="mt-1 flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/15 px-2 py-0.5 rounded text-[9px] font-mono text-emerald-800" title={product.upcycledHistory}>
+            <span className="font-bold">🌱 Circular Upcycle</span>
+            <span className="opacity-45">|</span>
+            <span className="truncate max-w-[150px]">{product.upcycledHistory}</span>
+          </div>
+        )}
 
         {/* Description Snippet */}
         <p className="mt-1 text-xs text-slate-400 line-clamp-2 leading-relaxed flex-1">

@@ -34,6 +34,22 @@ export interface Product {
   isElite: boolean; // Elite members can get free/special benefits or pricing
   sellerId: string;
   sellerName: string;
+  // --- BATCH 7: SUSTAINABILITY & CIRCULAR ECONOMY ---
+  isRefurbished?: boolean;
+  refurbishedScore?: number;
+  refurbishedRepairer?: string;
+  materialDegradationLifespan?: string;
+  biodegradabilityScore?: number;
+  recyclingViabilityIndex?: number;
+  upcycled?: boolean;
+  upcycledHistory?: string;
+  repairabilityScore?: number;
+  repairSparePartsAvailability?: string;
+  repairToolAccessibility?: string;
+  fairTradeVerified?: boolean;
+  fairTradeFactory?: string;
+  fairTradeWageRating?: string;
+  fairTradeAuditLink?: string;
 }
 
 export interface Review {
@@ -184,6 +200,18 @@ export const initialProducts: Product[] = [
     isElite: true,
     sellerId: 'usr_seller',
     sellerName: 'Elite Tech Seller',
+    materialDegradationLifespan: 'Soy-protein ear cushions degrade in 3-5 years under industrial compost. Recycled aluminum frame is infinitely recyclable.',
+    biodegradabilityScore: 78,
+    recyclingViabilityIndex: 94,
+    upcycled: true,
+    upcycledHistory: 'Plastic headband and housing shells molded 100% from upcycled ocean polymers retrieved from the Great Pacific Garbage Patch.',
+    repairabilityScore: 8.8,
+    repairSparePartsAvailability: 'Official battery replacement cartridges, soft cushions, and drivers stocked directly in NexusBazaar warehouses.',
+    repairToolAccessibility: 'Snap-and-click modular parts. Zero permanent glues used, requiring only standard tweezers to self-repair.',
+    fairTradeVerified: true,
+    fairTradeFactory: 'AuraSound EcoAssembly - Penang, Malaysia',
+    fairTradeWageRating: 'Pays 1.35x regional living wage. Operates on 100% verified solar energy with strict worker union representation.',
+    fairTradeAuditLink: 'SGS Cryptographic Eco-Audit: #MY-99812-ECO'
   },
   {
     id: 'prod_2',
@@ -199,6 +227,17 @@ export const initialProducts: Product[] = [
     isElite: true,
     sellerId: 'usr_seller',
     sellerName: 'Elite Tech Seller',
+    materialDegradationLifespan: 'Grade-5 titanium shell is infinitely reusable. Bio-silicone strap biodegrades safely in landfill conditions over 12-15 years.',
+    biodegradabilityScore: 45,
+    recyclingViabilityIndex: 82,
+    upcycled: false,
+    repairabilityScore: 7.2,
+    repairSparePartsAvailability: 'Replacement sapphire glass dials and micro-batteries available for order in the regional parts ledger.',
+    repairToolAccessibility: 'T3 micro-torx screws. Requires micro-suction clamp and adhesive dissolution pads.',
+    fairTradeVerified: true,
+    fairTradeFactory: 'ChronoTech Micro-Foundry - Hsinchu Science Park, Taiwan',
+    fairTradeWageRating: 'Pays 1.45x standard tech industry minimum. Clean-room ventilation systems certified quarterly with full medical coverage.',
+    fairTradeAuditLink: 'TUV Sud Social Audit: #TW-CHRONO-2025'
   },
   {
     id: 'prod_3',
@@ -214,6 +253,19 @@ export const initialProducts: Product[] = [
     isElite: false,
     sellerId: 'usr_seller',
     sellerName: 'Elite Tech Seller',
+    isRefurbished: true,
+    refurbishedScore: 98,
+    refurbishedRepairer: 'Lumina Certified Circular Repair Grid - Oregon, USA',
+    materialDegradationLifespan: 'Composite polymer rear panels (450 years). Pure gold-plated connection points and copper internal coils (100% recyclable).',
+    biodegradabilityScore: 22,
+    recyclingViabilityIndex: 95,
+    repairabilityScore: 9.1,
+    repairSparePartsAvailability: 'Backlight boards, power modules, and replacement HDMI/DP inputs stocked at Lumina Authorized Depots.',
+    repairToolAccessibility: 'Tool-free external latch covers. Internal shields secured using standard Philips-head M3 screws.',
+    fairTradeVerified: true,
+    fairTradeFactory: 'Lumina circular reuse depot - Oregon, USA',
+    fairTradeWageRating: '1.50x Local living wage, full vocational training program for technical repairs.',
+    fairTradeAuditLink: 'Oregon Dept of Labor Certified Reuse Grid'
   },
   {
     id: 'prod_4',
@@ -229,6 +281,18 @@ export const initialProducts: Product[] = [
     isElite: true,
     sellerId: 'usr_seller',
     sellerName: 'Elite Tech Seller',
+    materialDegradationLifespan: 'American Walnut casing decomposes in standard topsoil in 2-3 years. Polycarbonate keycaps and steel switches are recyclable.',
+    biodegradabilityScore: 89,
+    recyclingViabilityIndex: 91,
+    upcycled: true,
+    upcycledHistory: 'Walnut wooden housing units precision milled directly from salvaged furniture manufacturing scrap off-cuts bound for incinerators.',
+    repairabilityScore: 9.7,
+    repairSparePartsAvailability: 'Hot-swappable tactile switches, brass plate stabilizers, keycap variants, and replacement USB-C boards kept permanently in stock.',
+    repairToolAccessibility: 'Completely tool-free switch swapping. Modular snap casing requires no screws or specialty tools.',
+    fairTradeVerified: true,
+    fairTradeFactory: 'KeyCraft Artisans Guild - Portland, Oregon USA',
+    fairTradeWageRating: 'Certified B-Corp employer paying 1.60x county living wage with employee-owned profit sharing.',
+    fairTradeAuditLink: 'B-Lab Cryptographic Verification Ledger: #US-KEYCRAFT-BCORP'
   },
   {
     id: 'prod_5',
@@ -244,6 +308,15 @@ export const initialProducts: Product[] = [
     isElite: false,
     sellerId: 'usr_seller',
     sellerName: 'Elite Tech Seller',
+    materialDegradationLifespan: '100% natural vegetable-tanned steerhide biodegrades in soil within 15-20 years. Solid brass zippers and clips are infinitely recyclable.',
+    biodegradabilityScore: 94,
+    recyclingViabilityIndex: 85,
+    upcycled: true,
+    upcycledHistory: 'Assembled entirely from premium full-grain steerhide scrap cutouts discarded by premium automotive upholstery plants.',
+    fairTradeVerified: true,
+    fairTradeFactory: 'Leon Stitching Cooperative - Guanajuato, Mexico',
+    fairTradeWageRating: 'Worker-owned stitching coop paying 1.50x local median family wage with on-site childcare and health clinic.',
+    fairTradeAuditLink: 'Fair Trade USA Certified Registry: #MX-LEON-COOP'
   },
   {
     id: 'prod_6',
