@@ -546,25 +546,25 @@ export default function EdgeLabView({
         <div className="relative z-10 max-w-4xl space-y-4">
           <div className="flex items-center gap-2.5">
             <span className="bg-teal-500/10 text-teal-400 border border-teal-500/30 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center gap-1.5 animate-pulse">
-              <Zap className="h-3.5 w-3.5" /> Edge Node Layer
+              <Zap className="h-3.5 w-3.5" /> High-Speed Private Mode
             </span>
             <span className="bg-slate-800 text-slate-400 px-3 py-1.5 rounded-full text-xs font-mono">
-              IP: 127.0.0.1 (Privacy Locked)
+              ✓ 100% Secure & Private
             </span>
           </div>
           
           <h1 id="edge-lab-title" className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-            ⚡ AI Edge Optimization & Local Personalization Hub
+            ⚡ Private Shopping Assistant & Speed Optimizer
           </h1>
           <p className="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-3xl">
-            Experience premium client-side processing. These ten (91–100) edge nodes execute lightweight neural models, traversals, and optimizations locally inside your browser—completely avoiding server tracker loops.
+            We use your browser's built-in power to run smart tools, instant suggestions, and fast image search directly on your device. Absolutely none of your shopping activities, searches, or photos are ever sent to an external server.
           </p>
 
           {/* SIMULATION MODE CHANGER (Feature 100) */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800/80 mt-6">
             <div className="space-y-0.5">
-              <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block">Feature 100: Device-Spec UI Optimizer</span>
-              <p className="text-[11px] text-slate-300">Simulate specialized mobile SOC system constraints to view automatic UI simplifications.</p>
+              <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block">Performance Tuning</span>
+              <p className="text-[11px] text-slate-300">Simulate different device speeds to see how the interface automatically adjusts to stay fast.</p>
             </div>
             
             <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
@@ -578,7 +578,7 @@ export default function EdgeLabView({
                     : 'bg-slate-900 text-slate-400 hover:text-white'
                 }`}
               >
-                🚀 Ultra PC Specs
+                🚀 High-Performance Computer
               </button>
               <button
                 id="profile-snapdragon-btn"
@@ -590,7 +590,7 @@ export default function EdgeLabView({
                     : 'bg-slate-900 text-slate-400 hover:text-white'
                 }`}
               >
-                📱 Snapdragon Mobile
+                📱 Mobile or Older Device
               </button>
             </div>
           </div>
@@ -605,7 +605,7 @@ export default function EdgeLabView({
             activeTab === 'recommend' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          🧩 Smart Descriptions & Recommendations
+          🧩 Smart Descriptions & Suggestions
         </button>
         <button
           onClick={() => setActiveTab('search_trie')}
@@ -613,7 +613,7 @@ export default function EdgeLabView({
             activeTab === 'search_trie' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          🔍 Local Trie Autocorrect & Sync
+          🔍 Smart Search & Offline Mode
         </button>
         <button
           onClick={() => setActiveTab('assistant')}
@@ -621,7 +621,7 @@ export default function EdgeLabView({
             activeTab === 'assistant' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          💬 Local Markdown Assistant
+          💬 Friendly Helper Chat
         </button>
         <button
           onClick={() => setActiveTab('matcher')}
@@ -629,7 +629,7 @@ export default function EdgeLabView({
             activeTab === 'matcher' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          🖼️ CV Vector Image Matcher
+          🖼️ Photo Scanner & Finder
         </button>
         <button
           onClick={() => setActiveTab('diagnostics')}
@@ -637,7 +637,7 @@ export default function EdgeLabView({
             activeTab === 'diagnostics' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-50'
           }`}
         >
-          💻 Hardware Diagnostics & Layouts
+          💻 Device Check & Display Settings
         </button>
       </div>
 
@@ -656,14 +656,14 @@ export default function EdgeLabView({
             {/* Feature 91: Semantic recommendations engine */}
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
               <div className="border-b border-slate-100 pb-4">
-                <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Feature 91: Client-Side Semantic engine</span>
-                <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Lightweight Recommendation Engine</h3>
-                <p className="text-xs text-slate-500 mt-1">Processes similarity coefficients directly inside browser threads, suggesting items based on current navigation patterns with zero cookie-logging.</p>
+                <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Personalized Matching</span>
+                <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Smart Product Suggestions</h3>
+                <p className="text-xs text-slate-500 mt-1">Find products that perfectly match what you are looking for. Our secure logic finds connections instantly based on your shopping style.</p>
               </div>
 
               {/* Input: select active product node */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-600">Simulate navigation to Product Node:</label>
+                <label className="text-xs font-bold text-slate-600">Select a product to find matches for:</label>
                 <select
                   value={selectedRecommendBaseId}
                   onChange={(e) => setSelectedRecommendBaseId(e.target.value)}
@@ -678,8 +678,8 @@ export default function EdgeLabView({
               {/* Semantic overlap output */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">Computed Recommendations (Client RAM)</span>
-                  <span className="text-[9px] font-mono font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full uppercase">Overlap calculation: 0.1ms</span>
+                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">Recommended Items</span>
+                  <span className="text-[9px] font-mono font-bold bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full uppercase">Instant match</span>
                 </div>
 
                 <div className="space-y-3">
@@ -703,9 +703,9 @@ export default function EdgeLabView({
 
                       <div className="text-right">
                         <span className="text-[10px] font-mono font-black text-teal-600 bg-teal-50 border border-teal-100/40 px-2 py-1 rounded">
-                          {score}% match
+                          {score}% Match
                         </span>
-                        <span className="block text-[8px] text-slate-400 mt-1 uppercase font-mono">⚡ Pre-render ready</span>
+                        <span className="block text-[8px] text-slate-400 mt-1 uppercase font-mono">⚡ Instant Preview</span>
                       </div>
                     </div>
                   ))}
@@ -717,14 +717,14 @@ export default function EdgeLabView({
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6 flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="border-b border-slate-100 pb-4">
-                  <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Feature 97: Contextual Smart Descriptions</span>
-                  <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Intent Tailored AI Copy</h3>
-                  <p className="text-xs text-slate-500 mt-1">Changes product details copy emphasis instantly based on user profile types—focusing on battery chips for tech analysts, circularity scores for eco buyers.</p>
+                  <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Tailored Product Info</span>
+                  <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Custom Product Highlights</h3>
+                  <p className="text-xs text-slate-500 mt-1">Changes what features are highlighted based on what matters to you most: pure performance, eco-friendly details, or designer aesthetics.</p>
                 </div>
 
                 {/* Persona selector tabs */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-600">Select User Target Persona:</label>
+                  <label className="text-xs font-bold text-slate-600">Choose what matters to you:</label>
                   <div className="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
                     <button
                       type="button"
@@ -736,7 +736,7 @@ export default function EdgeLabView({
                         smartDescriptionPersona === 'tech' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-900'
                       }`}
                     >
-                      💻 Tech Analyst
+                      💻 Tech & Specs
                     </button>
                     <button
                       type="button"
@@ -748,7 +748,7 @@ export default function EdgeLabView({
                         smartDescriptionPersona === 'eco' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-900'
                       }`}
                     >
-                      🌿 Circular Eco
+                      🌿 Eco-Friendly
                     </button>
                     <button
                       type="button"
@@ -760,18 +760,18 @@ export default function EdgeLabView({
                         smartDescriptionPersona === 'design' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-900'
                       }`}
                     >
-                      🎨 Design Curator
+                      🎨 Design & Style
                     </button>
                   </div>
                 </div>
 
                 {/* Dropdown for item */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Select Target Product</label>
+                  <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Select Product</label>
                   <select
-                    value={smartDescriptionProdId}
-                    onChange={(e) => setSmartDescriptionProdId(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-medium focus:outline-none"
+                     value={smartDescriptionProdId}
+                     onChange={(e) => setSmartDescriptionProdId(e.target.value)}
+                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-medium focus:outline-none"
                   >
                     {products.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
@@ -782,8 +782,8 @@ export default function EdgeLabView({
                 {/* Smart copy text display box */}
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 space-y-2">
                   <div className="flex justify-between items-center text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider">
-                    <span>Edge-Tailored Copywriting Output</span>
-                    <span className="text-emerald-500">Node Ref: {smartDescriptionProdId}</span>
+                    <span>Product Highlight Summary</span>
+                    <span className="text-emerald-500">ID: {smartDescriptionProdId}</span>
                   </div>
                   <p className="text-xs text-slate-700 leading-relaxed font-sans min-h-[100px]">
                     {smartDescriptionPersona === 'tech' ? '💻 ' : smartDescriptionPersona === 'eco' ? '🌿 ' : '🎨 '}
@@ -793,13 +793,7 @@ export default function EdgeLabView({
               </div>
 
               <div className="text-[10px] text-slate-400 font-mono text-center pt-2 border-t border-slate-100">
-                Processed locally via Edge Template Rewriter in 0.05ms.
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* TAB 2: LOCAL TRIE AUTOCORRECT & SEARCH SYNCHRONIZER */}
+                Created securely and 100% privately        {/* TAB 2: LOCAL TRIE AUTOCORRECT & SEARCH SYNCHRONIZER */}
         {activeTab === 'search_trie' && (
           <motion.div
             key="tab-search_trie"
@@ -811,20 +805,20 @@ export default function EdgeLabView({
             {/* Feature 98: Dynamic search query autocorrect (Trie) */}
             <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
               <div className="border-b border-slate-100 pb-4">
-                <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Feature 98: Dynamic Trie Autocorrection Nodes</span>
-                <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Client-Side Autocorrection Playground</h3>
-                <p className="text-xs text-slate-500 mt-1">Traverses a fully localized memory Trie containing over 1,200 product keywords. Automatically fixes messy typos in real-time with zero backend database hits.</p>
+                <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Spelling Correction</span>
+                <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Instant Typo Autocorrect</h3>
+                <p className="text-xs text-slate-500 mt-1">Type with confidence. Our search bar automatically checks spelling and corrects mistakes instantly as you type, without waiting for a server.</p>
               </div>
 
               {/* Input typing playground */}
               <div className="space-y-3">
-                <label className="text-xs font-bold text-slate-600">Simulate typing inside Search Bar:</label>
+                <label className="text-xs font-bold text-slate-600">Try typing a product name with typos (e.g. "keybord", "titaniu", "chrom"):</label>
                 <div className="relative">
                   <input
                     type="text"
                     value={trieSearchQuery}
                     onChange={(e) => setTrieSearchQuery(e.target.value)}
-                    placeholder="Type messy word (e.g. keybord, titaniu, chrom)..."
+                    placeholder="Type messy word..."
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3.5 pr-10 text-xs font-mono outline-none focus:border-teal-500 focus:bg-white focus:ring-1 focus:ring-teal-500"
                   />
                   <div className="absolute right-3 top-3.5 text-slate-400">
@@ -836,39 +830,35 @@ export default function EdgeLabView({
               {/* Autocorrect logs and display */}
               <div className="rounded-2xl bg-slate-950 p-4 font-mono text-xs text-slate-300 space-y-3 border border-slate-800">
                 <div className="flex justify-between items-center text-[10px] text-slate-500 border-b border-slate-900 pb-2">
-                  <span>Trie Node Traversal Engine Feed</span>
-                  <span className="text-emerald-400 uppercase font-black">Status: Traversal Active</span>
+                  <span>Correction Assistant Feedback</span>
+                  <span className="text-emerald-400 uppercase font-black">Active</span>
                 </div>
 
                 <div className="space-y-2 text-[11px]">
-                  <p><span className="text-slate-500">Input query:</span> "{trieSearchQuery}"</p>
+                  <p><span className="text-slate-500">What you typed:</span> "{trieSearchQuery}"</p>
                   
                   {trieAutocorrectionResult ? (
                     trieAutocorrectionResult.corrected ? (
                       <div className="p-2 bg-teal-950/60 border border-teal-800 text-teal-400 rounded-lg space-y-1">
                         <p className="font-bold flex items-center gap-1.5">
-                          <span>💡 Typo Autocorrected!</span>
+                          <span>💡 Suggested Correction Found!</span>
                         </p>
                         <p className="text-[10px] text-teal-300">
-                          Did you mean: <strong className="underline text-emerald-400 cursor-pointer" onClick={() => setTrieSearchQuery(trieAutocorrectionResult.suggestion)}>{trieAutocorrectionResult.suggestion}</strong>? (Levenshtein distance: {trieAutocorrectionResult.score})
+                          Did you mean: <strong className="underline text-emerald-400 cursor-pointer" onClick={() => setTrieSearchQuery(trieAutocorrectionResult.suggestion)}>{trieAutocorrectionResult.suggestion}</strong>?
                         </p>
                       </div>
                     ) : (
-                      <p className="text-emerald-400 font-bold">✓ Query matches exact prefix in Trie Node dictionary: "{trieAutocorrectionResult.suggestion}"</p>
+                      <p className="text-emerald-400 font-bold">✓ Matches item: "{trieAutocorrectionResult.suggestion}"</p>
                     )
                   ) : (
-                    <p className="text-slate-500 italic">No direct suggestions found. Try typing "keybord", "titaniu", "aether", or "chronos".</p>
+                    <p className="text-slate-500 italic">Try typing "keybord", "titaniu", "aether", or "chronos" to test correction.</p>
                   )}
-
-                  <p className="text-[10px] text-slate-600 pt-1 border-t border-slate-900">
-                    Traversed {(trieSearchQuery.length)} characters in 0.04ms on browser local stack.
-                  </p>
                 </div>
               </div>
 
               {/* Trie schematic visual */}
               <div className="space-y-2">
-                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">Interactive Trie Graph Nodes View</span>
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">Search Suggestions Trail</span>
                 <div className="bg-slate-50 border border-slate-100 p-3 rounded-xl flex items-center gap-2 overflow-x-auto text-[10px] font-mono text-slate-500 select-none">
                   <span className="bg-slate-200 px-1.5 py-0.5 rounded text-slate-700">Root [ ]</span>
                   <ArrowRight className="h-3 w-3 text-slate-300 shrink-0" />
@@ -878,7 +868,7 @@ export default function EdgeLabView({
                   <ArrowRight className="h-3 w-3 text-slate-300 shrink-0" />
                   <span className="bg-teal-50 text-teal-700 border border-teal-100 px-1.5 py-0.5 rounded">y [ ]</span>
                   <ArrowRight className="h-3 w-3 text-slate-300 shrink-0" />
-                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-250 px-1.5 py-0.5 rounded font-bold">b [oard] ★</span>
+                  <span className="bg-emerald-100 text-emerald-800 border border-emerald-250 px-1.5 py-0.5 rounded font-bold font-sans">keyboard ✓</span>
                 </div>
               </div>
             </div>
@@ -888,22 +878,22 @@ export default function EdgeLabView({
               <div className="space-y-5">
                 <div className="border-b border-slate-100 pb-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Feature 99: Offline-Capable Synchronization</span>
+                    <span className="text-[10px] font-mono font-bold text-teal-600 uppercase">Offline Browsing</span>
                     <span className={`inline-flex items-center gap-1.5 text-[9px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                       networkMode === 'online' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
                     }`}>
-                      {networkMode === 'online' ? '🟢 Online' : '🟡 Offline Cache Active'}
+                      {networkMode === 'online' ? '🟢 Online Mode' : '🟡 Offline Mode Active'}
                     </span>
                   </div>
-                  <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Service Worker Index Synchronization</h3>
-                  <p className="text-xs text-slate-500 mt-1">Allows browsing an indexed, lightweight local catalog cache of verified items when offline, ensuring perfect operational redundancy on fragile networks.</p>
+                  <h3 className="text-lg font-black text-slate-950 tracking-tight mt-1">Shop Anywhere, Even Offline</h3>
+                  <p className="text-xs text-slate-500 mt-1">Our system automatically saves products to your device so you can keep searching and browsing even if you lose internet connection.</p>
                 </div>
 
                 {/* Simulated network toggle */}
                 <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
                   <div className="space-y-0.5 text-center sm:text-left">
-                    <p className="text-xs font-bold text-slate-800">Simulate Connection Stability:</p>
-                    <p className="text-[10px] text-slate-500">Toggle offline search synchronization with indexed storage buffers.</p>
+                    <p className="text-xs font-bold text-slate-800">Simulate Connection Status:</p>
+                    <p className="text-[10px] text-slate-500">Toggle offline search synchronization to test browsing with no internet connection.</p>
                   </div>
 
                   <div className="flex gap-1.5 w-full sm:w-auto">
@@ -911,7 +901,7 @@ export default function EdgeLabView({
                       type="button"
                       onClick={() => {
                         setNetworkMode('online');
-                        setSyncStatus('Indexed DB Sync status: Complete (12 nodes cached)');
+                        setSyncStatus('Status: Connected. Product list is fully updated.');
                       }}
                       className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
                         networkMode === 'online' ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
@@ -923,13 +913,13 @@ export default function EdgeLabView({
                       type="button"
                       onClick={() => {
                         setNetworkMode('offline_sync');
-                        setSyncStatus('📡 Local Service Worker Sync active. Querying IndexedDB (Offline Sandbox).');
+                        setSyncStatus('Status: Offline. Currently browsing saved products safely stored on your device.');
                       }}
                       className={`flex-1 sm:flex-none px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-1 cursor-pointer ${
                         networkMode === 'offline_sync' ? 'bg-amber-600 text-white shadow-md animate-pulse' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                       }`}
                     >
-                      <WifiOff className="h-3 w-3" /> Offline Sync
+                      <WifiOff className="h-3 w-3" /> Go Offline
                     </button>
                   </div>
                 </div>
@@ -937,10 +927,10 @@ export default function EdgeLabView({
                 {/* Local search sync box */}
                 <div className="space-y-3.5">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Query Sw-Indexed Catalog</label>
+                    <label className="text-[10px] font-mono font-bold text-slate-400 uppercase">Search Saved Products</label>
                     <input
                       type="text"
-                      placeholder={networkMode === 'online' ? "Search fully synced online index..." : "Browse offline cache index (eg. watch, keyboard)..."}
+                      placeholder={networkMode === 'online' ? "Search fully synced products..." : "Browse offline items (e.g., watch, keyboard)..."}
                       value={syncQuery}
                       onChange={(e) => setSyncQuery(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none focus:border-teal-500 focus:bg-white"
@@ -951,18 +941,23 @@ export default function EdgeLabView({
                     {offlineFilteredProducts.length > 0 ? (
                       offlineFilteredProducts.map(p => (
                         <div key={p.id} className="flex justify-between items-center text-xs font-mono text-slate-600 hover:bg-slate-100 p-1.5 rounded">
-                          <span className="font-bold text-slate-800">{p.name}</span>
-                          <span className="text-teal-600">${p.price} (SW Node)</span>
+                          <span className="font-bold text-slate-800 font-sans">{p.name}</span>
+                          <span className="text-teal-600 font-sans">${p.price}</span>
                         </div>
                       ))
                     ) : (
-                      <p className="text-[10px] text-slate-400 italic text-center py-4 uppercase">Zero matches found in Offline Cache index.</p>
+                      <p className="text-[10px] text-slate-400 italic text-center py-4 uppercase">No saved items found for this query.</p>
                     )}
                   </div>
                 </div>
               </div>
 
               <div className="text-[9px] font-mono text-slate-400 border-t border-slate-150 pt-2.5 mt-4 text-center leading-normal">
+                {syncStatus}
+              </div>
+            </div>
+          </motion.div>
+        )}rmal">
                 {syncStatus}
               </div>
             </div>

@@ -60,7 +60,7 @@ const initialGuilds: Guild[] = [
     banner: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=1200&auto=format&fit=crop&q=80',
     category: 'Electronics',
     membersCount: 4208,
-    description: 'The official interactive hub for AuraSound audio equipment owners. Share acoustics room maps, EQ presets, and stay updated on acoustic hardware developments.',
+    description: 'The official group for AuraSound speaker owners. Share sound settings, setups, and stay updated on audio tips and tricks.',
     firmwareVersion: 'v2.8.1-BETA',
     exclusiveCode: 'AURAGUILD15',
     exclusiveDiscount: 15
@@ -73,7 +73,7 @@ const initialGuilds: Guild[] = [
     banner: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=1200&auto=format&fit=crop&q=80',
     category: 'Workspace',
     membersCount: 3105,
-    description: 'Devoted to custom mechanical switches, substrate engineering, and desk setup layouts. Gain early access to group buying runs and layout files.',
+    description: 'A community for keyboard fans who love custom keycaps and beautiful desk designs. Get early access to keyboard group buys and free styling ideas.',
     firmwareVersion: 'v1.4.9',
     exclusiveCode: 'KEYCRAFT20',
     exclusiveDiscount: 20
@@ -86,7 +86,7 @@ const initialGuilds: Guild[] = [
     banner: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=1200&auto=format&fit=crop&q=80',
     category: 'Accessories',
     membersCount: 1892,
-    description: 'Explore workspace ergonomics, circadian rhythm backlighting scripts, and color coordinate setups designed to boost cognitive performance.',
+    description: 'Learn about great desk lighting, natural sleep patterns, and color coordinate your setups to help you stay focused and comfortable.',
     firmwareVersion: 'v4.0.2',
     exclusiveCode: 'LUMINACLUB10',
     exclusiveDiscount: 10
@@ -330,10 +330,10 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
             <div>
               <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-mono font-bold text-teal-700">
                 <Radio className="h-3 w-3 animate-pulse" />
-                <span>Verified Brand Channels</span>
+                <span>Brand Communities</span>
               </div>
-              <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Seller-Hosted Community Guilds</h2>
-              <p className="text-xs text-slate-400">Join merchant channels to interact, read official manuals, and claim member codes.</p>
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Brand Clubs & Communities</h2>
+              <p className="text-xs text-slate-400">Join communities created by your favorite brands to chat, share ideas, and unlock exclusive discounts!</p>
             </div>
           </div>
 
@@ -460,7 +460,7 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
                 <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
                   <MessageSquare className="h-4 w-4 text-teal-600" />
-                  Post in the Guild Discussion Forum
+                  Write a Message
                 </h3>
                 
                 <form onSubmit={handleCreatePost} className="space-y-3">
@@ -476,7 +476,7 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
                   />
                   <textarea
                     rows={3}
-                    placeholder="Share logs, firmware setup questions, custom designs..."
+                    placeholder="Share your setup ideas, ask questions, or say hello!"
                     value={newPostContent}
                     onChange={(e) => setNewPostContent(e.target.value)}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 outline-none focus:border-teal-500 focus:bg-white"
@@ -487,7 +487,7 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
                       type="submit"
                       className="rounded-xl bg-slate-900 text-white text-xs font-bold uppercase px-4 py-2 flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Send className="h-3.5 w-3.5" /> Publish Post
+                      <Send className="h-3.5 w-3.5" /> Post Message
                     </button>
                   </div>
                 </form>
@@ -495,7 +495,7 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
 
               {/* Feed List */}
               <div className="space-y-4">
-                <h4 className="text-xs font-mono text-slate-400 uppercase tracking-widest">Active Community Post Logs ({guildPosts.length})</h4>
+                <h4 className="text-xs font-mono text-slate-400 uppercase tracking-widest">Community Chats ({guildPosts.length})</h4>
                 
                 {guildPosts.length > 0 ? (
                   guildPosts.map(post => (
@@ -508,7 +508,7 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
                               <span>{post.author}</span>
                               {post.role !== 'Buyer' && (
                                 <span className="inline-flex items-center gap-0.5 bg-teal-50 text-teal-700 text-[8px] font-mono font-bold px-1.5 rounded-full border border-teal-100">
-                                  <ShieldCheck className="h-2.5 w-2.5" /> OFFICIAL
+                                  <ShieldCheck className="h-2.5 w-2.5" /> BRAND OWNER
                                 </span>
                               )}
                             </p>
@@ -577,24 +577,24 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
                 <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2">
                   <Cpu className="h-4.5 w-4.5 text-teal-600" />
-                  <h4 className="text-xs font-extrabold text-slate-900 uppercase">Hardware Tech Info</h4>
+                  <h4 className="text-xs font-extrabold text-slate-900 uppercase">Club Details</h4>
                 </div>
 
                 <div className="space-y-3 font-mono text-[10px] text-slate-600">
                   <div className="flex justify-between items-center">
-                    <span>Active Guild Level</span>
+                    <span>Club Level</span>
                     <span className="font-bold text-teal-600 flex items-center gap-0.5"><Award className="h-3 w-3" /> Lv.3 Channel</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Substrate Firmware</span>
+                    <span>Latest Version</span>
                     <span className="font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">{activeGuild.firmwareVersion || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Members Sync</span>
-                    <span className="font-bold text-slate-900">{activeGuild.membersCount.toLocaleString()} connected</span>
+                    <span>Members</span>
+                    <span className="font-bold text-slate-900">{activeGuild.membersCount.toLocaleString()} online</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span>Host Entity</span>
+                    <span>Brand Owner</span>
                     <span className="font-bold text-slate-900 text-right truncate max-w-[120px]">{activeGuild.sellerName}</span>
                   </div>
                 </div>
@@ -602,7 +602,7 @@ export default function GuildsView({ currentUser, onAddPromoCode, setActiveView 
                 <div className="bg-slate-50 rounded-xl p-3 text-[11px] leading-relaxed text-slate-500 border border-slate-100">
                   <div className="flex gap-1.5">
                     <BookOpen className="h-4 w-4 shrink-0 text-slate-400" />
-                    <span>Guild updates are verified directly on hardware nodes. Check community manuals to audit schematics or download firmware files.</span>
+                    <span>Our communities are checked and verified. You can find set up manuals, updates, and chat with helpful experts.</span>
                   </div>
                 </div>
               </div>

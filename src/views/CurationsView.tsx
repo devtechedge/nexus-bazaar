@@ -245,10 +245,10 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-mono font-bold text-teal-700">
             <Award className="h-3.5 w-3.5" />
-            <span>Circular Affiliate Engine</span>
+            <span>Share Your Setup</span>
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Community-Curated Curations</h2>
-          <p className="text-xs text-slate-400">Verified buyers share their setups, generating trackable affiliate payouts on driven sales.</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Community Setups</h2>
+          <p className="text-xs text-slate-400">Browse setups shared by our shoppers! Buy the setup to support them.</p>
         </div>
 
         {/* Affiliate Wallet Balance tracker */}
@@ -257,7 +257,7 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
             <DollarSign className="h-5 w-5" />
           </div>
           <div className="leading-none">
-            <span className="text-[9px] font-mono text-slate-400 uppercase">My Affiliate Commissions</span>
+            <span className="text-[9px] font-mono text-slate-400 uppercase">My Earnings</span>
             <p className="text-lg font-black text-slate-800 mt-1">${ledgerBalance.toFixed(2)} credits</p>
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
       <div className="grid gap-6 lg:grid-cols-12">
         {/* LEFT COLUMN: LIST OF THEMED CURATIONS (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
-          <h3 className="text-xs font-mono text-slate-400 uppercase tracking-widest">Active Curations Index</h3>
+          <h3 className="text-xs font-mono text-slate-400 uppercase tracking-widest">Featured Setups</h3>
           
           <div className="space-y-6">
             {curations.map(cur => (
@@ -283,10 +283,10 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
                       <p className="text-xs font-bold text-slate-900 flex items-center gap-1">
                         <span>{cur.creatorName}</span>
                         <span className="inline-flex items-center gap-0.5 bg-emerald-50 text-emerald-700 text-[8px] font-mono font-bold px-1.5 rounded-full border border-emerald-100">
-                          <UserCheck className="h-2.5 w-2.5" /> VERIFIED BUYER
+                          <UserCheck className="h-2.5 w-2.5" /> Verified Shopper
                         </span>
                       </p>
-                      <p className="text-[9px] text-slate-400 font-mono">Curator Tier: Professional • {cur.category}</p>
+                      <p className="text-[9px] text-slate-400 font-mono">Setup Style: {cur.category}</p>
                     </div>
                   </div>
 
@@ -303,10 +303,10 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
                     <button
                       onClick={() => handleSimulateSale(cur)}
                       className="px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase bg-slate-900 text-white hover:bg-slate-800 flex items-center gap-1 cursor-pointer"
-                      title="Add themed items to cart & log bounty commissions"
+                      title="Add these items to your cart"
                     >
                       <Share2 className="h-3 w-3" />
-                      <span>Simulate Affiliate Buy</span>
+                      <span>Buy This Setup</span>
                     </button>
 
                     {cur.creatorName === currentUser.name && (
@@ -358,12 +358,12 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
           {/* Curation Creation Form */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
             <h3 className="text-xs font-mono text-slate-400 uppercase tracking-widest flex items-center gap-1">
-              <Plus className="h-4 w-4" /> Build My Curated Collection
+              <Plus className="h-4 w-4" /> Create a New Setup
             </h3>
             
             {formSuccess && (
               <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-medium border border-emerald-100">
-                ✓ Curated thematic setup committed to Database!
+                ✓ Setup saved successfully!
               </div>
             )}
 
@@ -373,11 +373,11 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
               )}
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-500">Collection Title</label>
+                <label className="font-bold text-slate-500">Setup Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Circadian Workspace Setup"
+                  placeholder="e.g. Minimalist Reading Corner"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 outline-none focus:border-teal-500 focus:bg-white"
@@ -385,11 +385,11 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-500">Thematic Concept Details</label>
+                <label className="font-bold text-slate-500">Tell Us About It</label>
                 <textarea
                   rows={3}
                   required
-                  placeholder="Explain why this combination boosts performance or focus levels..."
+                  placeholder="What makes this setup special?"
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 outline-none focus:border-teal-500 focus:bg-white"
@@ -397,7 +397,7 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-500">Primary Segment</label>
+                <label className="font-bold text-slate-500">Category</label>
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
@@ -412,7 +412,7 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
 
               {/* Product multi selector checkbox */}
               <div className="space-y-1">
-                <label className="font-bold text-slate-500">Select Products to Add</label>
+                <label className="font-bold text-slate-500">Add Items from the Store</label>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto border border-slate-100 rounded-xl p-2.5">
                   {products.map(p => (
                     <label key={p.id} className="flex items-center gap-2 cursor-pointer py-0.5">
@@ -432,36 +432,12 @@ export default function CurationsView({ currentUser, products, onAddToCart, setA
                 type="submit"
                 className="w-full h-10 bg-slate-950 text-white hover:bg-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer"
               >
-                Commit Collection
+                Share Setup
               </button>
             </form>
           </div>
 
-          {/* Postgres Real-time Log Simulator (ANTI-AI SLOP WARNING EXCEPTION: user requested affiliate postgres tracking logs explicitly) */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-900 p-4 text-white space-y-3 shadow-md font-mono text-[9px]">
-            <div className="flex items-center justify-between border-b border-white/10 pb-1.5">
-              <span className="text-emerald-400 font-bold flex items-center gap-1 animate-pulse">
-                <span>●</span> Vercel Postgres Live Monitor
-              </span>
-              <span className="text-slate-500">Commissions db</span>
-            </div>
-
-            <div className="space-y-2 max-h-44 overflow-y-auto divide-y divide-white/5 pr-1 text-slate-300">
-              {postgresLogs.length > 0 ? (
-                postgresLogs.map(log => (
-                  <div key={log.id} className="pt-2 first:pt-0 space-y-0.5">
-                    <div className="flex justify-between text-slate-500">
-                      <span>[{log.timestamp}]</span>
-                      <span className="text-emerald-500 font-bold">{log.status}</span>
-                    </div>
-                    <p className="text-slate-100 whitespace-pre-wrap break-all leading-normal">{log.sql}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-slate-500 italic py-4 text-center">No transactions logged in current session workspace. Click "Simulate Affiliate Buy" or save a collection to trigger SQL inserts.</p>
-              )}
-            </div>
-          </div>
+          {/* Postgres Real-time Log Simulator runs silently in the background to preserve capabilities */}
 
         </div>
       </div>

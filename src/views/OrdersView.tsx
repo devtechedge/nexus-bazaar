@@ -79,12 +79,12 @@ export default function OrdersView({
       {/* ORDERS HEADER */}
       <div className="border-b border-slate-100 pb-5">
         <h2 id="orders-heading" className="text-2xl font-black text-slate-900 tracking-tight">
-          {currentUser.role === UserRole.Admin ? 'Platform-Wide Transaction Logs' : 'My Purchase Records'}
+          {currentUser.role === UserRole.Admin ? 'All Store Orders' : 'My Purchase Records'}
         </h2>
         <p className="text-xs text-slate-400 mt-1">
           {currentUser.role === UserRole.Admin 
-            ? `Oversee all checkout audits across the bazaar ledger (${visibleOrders.length} orders)` 
-            : `Track status, logistics timelines, and dynamic invoice bills (${visibleOrders.length} orders)`
+            ? `Oversee all orders across the store (${visibleOrders.length} orders)` 
+            : `Track where your items are and see your receipts (${visibleOrders.length} orders)`
           }
         </p>
       </div>
@@ -98,7 +98,7 @@ export default function OrdersView({
               {/* Card Titlebar */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-50 pb-3">
                 <div className="space-y-1">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none block">Checkout Ledger ID</span>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none block">Order Number</span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-sm font-bold text-slate-800">{order.id}</span>
                     <span className="text-xs text-slate-400">• {order.date}</span>
@@ -112,7 +112,7 @@ export default function OrdersView({
 
                 {/* Logistics status badge */}
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none hidden sm:inline">Shipment Status:</span>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none hidden sm:inline">Delivery Status:</span>
                   {order.status === 'Placed' && (
                     <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -128,7 +128,7 @@ export default function OrdersView({
                   {order.status === 'Shipped' && (
                     <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 flex items-center gap-1">
                       <Truck className="h-3 w-3" />
-                      <span>In Transit</span>
+                      <span>On its way!</span>
                     </span>
                   )}
                   {order.status === 'Delivered' && (
@@ -173,7 +173,7 @@ export default function OrdersView({
                       className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl border border-slate-200 bg-white hover:border-slate-300 text-xs font-bold text-slate-600 transition-colors"
                     >
                       <FileText className="h-3.5 w-3.5" />
-                      <span>Audit Invoice</span>
+                      <span>View Receipt</span>
                     </button>
 
                     {/* Admin Override logistics */}
@@ -197,14 +197,14 @@ export default function OrdersView({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                   <div className="flex items-center gap-1.5 text-xs font-black text-slate-800 uppercase tracking-wide">
                     <Truck className="h-4 w-4 text-teal-600 animate-pulse" />
-                    <span>Active Telemetry: Drone Delivery Tracker</span>
+                    <span>Live Delivery Tracker</span>
                   </div>
                   {order.trackingNo ? (
                     <span className="font-mono text-[10px] text-slate-500">
-                      Logistics Hub Code: <strong className="text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded-md">{order.trackingNo}</strong>
+                      Tracking Number: <strong className="text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded-md">{order.trackingNo}</strong>
                     </span>
                   ) : (
-                    <span className="text-[10px] text-slate-400 font-medium">Awaiting Dispatch Channel...</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Preparing shipment...</span>
                   )}
                 </div>
 
@@ -252,7 +252,7 @@ export default function OrdersView({
                     }`}>
                       3
                     </div>
-                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">In Airspace</span>
+                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">On the way!</span>
                   </div>
 
                   {/* Node 4: Delivered */}
@@ -262,17 +262,17 @@ export default function OrdersView({
                     }`}>
                       4
                     </div>
-                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">Port Secured</span>
+                    <span className="text-[9px] font-black tracking-wide uppercase text-slate-600">Delivered</span>
                   </div>
                 </div>
 
                 {/* Interactive Simulator Button */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200/60">
                   <p className="text-[10px] text-slate-500 font-medium">
-                    {order.status === 'Placed' && '⚙️ Drone cargo is currently being packaged at the local secure hub.'}
-                    {order.status === 'Processing' && '📦 Drone cargo loaded. Safety checks being certified by ledger nodes.'}
-                    {order.status === 'Shipped' && '🚀 Autonomous drone is in transit inside verified legal flight lanes.'}
-                    {order.status === 'Delivered' && '🏠 Drone landed, parcel dropped, and recipient biometric receipt recorded.'}
+                    {order.status === 'Placed' && '⚙️ Your items are currently being packaged at our local store.'}
+                    {order.status === 'Processing' && '📦 Your items are loaded and ready to go.'}
+                    {order.status === 'Shipped' && '🚀 Your package is on its way to you right now!'}
+                    {order.status === 'Delivered' && '🏠 Your package has arrived safely!'}
                   </p>
                   
                   {order.status !== 'Delivered' && (
@@ -290,9 +290,9 @@ export default function OrdersView({
                       }}
                       className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 text-[10px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer"
                     >
-                      {order.status === 'Placed' && 'Authorize Package'}
-                      {order.status === 'Processing' && 'Dispatch Flight Drone'}
-                      {order.status === 'Shipped' && 'Secure Drone Landing'}
+                      {order.status === 'Placed' && 'Pack Items'}
+                      {order.status === 'Processing' && 'Ship Package'}
+                      {order.status === 'Shipped' && 'Mark as Delivered'}
                     </button>
                   )}
                 </div>
@@ -305,10 +305,10 @@ export default function OrdersView({
                 <div className="rounded-xl border border-slate-100 bg-slate-50/40 p-4 space-y-3">
                   <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs uppercase">
                     <PlusCircle className="h-4 w-4 text-teal-600" />
-                    <span>Post-Purchase Order Augmentations</span>
+                    <span>Fun Order Add-Ons</span>
                   </div>
                   <p className="text-[10px] text-slate-500 leading-normal">
-                    Enhance your order with premium add-ons before final dispatch. Ledger balances are updated in real-time.
+                    Add extra items to your order before it ships!
                   </p>
                   
                   <div className="space-y-2">
@@ -373,16 +373,16 @@ export default function OrdersView({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs uppercase">
                         <RefreshCw className={`h-4 w-4 ${order.recurringInterval ? 'text-emerald-500 animate-spin' : 'text-slate-400'}`} style={{ animationDuration: '6s' }} />
-                        <span>Vaulted Recurring Scheduling</span>
+                        <span>Auto-Order / Repeat Plan</span>
                       </div>
                       {order.recurringInterval && (
                         <span className="bg-emerald-100 text-emerald-800 text-[8px] font-bold px-1.5 py-0.2 rounded uppercase">
-                          Vaulted
+                          Repeating
                         </span>
                       )}
                     </div>
                     <p className="text-[10px] text-slate-500 leading-normal">
-                      Vault this entire transaction configuration. Our ledger will securely re-draft the payment and re-ship identical items automatically.
+                      Want these items sent to you regularly? Set up a repeating order schedule here.
                     </p>
 
                     {order.recurringInterval ? (
@@ -454,7 +454,7 @@ export default function OrdersView({
                         }}
                         className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-[10px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        🔒 Vault & Schedule Dispatch
+                        🔒 Set Up Repeat Orders
                       </button>
                     )}
                   </div>
@@ -465,7 +465,7 @@ export default function OrdersView({
               {/* LOGISTICS FORM POPUP (Inline overlay for admin) */}
               {editingStatusId === order.id && (
                 <div id={`logistics-editor-${order.id}`} className="rounded-xl border border-teal-500/20 bg-teal-50/5 p-4 space-y-3">
-                  <p className="text-[10px] font-mono font-bold text-teal-700 uppercase tracking-wider">Logistics Class Adjuster Override</p>
+                  <p className="text-[10px] font-mono font-bold text-teal-700 uppercase tracking-wider">Update Delivery Status</p>
                   
                   <div className="grid gap-3 sm:grid-cols-3 text-xs">
                     <div className="space-y-1">
@@ -539,7 +539,7 @@ export default function OrdersView({
             
             {/* Modal header actions */}
             <div id="invoice-modal-controls" className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-bold">Secure Audit Receipt Ledger</span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-bold">Your Official Receipt</span>
               <div className="flex gap-2">
                 <button
                   id="invoice-print-btn"
@@ -567,7 +567,7 @@ export default function OrdersView({
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="text-lg font-black text-slate-900 tracking-tight">NexusBazaar LLC</h3>
-                  <p className="text-[10px] font-mono text-slate-400 uppercase mt-0.5">Platform Clearance Hub</p>
+                  <p className="text-[10px] font-mono text-slate-400 uppercase mt-0.5">Customer Support Hub</p>
                   <p className="text-[9px] text-slate-400 mt-1">456 Decentralized Node Avenue, Suite C</p>
                 </div>
                 <div className="text-right">
@@ -582,20 +582,20 @@ export default function OrdersView({
               {/* Recipient Coordinates */}
               <div className="grid gap-4 sm:grid-cols-2 text-xs">
                 <div>
-                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Recipient</p>
+                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Send To</p>
                   {selectedInvoice.isZeroKnowledgeEncrypted ? (
                     decryptedOrderId === selectedInvoice.id ? (
                       <div className="space-y-0.5 mt-1 animate-fade-in">
-                        <p className="font-bold text-slate-800">Alice Vance (Decrypted Recipient)</p>
+                        <p className="font-bold text-slate-800">Alice Vance</p>
                         <p className="text-slate-500">942 Quantum Way, Suite 4</p>
                         <p className="text-slate-500">San Francisco, CA 94101</p>
                         <span className="inline-block mt-2 bg-emerald-50 text-emerald-800 text-[8px] font-bold px-2 py-0.5 rounded font-mono uppercase tracking-wider border border-emerald-200">
-                          ✓ Private Shipping Address Decrypted for Delivery
+                          ✓ Delivery Address Decrypted
                         </span>
                       </div>
                     ) : (
                       <div className="space-y-2 mt-1">
-                        <p className="font-mono text-[10px] text-indigo-600 font-bold">🔒 [ENCRYPTED SHIPPING LABEL - LOCKED FOR PRIVACY]</p>
+                        <p className="font-mono text-[10px] text-indigo-600 font-bold">🔒 Shipping address locked for your privacy</p>
                         <p className="font-mono text-[8.5px] text-slate-400 leading-normal max-w-[250px] break-all bg-slate-900 text-teal-400 p-2 rounded">
                           LOCKED SHIPPING INFO: {selectedInvoice.shippingAddress.street}
                         </p>
@@ -610,7 +610,7 @@ export default function OrdersView({
                           }}
                           className="bg-slate-900 hover:bg-slate-800 text-white text-[9px] font-mono px-2.5 py-1.5 rounded-lg tracking-wide cursor-pointer transition-colors flex items-center gap-1.5 font-bold"
                         >
-                          {decrypting ? '🗝️ Opening shipping lock...' : '🗝️ Unlock Address (Delivery Driver Only)'}
+                          {decrypting ? '🗝️ Opening shipping lock...' : '🗝️ Show Shipping Address'}
                         </button>
                       </div>
                     )
@@ -623,8 +623,8 @@ export default function OrdersView({
                   )}
                 </div>
                 <div className="sm:text-right">
-                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Courier</p>
-                  <p className="font-bold text-slate-800 mt-1">Nexus Priority Express Courier</p>
+                  <p className="text-[9px] font-mono text-slate-400 uppercase tracking-widest">Shipping Method</p>
+                  <p className="font-bold text-slate-800 mt-1">Fast Shipping Courier</p>
                   <p className="text-slate-500 mt-0.5">Tracking No: {selectedInvoice.trackingNo || 'TRK-PENDING-NX'}</p>
                 </div>
               </div>
@@ -634,10 +634,10 @@ export default function OrdersView({
                 <table className="w-full border-collapse text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider font-mono">
-                      <th className="py-2.5">Item Description</th>
-                      <th className="py-2.5 text-center">Qty</th>
+                      <th className="py-2.5">Item Name</th>
+                      <th className="py-2.5 text-center">Quantity</th>
                       <th className="py-2.5 text-right">Price</th>
-                      <th className="py-2.5 text-right">Amount</th>
+                      <th className="py-2.5 text-right">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-700 font-semibold">
@@ -668,7 +668,7 @@ export default function OrdersView({
                   </div>
                 )}
                 <div className="flex justify-between w-48 text-slate-500">
-                  <span>Logistics Courier</span>
+                  <span>Shipping Cost</span>
                   <span className="font-mono font-bold text-slate-700">
                     {selectedInvoice.shipping === 0 ? 'FREE' : `$${selectedInvoice.shipping}`}
                   </span>
@@ -678,7 +678,7 @@ export default function OrdersView({
                   <span className="font-mono font-bold text-slate-700">${selectedInvoice.tax}</span>
                 </div>
                 <div className="flex justify-between w-48 pt-1.5 text-sm">
-                  <span className="font-bold text-slate-900">Total Sum</span>
+                  <span className="font-bold text-slate-900">Total Amount</span>
                   <span className="font-mono font-black text-teal-600 text-base">${selectedInvoice.total}</span>
                 </div>
               </div>
@@ -686,25 +686,25 @@ export default function OrdersView({
               {/* BATCH 3 INVOICE AUDIT EXTENSIONS */}
               {(selectedInvoice.warehouseHoldDays || selectedInvoice.fractionalInvoices || selectedInvoice.splitDeliveryAddresses || selectedInvoice.recurringInterval) && (
                 <div className="border-t border-slate-100 pt-4.5 space-y-3.5 text-xs">
-                  <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Special Logistics & Ledger Allocations</span>
+                  <span className="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Special Shipping Requests</span>
                   
                   {selectedInvoice.warehouseHoldDays && (
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-600 font-mono">
-                      <span className="font-bold text-slate-800">📦 Micro-Fulfillment Hold Registry Activation:</span>
-                      <p className="mt-1">Items are being held in regional cold staging for <strong className="text-teal-600">{selectedInvoice.warehouseHoldDays} days</strong> to merge with ongoing pipelines. Restricting individual shipping boxes saves 14.2kg CO₂.</p>
+                      <span className="font-bold text-slate-800">📦 Combined Eco-Shipping Hold:</span>
+                      <p className="mt-1">We are holding your items briefly to ship them together and reduce carbon emissions! (Holding for <strong className="text-teal-600">{selectedInvoice.warehouseHoldDays} days</strong>).</p>
                     </div>
                   )}
 
                   {selectedInvoice.recurringInterval && (
                     <div className="bg-emerald-50/40 border border-emerald-150 rounded-xl p-3 text-[10px] text-emerald-800 font-mono">
-                      <span className="font-bold text-emerald-950">🔁 Vaulted Recurring Sequence Plan:</span>
-                      <p className="mt-1">Vaulted credit coordinates authorized. Automatic draft and logistics dispatch recur on a strict <strong className="text-emerald-700">{selectedInvoice.recurringInterval}</strong> rotation.</p>
+                      <span className="font-bold text-emerald-950">🔁 Repeat Shipping Plan:</span>
+                      <p className="mt-1">Your items will ship automatically on your chosen repeat schedule (<strong className="text-emerald-700">{selectedInvoice.recurringInterval}</strong> rotation).</p>
                     </div>
                   )}
 
                   {selectedInvoice.fractionalInvoices && (
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-600 font-mono">
-                      <span className="font-bold text-slate-800">📊 Corporate Fractional Cost-Center Distribution:</span>
+                      <span className="font-bold text-slate-800">📊 Shared Bill Distribution:</span>
                       <div className="grid grid-cols-3 gap-2 mt-2">
                         {Object.entries(selectedInvoice.fractionalInvoices).map(([dept, share]) => (
                           <div key={dept} className="bg-white p-2 rounded border border-slate-150">
@@ -721,7 +721,7 @@ export default function OrdersView({
 
                   {selectedInvoice.splitDeliveryAddresses && (
                     <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 text-[10px] text-slate-600 font-mono">
-                      <span className="font-bold text-slate-800">📍 Multi-Address Split Rerouting Map:</span>
+                      <span className="font-bold text-slate-800">📍 Multi-Address Delivery Map:</span>
                       <div className="space-y-2 mt-2">
                         {selectedInvoice.items.map((item) => {
                           // Look up by id or item name
@@ -741,8 +741,8 @@ export default function OrdersView({
 
               {/* Terms disclaimer */}
               <div className="border-t border-slate-100 pt-4 text-center">
-                <p className="text-[9px] text-slate-400 uppercase tracking-widest font-mono">✓ Transaction Cleared & Audited</p>
-                <p className="text-[8px] text-slate-400 mt-1">Thank you for transacting on NexusBazaar LLC. This document represents a physical sandbox audit log receipt.</p>
+                <p className="text-[9px] text-slate-400 uppercase tracking-widest font-mono">✓ Order Paid & Confirmed</p>
+                <p className="text-[8px] text-slate-400 mt-1">Thank you for shopping at NexusBazaar! This is your official purchase receipt.</p>
               </div>
 
             </div>
@@ -754,7 +754,7 @@ export default function OrdersView({
                 onClick={() => setSelectedInvoice(null)}
                 className="rounded-xl bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 text-xs font-bold"
               >
-                Finished Audit
+                Done
               </button>
             </div>
 

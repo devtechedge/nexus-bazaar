@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, Award, Coins, Flame, ShieldCheck, HelpCircle, Send, 
   Hourglass, Clock, ExternalLink, Copy, Plus, Check, ChevronRight,
-  Vote, Lock, Gift, CheckSquare, Compass, MessageSquare, Star, ArrowRight, Info
+  Vote, Lock, Gift, CheckSquare, Compass, MessageSquare, Star, ArrowRight, Info, Users
 } from 'lucide-react';
 import { Product, User } from '../lib/db';
 
@@ -534,13 +534,13 @@ export default function LoyaltyView({ currentUser, products, onAddToCart, setAct
           <div className="space-y-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-3 py-1 text-[10px] font-mono font-bold text-teal-400 border border-teal-500/20 uppercase tracking-widest">
               <Award className="h-3.5 w-3.5" />
-              Nexus Gamification & Loyalty Engine
+              My Rewards & Fun Stuff
             </span>
             <h2 className="text-3xl font-black tracking-tight leading-none">
-              Client Rewards & <span className="text-teal-400">Retention Arena</span>
+              Your Points: <span className="text-teal-400">1,250 ⭐</span>
             </h2>
             <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-              Unlock cumulative tiers, participate in governance votes, secure early hardware reserves, complete gear quests, and earn real store-credit payouts via verified contributions.
+              Earn store cash by doing fun activities! Write a helpful review (+50 points) or keep a 3-month auto-order streak (+200 points) to unlock exclusive rewards and benefits.
             </p>
           </div>
 
@@ -550,11 +550,11 @@ export default function LoyaltyView({ currentUser, products, onAddToCart, setAct
               <Coins className="h-6 w-6 animate-pulse" />
             </div>
             <div>
-              <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Store Credits</p>
+              <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">Available Store Cash</p>
               <p className="text-3xl font-black text-white font-mono leading-none mt-1">
                 ${storeCredits.toFixed(2)}
               </p>
-              <span className="text-[9px] font-mono text-emerald-400 mt-1 block">✓ 100% Secure Ledger</span>
+              <span className="text-[9px] font-mono text-emerald-400 mt-1 block">✓ Ready to Spend!</span>
             </div>
           </div>
         </div>

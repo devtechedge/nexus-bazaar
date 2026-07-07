@@ -124,8 +124,8 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
 
   // Simulated co-designers (Feature #20 requirement for real-time multiplayer feel)
   const [coDesigners, setCoDesigners] = React.useState<CoDesigner[]>([
-    { name: 'Emma (Acoustic designer)', color: 'bg-emerald-500 text-slate-950', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&auto=format&fit=crop&q=60', x: 25, y: 30, action: 'Arranging headphones' },
-    { name: 'Lucas (Workspace Architect)', color: 'bg-amber-500 text-slate-950', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&auto=format&fit=crop&q=60', x: 75, y: 60, action: 'Repositioning Lumina Light' }
+    { name: 'Emma (Interior Stylist)', color: 'bg-emerald-500 text-slate-950', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&auto=format&fit=crop&q=60', x: 25, y: 30, action: 'Looking at headphones' },
+    { name: 'Lucas (Desk Setup Guide)', color: 'bg-amber-500 text-slate-950', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&auto=format&fit=crop&q=60', x: 75, y: 60, action: 'Moving Lumina Light' }
   ]);
 
   const [toastMessage, setToastMessage] = React.useState<string | null>(null);
@@ -139,11 +139,11 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
         const deltaY = (Math.random() - 0.5) * 8;
         
         const actions = [
-          'Aligning grid units',
-          'Analyzing structural matching',
-          'Testing light diffusion angles',
-          'Evaluating workspace shadows',
-          'Staging alternative layouts'
+          'Trying options',
+          'Looking around',
+          'Adjusting lighting',
+          'Comparing setups',
+          'Thinking of options'
         ];
 
         return {
@@ -230,11 +230,11 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
   // Aesthetic harmony matching engine (Feature #20 core logic)
   const harmonyReport = React.useMemo(() => {
     if (canvasItems.length === 0) {
-      return { score: 0, grade: 'Empty Board', desc: 'No components placed. Add accessories or desk modules to start staging.', color: 'text-slate-400' };
+      return { score: 0, grade: 'Empty Board', desc: 'Add items to start styling your setup.', color: 'text-slate-400' };
     }
 
     if (canvasItems.length === 1) {
-      return { score: 45, grade: 'Staging Phase', desc: 'Single-unit node active. Add adjacent brands or modules to unlock harmonic matching.', color: 'text-indigo-400' };
+      return { score: 45, grade: 'Styling Started', desc: 'One item placed. Add more items to see how well they match!', color: 'text-indigo-400' };
     }
 
     // Calculate alignment across dimensions
@@ -266,17 +266,17 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
 
     const score = Math.min(100, Math.max(30, baseScore));
 
-    let grade = 'Nominal Synergy';
-    let desc = 'The combination is structurally viable but shows color-clash potentials.';
+    let grade = 'Good Start';
+    let desc = 'Your items look good together, but try adding different types of gear for a better match.';
     let color = 'text-amber-400';
 
     if (score >= 90) {
-      grade = 'Masterpiece Workspace';
-      desc = 'Exceptional ergonomic and material cohesion! Absolute material matching and frequency alignment secured.';
+      grade = 'Perfect Match!';
+      desc = 'Amazing combination! These items complement each other perfectly.';
       color = 'text-emerald-400 animate-pulse';
     } else if (score >= 75) {
-      grade = 'Balanced Executive High-Fit';
-      desc = 'Premium geometric balance. Active lighting nodes diffuse perfectly next to workspace hides.';
+      grade = 'Great Combination!';
+      desc = 'These items look wonderful side-by-side.';
       color = 'text-teal-400';
     }
 
@@ -291,10 +291,10 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-mono font-bold text-teal-700">
             <Compass className="h-3.5 w-3.5" />
-            <span>Multiplayer Workspace Stager</span>
+            <span>Style & Layout Board</span>
           </div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Spatial Collaborative Styling Room</h2>
-          <p className="text-xs text-slate-400">Design outfits or arrange workspace gear in real time. Hover or select items on the canvas board to edit.</p>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">Styling Board</h2>
+          <p className="text-xs text-slate-400">Place items on the board to see how they look together. Move, resize, or rotate them to design your perfect setup!</p>
         </div>
 
         <div className="flex gap-2">
@@ -335,12 +335,12 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
         <div className="lg:col-span-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-4 h-[550px] flex flex-col justify-between overflow-hidden">
           <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
             <h3 className="font-extrabold text-slate-900 text-xs uppercase tracking-wider flex items-center justify-between">
-              <span>Catalog Gear Drawer</span>
+              <span>Available Items</span>
               <span className="text-[10px] text-slate-400 font-mono font-normal">({availableProducts.length} Loaded)</span>
             </h3>
             
             <p className="text-[11px] text-slate-400 leading-normal">
-              Select premium equipment cards to drop onto the staging canvas for spatial assembly.
+              Choose items from the list below to add them to your styling board.
             </p>
 
             {/* List */}
@@ -442,8 +442,8 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
             {canvasItems.length === 0 && (
               <div className="text-center space-y-2 text-slate-600 z-10 pointer-events-none">
                 <Layers className="h-8 w-8 text-slate-700 mx-auto animate-pulse" />
-                <p className="text-xs uppercase font-bold font-mono tracking-wider">Design Grid Standby</p>
-                <p className="text-[10px] text-slate-500 max-w-xs leading-normal">Select adjacent items from the Gear Drawer to stage and test coordinate designs.</p>
+                <p className="text-xs uppercase font-bold font-mono tracking-wider">Styling Board is Empty</p>
+                <p className="text-[10px] text-slate-500 max-w-xs leading-normal">Add items from the list on the left to start building your look!</p>
               </div>
             )}
           </div>
@@ -454,8 +454,8 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
             {/* Aesthetics Harmony Analysis Panel (Feature #20 core math logic) */}
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3 shadow-xs">
               <div className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
-                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Acoustic & Light Affinity</span>
-                <span className={`text-[11px] font-mono font-black ${harmonyReport.color}`}>{harmonyReport.score}% Harmony Score</span>
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider">Setup Match Rating</span>
+                <span className={`text-[11px] font-mono font-black ${harmonyReport.color}`}>{harmonyReport.score}% Match Score</span>
               </div>
 
               <div className="space-y-1">
@@ -522,7 +522,7 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
 
                       <div className="flex flex-col items-center justify-center">
                         <span className="text-xs font-bold text-teal-600 font-mono">${item.product.price}</span>
-                        <span className="text-[8px] text-slate-400 font-mono">Value</span>
+                        <span className="text-[8px] text-slate-400 font-mono">Price</span>
                       </div>
                     </div>
 
@@ -541,8 +541,8 @@ export default function StylingRoomView({ currentUser, onAddToCart, products, se
               })() : (
                 <div className="flex-1 flex flex-col items-center justify-center text-center text-slate-400 py-6">
                   <Move className="h-5 w-5 text-slate-300 mb-1" />
-                  <p className="text-[10px] font-mono uppercase font-bold text-slate-500">Item Customizer Panel</p>
-                  <p className="text-[9px] text-slate-400">Click on any item on the board to change its size, rotate it, or move it around!</p>
+                  <p className="text-[10px] font-mono uppercase font-bold text-slate-500">Customize Your Item</p>
+                  <p className="text-[9px] text-slate-400">Click on any item on the board to rotate, resize, or move it!</p>
                 </div>
               )}
             </div>

@@ -820,32 +820,32 @@ export default function B2BWholesaleView({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="bg-teal-500/15 text-teal-400 font-bold font-mono text-[10px] uppercase px-3 py-1 rounded-full border border-teal-500/30">
-                Enterprise Suite v4.5
+                Wholesale Hub
               </span>
               <span className="bg-slate-800 text-slate-300 text-[10px] font-mono px-2 py-1 rounded">
-                Authorized: {currentUser.name}
+                Welcome, {currentUser.name}
               </span>
             </div>
             <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
-              <Building2 className="h-8 w-8 text-teal-400" /> B2B Wholesale & Enterprise Hub
+              <Building2 className="h-8 w-8 text-teal-400" /> Wholesale & Bulk Orders
             </h1>
             <p className="text-slate-400 text-xs max-w-2xl leading-relaxed">
-              Consolidate high-volume material RFQs, dynamic multi-tier inventory procurement schemes, Net-30 internal credit balance frameworks, multi-seat approvals, and compliant freight configurations.
+              Order in bulk to get large discounts. Request custom prices, manage your team's budget, pay with Net-30 business credit, and set up recurring deliveries.
             </p>
           </div>
           <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 w-full md:w-auto font-mono text-xs flex flex-col gap-1.5 min-w-[260px]">
             <div className="flex justify-between">
               <span className="text-slate-400">Tax Status:</span>
               <span className={taxExemptStatus === 'VERIFIED' ? 'text-emerald-400 font-bold' : 'text-slate-200'}>
-                {taxExemptStatus === 'VERIFIED' ? '✓ TAX EXEMPT' : '8.8% STATE TAX'}
+                {taxExemptStatus === 'VERIFIED' ? '✓ Tax Exempt' : '8.8% State Tax'}
               </span>
             </div>
             <div className="flex justify-between border-t border-slate-700/50 pt-1.5 mt-1">
-              <span className="text-slate-400">Net-30 Limit:</span>
+              <span className="text-slate-400">Business Credit Limit:</span>
               <span className="text-white font-bold">${creditLimit.toLocaleString()}</span>
             </div>
             <div className="flex justify-between pt-0.5">
-              <span className="text-slate-400">Available Credit:</span>
+              <span className="text-slate-400">Available Business Credit:</span>
               <span className="text-teal-400 font-bold">${(creditLimit - usedCredit).toLocaleString()}</span>
             </div>
           </div>
@@ -855,12 +855,12 @@ export default function B2BWholesaleView({
       {/* 2. SUB NAVIGATION TABS */}
       <div className="flex flex-wrap gap-2 bg-slate-150 p-1.5 rounded-xl border border-slate-200 max-w-max">
         {[
-          { id: 'pricing', label: '📊 Volume Calculator', icon: Layers },
-          { id: 'rfq', label: '📢 RFQ Competitive Hub', icon: FileText },
-          { id: 'finance', label: '💳 Corporate Ledgers (Net-30)', icon: CreditCard },
-          { id: 'logistics', label: '🚚 Custom Pallet Configurator', icon: Truck },
-          { id: 'compliance', label: '🛡️ Compliance & Seats', icon: CheckSquare },
-          { id: 'api', label: '⚡ SAP ERP Live Feeds', icon: Terminal },
+          { id: 'pricing', label: '📊 Bulk Price Calculator', icon: Layers },
+          { id: 'rfq', label: '📢 Custom Price Requests', icon: FileText },
+          { id: 'finance', label: '💳 Business Credit & Pay Later', icon: CreditCard },
+          { id: 'logistics', label: '🚚 Shipping & Delivery Calculator', icon: Truck },
+          { id: 'compliance', label: '🛡️ Team Budget & Tax Settings', icon: CheckSquare },
+          { id: 'api', label: '⚡ Developer API Feeds', icon: Terminal },
         ].map(tab => {
           const Icon = tab.icon;
           return (
@@ -891,10 +891,10 @@ export default function B2BWholesaleView({
                 <div>
                   <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                     <Layers className="h-5 w-5 text-indigo-500" />
-                    82. Dynamic Volume-Tier Pricing Grids
+                    Bulk Discounts & Prices
                   </h2>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    Select a premium industrial core material to recalculate unit metrics instantly as the procurement sliders scale.
+                    Select any item below, then adjust the slider to see how your price drops as you buy more units.
                   </p>
                 </div>
 
@@ -927,7 +927,7 @@ export default function B2BWholesaleView({
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-5">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
-                      <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Configure Volumes</span>
+                      <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Adjust Quantity</span>
                       <h3 className="text-base font-bold text-slate-800 mt-0.5">{selectedB2bProduct.name}</h3>
                     </div>
                     <div className="flex items-center gap-2">
@@ -954,10 +954,10 @@ export default function B2BWholesaleView({
                       className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                     />
                     <div className="flex justify-between font-mono text-[9px] text-slate-400">
-                      <span>1 Unit (Sample)</span>
-                      <span>100 (Tier 1)</span>
-                      <span>500 (Tier 2)</span>
-                      <span>2,000+ (Tier 3 - Max Discount)</span>
+                      <span>1 Unit</span>
+                      <span>100 Units</span>
+                      <span>500 Units</span>
+                      <span>2,000+ Units</span>
                     </div>
                   </div>
 
@@ -1027,19 +1027,19 @@ export default function B2BWholesaleView({
                     <div>
                       <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-1.5">
                         <FileCheck className="h-4.5 w-4.5 text-teal-600" />
-                        85. Automated Tax-Exemption Verification Certificate Portal
+                        Tax Exemption Settings
                       </h3>
                       <p className="text-[11px] text-slate-500 mt-1">
-                        Register state tax certificates to automatically bypass standard 8.8% state sales taxes.
+                        Upload your tax exemption certificate to remove the standard 8.8% state sales tax from your orders.
                       </p>
                     </div>
                     {taxExemptStatus === 'VERIFIED' ? (
                       <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded border border-emerald-200 font-mono uppercase">
-                        ✓ Registered Exemption (0% Tax)
+                        ✓ Tax Exempt (0% Tax)
                       </span>
                     ) : (
                       <span className="bg-rose-50 text-rose-700 text-[10px] font-bold px-3 py-1 rounded border border-rose-200 font-mono uppercase">
-                        Requires Verification (8.8% Tax)
+                        Standard Tax Applies (8.8%)
                       </span>
                     )}
                   </div>
@@ -1110,28 +1110,28 @@ export default function B2BWholesaleView({
             <div className="lg:col-span-4 space-y-6">
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
                 <div className="border-b border-slate-100 pb-3">
-                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Checkout Stage</span>
-                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Commercial Purchase Invoice</h3>
+                  <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">Checkout Summary</span>
+                  <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider">Order Summary</h3>
                 </div>
 
                 <div className="space-y-3 font-mono text-xs">
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Commodity Base:</span>
+                    <span className="text-slate-500">Items Total:</span>
                     <span className="text-slate-800">${(selectedB2bProduct.basePrice * b2bOrderQuantity).toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Volume Discount:</span>
+                    <span className="text-slate-500">Bulk Discount:</span>
                     <span className="text-emerald-600 font-bold">
                       -${((selectedB2bProduct.basePrice - activePriceTier.unitPrice) * b2bOrderQuantity).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Heavy Freight Delivery:</span>
+                    <span className="text-slate-500">Freight Shipping:</span>
                     <span className="text-slate-800">${palletMetrics.baseFreightCost}</span>
                   </div>
                   <div className="flex justify-between items-baseline border-b border-slate-100 pb-3">
                     <span className="text-slate-500 flex items-center gap-1">
-                      Estimated State Tax:
+                      Estimated Tax:
                       {taxExemptStatus === 'VERIFIED' && (
                         <span className="bg-emerald-100 text-emerald-800 text-[8px] font-black px-1.5 py-0.2 rounded font-mono">EXEMPT</span>
                       )}
@@ -1142,14 +1142,14 @@ export default function B2BWholesaleView({
                   </div>
 
                   <div className="flex justify-between pt-2">
-                    <span className="font-bold text-slate-800">Total Purchase:</span>
+                    <span className="font-bold text-slate-800">Total Price:</span>
                     <span className="text-base font-black text-slate-900">${b2bOrderTotal.toLocaleString()}</span>
                   </div>
                 </div>
 
                 {/* 84. SELECT PAYMENT MECHANISM TOGGLE */}
                 <div className="border-t border-slate-100 pt-4 space-y-3">
-                  <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider block">Payment Window Framework</span>
+                  <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-wider block">Choose How to Pay</span>
                   
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -1161,8 +1161,8 @@ export default function B2BWholesaleView({
                           : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      <span>Split Cards Split</span>
-                      <span className="text-[8px] text-slate-400 font-normal">Instant Authorization</span>
+                      <span>Split Card Payment</span>
+                      <span className="text-[8px] text-slate-400 font-normal">Pay with Multiple Cards</span>
                     </button>
                     
                     <button
@@ -1174,8 +1174,8 @@ export default function B2BWholesaleView({
                           : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      <span>Net-30 Invoicing</span>
-                      <span className="text-[8px] text-slate-400 font-normal">30-Day Pay Ledger</span>
+                      <span>Net-30 Business Credit</span>
+                      <span className="text-[8px] text-slate-400 font-normal">Pay within 30 days</span>
                     </button>
                   </div>
                 </div>
@@ -1185,10 +1185,10 @@ export default function B2BWholesaleView({
                   <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-4">
                     <div className="flex justify-between items-center border-b border-slate-200/50 pb-2">
                       <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">
-                        90. Corporate Multi-Card Gateway
+                        Split Your Payment
                       </span>
                       <span className="text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700 px-1.5 py-0.2 rounded border border-indigo-200">
-                        SPLIT ACTIVE
+                        SPLITTING ACTIVE
                       </span>
                     </div>
 
@@ -1226,7 +1226,7 @@ export default function B2BWholesaleView({
                     <form onSubmit={handleAddSplitCard} className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
                       <input
                         type="text"
-                        placeholder="Expense Card Nickname"
+                        placeholder="Card Name"
                         value={newSplitCardName}
                         onChange={(e) => setNewSplitCardName(e.target.value)}
                         className="bg-white border border-slate-350 rounded px-2 py-1 focus:outline-none"
@@ -1235,7 +1235,7 @@ export default function B2BWholesaleView({
                         type="submit"
                         className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded py-1 cursor-pointer transition-colors"
                       >
-                        + Add Card Segment
+                        + Add Another Card
                       </button>
                     </form>
 
@@ -1293,10 +1293,10 @@ export default function B2BWholesaleView({
                 <div>
                   <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                     <FileText className="h-5 w-5 text-indigo-500" />
-                    81. Request-for-Quote (RFQ) Hub
+                    Custom Price Requests
                   </h2>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    Procurement managers post structured material quotas. Verified suppliers bid competitively.
+                    Post what you need and what quantity you want. Suppliers will send you their best custom offers.
                   </p>
                 </div>
 
@@ -1309,7 +1309,7 @@ export default function B2BWholesaleView({
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
-                    Procurement Officer View
+                    Buyer View
                   </button>
                   <button
                     onClick={() => setB2bRole('supplier')}
@@ -1319,7 +1319,7 @@ export default function B2BWholesaleView({
                         : 'text-slate-500 hover:text-slate-800'
                     }`}
                   >
-                    Supplier Bidder View
+                    Seller View
                   </button>
                 </div>
               </div>
@@ -1330,11 +1330,11 @@ export default function B2BWholesaleView({
                   
                   {b2bRole === 'procurement_officer' ? (
                     <form onSubmit={handleCreateRfq} className="space-y-4">
-                      <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Procurement Board</span>
-                      <h3 className="text-xs font-bold text-slate-800">Draft New Structured RFQ</h3>
+                      <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Buyer Panel</span>
+                      <h3 className="text-xs font-bold text-slate-800">Create a Custom Price Request</h3>
                       
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">RFQ Title (Material requirement)</label>
+                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">What do you need?</label>
                         <input
                           type="text"
                           placeholder="e.g. Biodegradable Graphene Matrix"
@@ -1358,7 +1358,7 @@ export default function B2BWholesaleView({
                           </select>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Target Quantity</label>
+                          <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Quantity</label>
                           <input
                             type="number"
                             value={newRfqQty}
@@ -1369,9 +1369,9 @@ export default function B2BWholesaleView({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Technical Specifications</label>
+                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Details & Requirements</label>
                         <textarea
-                          placeholder="Specify dimension, certificates, compliance guidelines, structural thresholds, raw purity ratings..."
+                          placeholder="Specify dimensions, quality grades, certified standards, and any special delivery instructions..."
                           value={newRfqSpecs}
                           onChange={(e) => setNewRfqSpecs(e.target.value)}
                           rows={4}
@@ -1380,7 +1380,7 @@ export default function B2BWholesaleView({
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Close/Target Date</label>
+                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Target Date</label>
                         <input
                           type="date"
                           value={newRfqDate}
@@ -1390,7 +1390,7 @@ export default function B2BWholesaleView({
                       </div>
 
                       <div className="space-y-1.5 pt-2">
-                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Supplier Compliance Triggers</label>
+                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Requirements & Certifications</label>
                         <div className="space-y-1.5 text-[11px] text-slate-600 font-mono">
                           <label className="flex items-center gap-2">
                             <input
@@ -1402,7 +1402,7 @@ export default function B2BWholesaleView({
                               }}
                               className="accent-indigo-600"
                             />
-                            <span>ISO-9001 Quality Certified</span>
+                            <span>ISO-9001 Certified</span>
                           </label>
                           <label className="flex items-center gap-2">
                             <input
@@ -1426,7 +1426,7 @@ export default function B2BWholesaleView({
                               }}
                               className="accent-indigo-600"
                             />
-                            <span>ESG Carbon Neutral Stamp</span>
+                            <span>Carbon Neutral certified</span>
                           </label>
                         </div>
                       </div>
@@ -1435,42 +1435,42 @@ export default function B2BWholesaleView({
                         type="submit"
                         className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-xs cursor-pointer transition-colors"
                       >
-                        Publish RFQ to Hub
+                        Publish Price Request
                       </button>
                     </form>
                   ) : (
                     <div className="space-y-4">
-                      <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Supplier Panel</span>
-                      <h3 className="text-xs font-bold text-slate-800">Place Competitive Quote</h3>
+                      <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Seller Panel</span>
+                      <h3 className="text-xs font-bold text-slate-800">Send a Custom Price Offer</h3>
                       
                       {selectedRfqForBid ? (
                         <form onSubmit={handlePlaceBid} className="space-y-4">
                           <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-1">
-                            <span className="text-[8.5px] font-mono text-slate-400 block uppercase">Selected Target RFQ:</span>
+                            <span className="text-[8.5px] font-mono text-slate-400 block uppercase">Selected Price Request:</span>
                             <p className="font-bold text-xs text-slate-800 truncate">{selectedRfqForBid.title}</p>
-                            <p className="text-[10px] text-slate-400 font-mono">Vol Requirement: {selectedRfqForBid.quantity} units</p>
+                            <p className="text-[10px] text-slate-400 font-mono">Quantity Requested: {selectedRfqForBid.quantity} units</p>
                           </div>
 
                           {complianceScore < 100 && (
                             <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl space-y-1.5 text-[10px] text-rose-700">
                               <p className="font-extrabold flex items-center gap-1">
-                                <AlertTriangle className="h-3.5 w-3.5 text-rose-600" /> Compliance Restrictive Blocks Active
+                                <AlertTriangle className="h-3.5 w-3.5 text-rose-600" /> Required Certifications Missing
                               </p>
                               <p>
-                                Your firm is currently compliant in {complianceScore}% of criteria. This RFQ requires ISO and Insurance filings.
+                                Your business has {complianceScore}% of the certifications required for this request.
                               </p>
                               <button
                                 type="button"
                                 onClick={() => setActiveTab('compliance')}
                                 className="text-rose-900 font-bold underline"
                               >
-                                Resolve Compliance Gaps Now
+                                Update Business Profile
                               </button>
                             </div>
                           )}
 
                           <div className="space-y-1">
-                            <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Your Quote Rate per Unit ($)</label>
+                            <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Price per Unit ($)</label>
                             <div className="flex items-center gap-2">
                               <span className="text-slate-400 font-mono">$</span>
                               <input
@@ -1484,7 +1484,7 @@ export default function B2BWholesaleView({
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Estimated Delivery Days</label>
+                            <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Delivery Time (Days)</label>
                             <input
                               type="number"
                               value={supplierBidDays}
@@ -1494,7 +1494,7 @@ export default function B2BWholesaleView({
                           </div>
 
                           <div className="bg-slate-900 text-teal-400 p-3 rounded-lg font-mono text-[10px] flex justify-between">
-                            <span>TOTAL PROJECT VALUE:</span>
+                            <span>TOTAL OFFER PRICE:</span>
                             <strong>${(supplierBidPrice * selectedRfqForBid.quantity).toLocaleString()}</strong>
                           </div>
 
@@ -1513,16 +1513,16 @@ export default function B2BWholesaleView({
                                 complianceScore < 100 ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 cursor-pointer'
                               }`}
                             >
-                              Submit Quote
+                              Submit Offer
                             </button>
                           </div>
                         </form>
                       ) : (
                         <div className="text-center py-10 space-y-2 text-slate-400 bg-white border border-dashed border-slate-200 rounded-xl">
                           <span className="text-2xl block">📢</span>
-                          <p className="text-[11px] font-bold">No RFQ Selected</p>
+                          <p className="text-[11px] font-bold">No Request Selected</p>
                           <p className="text-[10px] text-slate-400 leading-normal max-w-xs mx-auto">
-                            Click on any open RFQ in the central feed and select "Formulate Supplier Bid" to lock in competitive pricing.
+                            Click on any open price request in the feed and click "Send Offer" to offer your price.
                           </p>
                         </div>
                       )}
@@ -1533,7 +1533,7 @@ export default function B2BWholesaleView({
 
                 {/* RFQ Listings Column */}
                 <div className="lg:col-span-8 space-y-4">
-                  <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider font-mono">Active Procurement Quotation Ledger</h3>
+                  <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider font-mono">Open Price Requests</h3>
                   
                   {rfqs.map(rfq => (
                     <div 
@@ -1552,17 +1552,17 @@ export default function B2BWholesaleView({
                         <div className="flex items-center gap-1.5">
                           {rfq.status === 'OPEN' && (
                             <span className="bg-blue-50 text-blue-700 font-mono text-[9px] font-bold px-2 py-0.5 rounded border border-blue-200 uppercase">
-                              Open for Bids
+                              Open for Offers
                             </span>
                           )}
                           {rfq.status === 'BIDS_RECEIVED' && (
                             <span className="bg-amber-50 text-amber-700 font-mono text-[9px] font-bold px-2 py-0.5 rounded border border-amber-200 uppercase">
-                              {rfq.bids.length} Bids Logged
+                              {rfq.bids.length} Offers Received
                             </span>
                           )}
                           {rfq.status === 'ACCEPTED' && (
                             <span className="bg-emerald-50 text-emerald-700 font-mono text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-200 uppercase">
-                              ✓ Contract Completed
+                              ✓ Deal Completed
                             </span>
                           )}
                           {b2bRole === 'supplier' && rfq.status !== 'ACCEPTED' && (
@@ -1571,7 +1571,7 @@ export default function B2BWholesaleView({
                               onClick={() => setSelectedRfqForBid(rfq)}
                               className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2.5 py-1 rounded cursor-pointer transition-colors"
                             >
-                              Formulate Supplier Bid
+                              Send Offer
                             </button>
                           )}
                         </div>
@@ -1589,7 +1589,7 @@ export default function B2BWholesaleView({
                           </div>
                         </div>
                         <div className="border-t border-slate-200/50 pt-2 text-[11px] text-slate-600">
-                          <strong className="text-slate-500 block uppercase text-[9px] font-mono">Specs/Requirements:</strong>
+                          <strong className="text-slate-500 block uppercase text-[9px] font-mono">Requirements:</strong>
                           <p className="mt-0.5 font-medium leading-relaxed">{rfq.specs}</p>
                         </div>
                         
@@ -1605,7 +1605,7 @@ export default function B2BWholesaleView({
                       {/* RFQ Bids Grid */}
                       {rfq.bids.length > 0 && (
                         <div className="border-t border-slate-100 pt-4 space-y-2.5">
-                          <h4 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Submitted Supplier Proposals</h4>
+                          <h4 className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Supplier Offers</h4>
                           <div className="grid gap-2 text-xs font-mono">
                             {rfq.bids.map(bid => (
                               <div 
@@ -1626,7 +1626,7 @@ export default function B2BWholesaleView({
 
                                 <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                                   <div className="sm:text-right">
-                                    <span className="text-[9px] text-slate-400 block uppercase">Quote Total</span>
+                                    <span className="text-[9px] text-slate-400 block uppercase">Offer Total</span>
                                     <strong className="text-slate-800 text-sm font-black">${bid.totalQuote.toLocaleString()}</strong>
                                     <span className="text-[10px] text-slate-400 block mt-0.2">${bid.unitPrice}/unit</span>
                                   </div>
@@ -1637,13 +1637,13 @@ export default function B2BWholesaleView({
                                       onClick={() => handleAcceptBid(rfq.id, bid.id)}
                                       className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-3 py-1.5 rounded cursor-pointer transition-colors"
                                     >
-                                      ✓ Accept & Load Cart
+                                      ✓ Accept & Add to Cart
                                     </button>
                                   )}
 
                                   {bid.isAccepted && (
                                     <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded border border-emerald-200">
-                                      ✓ Contract Awarded
+                                      ✓ Accepted Offer
                                     </span>
                                   )}
                                 </div>
@@ -1675,17 +1675,17 @@ export default function B2BWholesaleView({
                 <div>
                   <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                     <CreditCard className="h-5 w-5 text-indigo-500" />
-                    84. Net-30 Invoicing Credit Frameworks
+                    Business Credit (Net-30)
                   </h2>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    qualified business accounts order materials on 30-day payment margins with internal credit limits.
+                    Approved businesses can purchase products now and pay within 30 days.
                   </p>
                 </div>
 
                 {/* Progress bar of limit */}
                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3.5">
                   <div className="flex justify-between items-baseline font-mono text-xs">
-                    <span className="text-slate-500 uppercase font-bold">Credit Limit Headroom Utilization</span>
+                    <span className="text-slate-500 uppercase font-bold">Credit Line Limit & Utilization</span>
                     <strong className="text-slate-800">
                       ${usedCredit.toLocaleString()} Used of ${creditLimit.toLocaleString()} Total
                     </strong>
@@ -1699,20 +1699,20 @@ export default function B2BWholesaleView({
                     />
                   </div>
                   <div className="flex justify-between font-mono text-[9px] text-slate-400">
-                    <span>Available Credit: ${(creditLimit - usedCredit).toLocaleString()}</span>
-                    <span>Threat Rating: Stable (0.01% Defaults)</span>
+                    <span>Available Business Credit: ${(creditLimit - usedCredit).toLocaleString()}</span>
+                    <span>Status: Excellent</span>
                   </div>
                 </div>
 
                 {/* Ledger invoice list */}
                 <div className="space-y-4">
-                  <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider font-mono">Net-30 Invoice Ledger</h3>
+                  <h3 className="text-xs font-black uppercase text-slate-500 tracking-wider font-mono">Your Credit Invoices</h3>
                   
                   <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
                     <table className="w-full text-left font-mono text-xs">
                       <thead>
                         <tr className="bg-slate-150 border-b border-slate-200 text-[10px] text-slate-500 font-bold uppercase">
-                          <th className="px-4 py-2.5">Invoice ID / PO</th>
+                          <th className="px-4 py-2.5">Invoice ID</th>
                           <th className="px-4 py-2.5">Issued</th>
                           <th className="px-4 py-2.5">Due Date</th>
                           <th className="px-4 py-2.5">Balance</th>
@@ -1774,10 +1774,10 @@ export default function B2BWholesaleView({
                 <div>
                   <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-1.5">
                     <Users className="h-4.5 w-4.5 text-indigo-500" />
-                    83. Corporate Multi-Seat Accounts
+                    Team Budget & Access
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    Manage individual purchasing limits and hierarchical approvals.
+                    Invite employees, assign team budgets, and set purchase approval limits.
                   </p>
                 </div>
 
@@ -1786,8 +1786,8 @@ export default function B2BWholesaleView({
                   {/* Approval threshold trigger */}
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3.5 space-y-2 flex justify-between items-start">
                     <div className="space-y-0.5">
-                      <strong className="text-slate-800 text-[11px] block font-bold">Hierarchical Approval Lock</strong>
-                      <p className="text-[10px] text-slate-400">Trigger multi-seat manager workflows for large purchases.</p>
+                      <strong className="text-slate-800 text-[11px] block font-bold">Require Manager Approval</strong>
+                      <p className="text-[10px] text-slate-400">Require a manager's approval for orders over a specific dollar amount.</p>
                     </div>
                     <input
                       type="checkbox"
@@ -1799,7 +1799,7 @@ export default function B2BWholesaleView({
 
                   {/* Seat listings */}
                   <div className="space-y-2">
-                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Registered Seats ({corporateSeats.length})</span>
+                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Team Members ({corporateSeats.length})</span>
                     
                     {corporateSeats.map(seat => (
                       <div key={seat.id} className="bg-white p-3 rounded-xl border border-slate-200 space-y-2">
@@ -1809,17 +1809,17 @@ export default function B2BWholesaleView({
                             <span className="text-[9.5px] text-slate-400 block font-mono">{seat.role}</span>
                           </div>
                           <span className="bg-teal-50 text-teal-800 text-[8px] font-black px-2 py-0.5 rounded font-mono uppercase tracking-wider border border-teal-200">
-                            Active Keys
+                            Active Access
                           </span>
                         </div>
 
                         <div className="space-y-1.5 pt-1 font-mono text-[10px]">
                           <div className="flex justify-between text-slate-500">
-                            <span>Quarterly Limit:</span>
+                            <span>Quarterly Budget Limit:</span>
                             <span className="text-slate-800 font-extrabold">${seat.quarterlyBudget.toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-slate-500">
-                            <span>Single Order Approval Cap:</span>
+                            <span>Approval Required for Orders Over:</span>
                             <span className="text-slate-800 font-extrabold">${seat.needsApprovalOver.toLocaleString()}</span>
                           </div>
                           
@@ -1836,12 +1836,12 @@ export default function B2BWholesaleView({
 
                   {/* Seat Creation Form */}
                   <form onSubmit={handleAddCorporateSeat} className="border-t border-slate-100 pt-4 space-y-3">
-                    <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Provision Access Seat</span>
+                    <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Add a New Team Member</span>
                     
                     <div className="space-y-1">
                       <input
                         type="text"
-                        placeholder="Employee Full Name"
+                        placeholder="Employee Name"
                         value={seatNameInput}
                         onChange={(e) => setSeatNameInput(e.target.value)}
                         className="w-full bg-white border border-slate-300 rounded px-2.5 py-1.5 text-xs focus:ring-1 focus:ring-indigo-500"
@@ -1851,13 +1851,13 @@ export default function B2BWholesaleView({
                     <div className="grid grid-cols-2 gap-2">
                       <input
                         type="number"
-                        placeholder="Quarterly Limit"
+                        placeholder="Quarterly Budget ($)"
                         onChange={(e) => setSeatBudgetInput(Number(e.target.value))}
                         className="bg-white border border-slate-300 rounded px-2 py-1.5 text-xs"
                       />
                       <input
                         type="number"
-                        placeholder="Approval Limit"
+                        placeholder="Approval Limit ($)"
                         onChange={(e) => setSeatApprovalInput(Number(e.target.value))}
                         className="bg-white border border-slate-300 rounded px-2 py-1.5 text-xs"
                       />
@@ -1867,7 +1867,7 @@ export default function B2BWholesaleView({
                       type="submit"
                       className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded text-xs cursor-pointer transition-colors"
                     >
-                      + Register Corporate Key
+                      + Invite Team Member
                     </button>
                   </form>
 
@@ -1890,17 +1890,17 @@ export default function B2BWholesaleView({
                 <div>
                   <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                     <Truck className="h-5 w-5 text-indigo-500" />
-                    86. Custom Pallet Logistics Configurator
+                    Shipping & Delivery Calculator
                   </h2>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    Calculate standard wooden volume parameters and heavy-freight spatial limits dynamically.
+                    See how your bulk items fit onto standard shipping pallets and calculate freight delivery details.
                   </p>
                 </div>
 
                 {/* 3D representation mock */}
                 <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800 text-slate-100 flex flex-col items-center justify-center space-y-4">
                   <span className="text-[9px] font-mono text-indigo-400 uppercase tracking-widest font-black">
-                    Interactive Cargo Pallet Spatial Matrix
+                    Pallet Spatial Grid
                   </span>
 
                   {/* CSS visual stacking of cargo cubes based on pallets needed */}
@@ -1931,32 +1931,32 @@ export default function B2BWholesaleView({
                   </div>
 
                   <p className="text-[10px] text-slate-400 max-w-md text-center leading-normal">
-                    Standard Pallet Specs: 48" L x 40" W. Weight Max: 2,000 lbs. High-capacity container holds 20 units. Volume Recalculation runs client-side.
+                    Standard Pallet size: 48" x 40". Maximum weight: 2,000 lbs. One cargo container holds 20 pallets.
                   </p>
                 </div>
 
                 {/* Mathematical layout metrics output */}
                 <div className="grid gap-4 sm:grid-cols-4 font-mono text-xs">
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 text-center">
-                    <span className="text-slate-400 uppercase text-[9px] block">Pallets Required</span>
+                    <span className="text-slate-400 uppercase text-[9px] block">Pallets Needed</span>
                     <strong className="text-slate-800 text-base font-black mt-1 block">
                       {palletMetrics.palletsNeeded} Standard
                     </strong>
                   </div>
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 text-center">
-                    <span className="text-slate-400 uppercase text-[9px] block">Heavy Load Weight</span>
+                    <span className="text-slate-400 uppercase text-[9px] block">Total Weight</span>
                     <strong className="text-slate-800 text-base font-black mt-1 block">
                       {palletMetrics.totalWeight.toLocaleString()} lbs
                     </strong>
                   </div>
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 text-center">
-                    <span className="text-slate-400 uppercase text-[9px] block">Spatial Volume</span>
+                    <span className="text-slate-400 uppercase text-[9px] block">Total Volume</span>
                     <strong className="text-slate-800 text-base font-black mt-1 block">
                       {palletMetrics.totalVolume.toLocaleString()} cu ft
                     </strong>
                   </div>
                   <div className="bg-slate-50 border border-slate-150 rounded-xl p-3 text-center">
-                    <span className="text-slate-400 uppercase text-[9px] block">Freight Container Fill</span>
+                    <span className="text-slate-400 uppercase text-[9px] block">Container Space Used</span>
                     <strong className="text-indigo-600 text-base font-black mt-1 block">
                       {palletMetrics.containerUtilization}% Full
                     </strong>
@@ -1973,17 +1973,17 @@ export default function B2BWholesaleView({
                 <div>
                   <h3 className="text-xs font-black uppercase text-slate-800 tracking-wider flex items-center gap-1.5">
                     <Calendar className="h-4.5 w-4.5 text-indigo-500" />
-                    87. Scheduled Bulk Purchase Orders
+                    Automated Orders
                   </h3>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    Automate standing bulk procurement shipments on standard quarterly dates.
+                    Set up recurring shipments of materials automatically.
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   {/* Current schedule listings */}
                   <div className="space-y-2">
-                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Active Automated Standing POs</span>
+                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Active Automated Orders</span>
                     
                     {scheduledPOs.map(po => (
                       <div key={po.id} className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center justify-between gap-3 font-mono text-xs">
@@ -1995,7 +1995,7 @@ export default function B2BWholesaleView({
                         </div>
                         <div className="text-right flex flex-col gap-1 items-end">
                           <span className="bg-indigo-100 text-indigo-800 text-[8px] font-black px-1.5 py-0.2 rounded">
-                            ACTIVE STANDING PO
+                            AUTOMATED ORDER
                           </span>
                           <span className="text-[8.5px] text-slate-400 block">{po.nextShipDate}</span>
                         </div>
@@ -2005,10 +2005,10 @@ export default function B2BWholesaleView({
 
                   {/* Schedule New PO form */}
                   <form onSubmit={handleSchedulePo} className="border-t border-slate-100 pt-4 space-y-3 text-xs">
-                    <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Create Standing PO Agreement</span>
+                    <span className="text-[9px] font-mono text-indigo-600 font-bold uppercase tracking-widest block">Schedule a Recurring Order</span>
                     
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Product Item</label>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Select Item</label>
                       <select
                         value={recPoProduct}
                         onChange={(e) => setRecPoProduct(e.target.value)}
@@ -2022,7 +2022,7 @@ export default function B2BWholesaleView({
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Ship Quantity</label>
+                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Quantity</label>
                         <input
                           type="number"
                           value={recPoQty}
@@ -2031,7 +2031,7 @@ export default function B2BWholesaleView({
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Schedule Rotation</label>
+                        <label className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">How Often</label>
                         <select
                           value={recPoInterval}
                           onChange={(e) => setRecPoInterval(e.target.value as any)}
@@ -2048,7 +2048,7 @@ export default function B2BWholesaleView({
                       type="submit"
                       className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded text-xs cursor-pointer transition-colors"
                     >
-                      📅 DeployStanding Standing Order
+                      📅 Create Automated Order
                     </button>
                   </form>
                 </div>
@@ -2068,18 +2068,18 @@ export default function B2BWholesaleView({
               <div>
                 <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                   <CheckSquare className="h-5 w-5 text-indigo-500" />
-                  88. B2B Vendor Compliance Checklists
+                  Business Profile & Compliance
                 </h2>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Ensure strict compliance certifications, labor standards, and liability insurance thresholds are satisfied before placement of competitive quotes.
+                  Verify your company's credentials to unlock full selling capabilities on the marketplace.
                 </p>
               </div>
 
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6 space-y-5">
                 <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                   <div className="space-y-0.5">
-                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Vendor Status Matrix</span>
-                    <strong className="text-xs text-slate-800">Compliance Audit Rating</strong>
+                    <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block font-bold">Verification Status</span>
+                    <strong className="text-xs text-slate-800">Verification Progress</strong>
                   </div>
                   <div className="text-right">
                     <span className={`text-sm font-black font-mono block ${
@@ -2088,7 +2088,7 @@ export default function B2BWholesaleView({
                       {complianceScore}% Certified
                     </span>
                     <span className="text-[9px] text-slate-400 font-mono uppercase font-bold">
-                      {complianceScore === 100 ? '✓ BIDDING AUTHORIZED' : '🚫 BIDDING LOCKED'}
+                      {complianceScore === 100 ? '✓ APPROVED TO BID' : '🚫 BIDDING LOCKED'}
                     </span>
                   </div>
                 </div>
@@ -2099,11 +2099,11 @@ export default function B2BWholesaleView({
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
-                        <strong className="text-slate-800 font-bold">ISO-9001 Quality Management Filing</strong>
+                        <strong className="text-slate-800 font-bold">ISO-9001 Certification</strong>
                         {complianceMatrix.iso9001 && <span className="text-emerald-600 text-[10px]">✓ PASSED</span>}
                       </div>
                       <p className="text-[10.5px] text-slate-400 leading-normal">
-                        Verify your production lines operate on pre-defined quality assurance matrices certified by the global ISO standards agency.
+                        Verify that your production and quality management processes meet international standards.
                       </p>
                     </div>
                     <input
@@ -2118,11 +2118,11 @@ export default function B2BWholesaleView({
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
-                        <strong className="text-slate-800 font-bold">Fair Labor Standards Declaration</strong>
+                        <strong className="text-slate-800 font-bold">Fair Labor Declaration</strong>
                         {complianceMatrix.fairLabor && <span className="text-emerald-600 text-[10px]">✓ PASSED</span>}
                       </div>
                       <p className="text-[10.5px] text-slate-400 leading-normal">
-                        Declare that no minors, forced labor pools, or illegal overtime guidelines are established in production or sub-assembly facilities.
+                        Declare that your company operates under fair labor practices and safe working conditions.
                       </p>
                     </div>
                     <input
@@ -2137,11 +2137,11 @@ export default function B2BWholesaleView({
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
-                        <strong className="text-slate-800 font-bold">$2M General Liability Insurance Filing</strong>
+                        <strong className="text-slate-800 font-bold">Liability Insurance ($2M)</strong>
                         {complianceMatrix.generalLiability && <span className="text-emerald-600 text-[10px]">✓ PASSED</span>}
                       </div>
                       <p className="text-[10.5px] text-slate-400 leading-normal">
-                        Submit certificate showing active corporate insurance policies protecting construction framing and hardware deliveries up to $2,000,000.
+                        Provide proof of active general liability insurance up to $2,000,000.
                       </p>
                     </div>
                     <input
@@ -2156,11 +2156,11 @@ export default function B2BWholesaleView({
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5">
-                        <strong className="text-slate-800 font-bold">ESG Carbon Neutral Spatial Audit</strong>
+                        <strong className="text-slate-800 font-bold">Carbon Neutral Certification</strong>
                         {complianceMatrix.esgAudit && <span className="text-emerald-600 text-[10px]">✓ PASSED</span>}
                       </div>
                       <p className="text-[10.5px] text-slate-400 leading-normal">
-                        Complete environmental audits logging carbon equivalents spent during transport, targeting verified net-zero offsets.
+                        Provide audit documentation proving carbon-neutral production offsets.
                       </p>
                     </div>
                     <input
@@ -2176,10 +2176,10 @@ export default function B2BWholesaleView({
                 {complianceScore < 100 && (
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-[11px] text-amber-800 space-y-1.5">
                     <span className="font-extrabold flex items-center gap-1 uppercase text-[10px] tracking-wider font-mono">
-                      🚫 Suppliers Bidding Blocked
+                      🚫 Selling Capabilities Locked
                     </span>
                     <p>
-                      Procurement guidelines mandate a 100% compliant rating. Please check all standard declarations above to activate RFQ capabilities on the platform.
+                      You must meet all verification criteria listed above to activate bidding and selling capabilities.
                     </p>
                   </div>
                 )}
@@ -2198,10 +2198,10 @@ export default function B2BWholesaleView({
               <div>
                 <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                   <Terminal className="h-5 w-5 text-indigo-500" />
-                  89. Direct API Product Feeds for Procurement
+                  Developer API Feeds
                 </h2>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Read live dynamic tiered rates, logistics dimensions, and pallet constraints directly into SAP, Oracle, or proprietary company ERP modules.
+                  Connect our product data directly to your company's system using secure API feeds.
                 </p>
               </div>
 
@@ -2209,7 +2209,7 @@ export default function B2BWholesaleView({
               <div className="bg-slate-900 text-slate-100 rounded-2xl p-6 border border-slate-800 space-y-6 font-mono text-xs leading-relaxed">
                 <div className="flex justify-between items-center border-b border-slate-800 pb-3">
                   <span className="text-[9px] uppercase tracking-widest font-black text-indigo-400">
-                    ERP API Gateway Console
+                    API Feed Console
                   </span>
                   <span className="text-[8.5px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/30">
                     Live Feed Active
@@ -2218,7 +2218,7 @@ export default function B2BWholesaleView({
 
                 <div className="space-y-4">
                   <div className="space-y-1.5">
-                    <span className="text-[9px] text-slate-500 uppercase tracking-wider block font-bold">Secure Access Token Header:</span>
+                    <span className="text-[9px] text-slate-500 uppercase tracking-wider block font-bold">Secret Access Token:</span>
                     <div className="flex items-center gap-2">
                       <input
                         type="text"
@@ -2239,20 +2239,20 @@ export default function B2BWholesaleView({
                   </div>
 
                   <div className="space-y-1.5">
-                    <span className="text-[9px] text-slate-500 uppercase tracking-wider block font-bold">GET Real-Time Inventory Endpoint:</span>
+                    <span className="text-[9px] text-slate-500 uppercase tracking-wider block font-bold">API URL:</span>
                     <div className="bg-slate-950 p-3 rounded-lg border border-slate-800 select-all text-indigo-300">
                       https://nexus-bazaar.api/v1/procurement/feeds/bulk-rates?token={apiToken}
                     </div>
                   </div>
 
                   <div className="flex justify-between items-center pt-2">
-                    <span className="text-slate-400 text-[10px]">Trigger simulation request to see feed JSON return:</span>
+                    <span className="text-slate-400 text-[10px]">Test the API Response:</span>
                     <button
                       onClick={handleTriggerApiFeed}
                       disabled={apiLoading}
                       className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-xs cursor-pointer transition-colors"
                     >
-                      {apiLoading ? '⚡ Synchronizing SAP Feed...' : '⚡ Try Endpoint Response'}
+                      {apiLoading ? '⚡ Connecting...' : '⚡ Try API Call'}
                     </button>
                   </div>
 
