@@ -793,7 +793,13 @@ export default function EdgeLabView({
               </div>
 
               <div className="text-[10px] text-slate-400 font-mono text-center pt-2 border-t border-slate-100">
-                Created securely and 100% privately        {/* TAB 2: LOCAL TRIE AUTOCORRECT & SEARCH SYNCHRONIZER */}
+                Created securely and 100% privately in your browser.
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* TAB 2: LOCAL TRIE AUTOCORRECT & SEARCH SYNCHRONIZER */}
         {activeTab === 'search_trie' && (
           <motion.div
             key="tab-search_trie"
@@ -953,11 +959,6 @@ export default function EdgeLabView({
               </div>
 
               <div className="text-[9px] font-mono text-slate-400 border-t border-slate-150 pt-2.5 mt-4 text-center leading-normal">
-                {syncStatus}
-              </div>
-            </div>
-          </motion.div>
-        )}rmal">
                 {syncStatus}
               </div>
             </div>
