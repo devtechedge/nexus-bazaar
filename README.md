@@ -26,6 +26,10 @@ This is the **only** public repo for the marketplace.
 
 ## Screenshots
 
+<p align="center">
+  <img src="docs/social-preview.jpg" alt="NexusBazaar" width="800">
+</p>
+
 | Storefront | Cart |
 |------------|------|
 | ![Storefront](docs/screenshots/01-storefront.png) | ![Cart](docs/screenshots/02-cart.png) |
