@@ -1,84 +1,99 @@
-# NexusBazaar 🛒✨
+# NexusBazaar
 
-NexusBazaar is a highly feature-rich, high-performance, and secure multi-role e-commerce marketplace and B2B wholesale procurement platform. Designed with a desktop-first layout, elegant visual design, and fluid transitions, the platform operates entirely client-side using a simulated SQL ledger, real-time localized edge-computing nodes, and offline state persistence.
+Client-side multi-role marketplace for buyers, sellers, and admins — storefront, promo checkout, B2B RFQ, and localStorage persistence.
 
----
-
-## 🌟 Key Capabilities & Architectural Core
-
-NexusBazaar goes far beyond standard e-commerce sites by introducing several advanced modules that handle secure B2B workflows, localized AI simulations, and detailed security vaults:
-
-### 👤 Multi-Role Experience
-- **Storefront View**: Clean product grid featuring categories, real-time search, dynamic rating averages, and interactive curation cards.
-- **Buyer Features**: Personalized Wishlists, Cart management, transparent Checkout, active Order Tracking, and comprehensive Q&A/review forms.
-- **Seller Portal**: Self-service product listing manager, dynamic inventory trackers, revenue analytics, and interactive review management tools.
-- **Admin Dashboard**: Marketplace metrics tracker, real-time user session status maps, transaction ledger logs, and custom system-wide discount dispatch tools.
-
-### 💼 B2B Wholesale & Procurement (`/src/views/B2BWholesaleView.tsx`)
-- **Interactive RFQ (Request for Quote) Center**: Facilitates customizable high-volume bidding.
-- **Credit Frameworks & Net-30 Invoices**: Manage credit lines (limits, headroom, and stable utilization ratios) and view outstanding balances in an interactive invoice ledger.
-- **Team Budget & Access Limits**: Invite team members, set quarterly purchase budgets, and require hierarchical manager approvals for orders over specified limits.
-- **Shipping & Delivery Calculator**: Dynamically calculates standard pallet spatial sizing (48" x 40" configurations), load weight parameters, and cargo container utilization.
-- **Automated Orders**: Schedule standing automated orders on intervals (e.g., Monthly, Quarterly) for repeat procurement.
-- **Business Verification & Compliance**: Structured compliance checklist covering ISO-9001 certification, fair labor standards, and liability insurance filings.
-- **Developer API Gateway**: Allows secure procurement data synchronization via live API console feeds using custom access tokens.
-
-### ⚡ Edge Lab Optimization Suite (`/src/views/EdgeLabView.tsx`)
-- **High-Speed Private Mode**: Employs browser-based edge processing. No shopping activities, product lookups, or photos are ever sent to external trackers or servers.
-- **Smart Product Suggestions**: Lightweight client-side recommendation engine finding product matches instantly.
-- **Custom Product Highlights**: Context-aware copywriting emphasizing technical specs, eco-friendly details, or designer aesthetics depending on user personas.
-- **Instant Typo Autocorrect**: Localized memory Trie dictionary that instantly catches and corrects search typos.
-- **Offline Mode Browser Sync**: Simulates network instability, allowing users to browse a locally cached and indexed product catalog (IndexedDB standard) during fragile connection states.
-- **Hardware Diagnostics & Display Settings**: Real-time canvas telemetry tracking refresh rates, GPU load configurations, responsive viewport grids, and low-performance mode toggles.
-- **Photo Scanner & Finder**: Advanced computer vision mockup allowing visual search using uploaded images, scanning vectors, and returning localized visual matches.
-
-### 🛡️ Security Vault & Guilds
-- **Security Vault**: End-to-end data encryption control panel, active security audits, mock hardware key verification, and encrypted transaction log monitors.
-- **Guilds & Loyalty Communities**: Joint group-buying structures (Guilds) with pooled discounts, active group checkout progression bars, and custom customer loyalty programs.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://nexusbazaar-market.vercel.app)
+[![CI](https://github.com/devtechedge/nexus-bazaar/actions/workflows/ci.yml/badge.svg)](https://github.com/devtechedge/nexus-bazaar/actions/workflows/ci.yml)
+[![React](https://img.shields.io/badge/React-19-0052CC?logo=react)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite)](https://vitejs.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?logo=tailwindcss)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
-## 🛠️ Technology Stack & Libraries
+## Live Demo
 
-- **Framework**: React (Vite-powered single-page architecture)
-- **Styling**: Tailwind CSS (Clean, high-contrast typography, negative space rhythm, custom color systems)
-- **Icons**: Lucide React
-- **Animations**: Motion (from `motion/react`)
-- **Data Visualization & Charts**: Recharts & D3 for interactive administrative charts, credit line progress meters, and hardware diagnostic telemetry gauges.
+**https://nexusbazaar-market.vercel.app**
+
+> **Status:** Public deploy is a **client-side demo**. Catalog, cart, orders, loyalty, and B2B ledgers persist in `localStorage`. There is no production payment backend, JWT, or NextAuth. Switch Buyer / Seller / Admin from the header avatar. `NEXUS10` is a public promo; `ELITEPRO` needs Elite (crown toggle). NexusBot falls back to a mock reply unless `GEMINI_API_KEY` is set locally.
+
+Do **not** use [nexus-bazaar.vercel.app](https://nexus-bazaar.vercel.app) — that hostname is a different lifestyle-blog project.
+
+This is the **only** public repo for the marketplace.
 
 ---
 
-## 🚀 Getting Started & Setup
+## Screenshots
 
-Follow these steps to run the NexusBazaar development environment locally:
+| Storefront | Cart |
+|------------|------|
+| ![Storefront](docs/screenshots/01-storefront.png) | ![Cart](docs/screenshots/02-cart.png) |
 
-### 1. Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) (version 18 or higher) and `npm` installed.
+| Seller hub | B2B wholesale |
+|------------|---------------|
+| ![Seller hub](docs/screenshots/03-seller-hub.png) | ![B2B wholesale](docs/screenshots/04-b2b.png) |
 
-### 2. Install Dependencies
-In the root directory of the project, run:
+---
+
+## Features
+
+- Buyer storefront with search, product details, wishlist, live-auction tiles, and promo checkout (`NEXUS10`, `ELITEPRO`, `BIGSAVER`)
+- Header identity switcher for Buyer, Seller, and Admin — seller/admin chrome is role-gated
+- Seller hub: listings, inventory, vouchers, broadcast tiles
+- Admin workspace: user flags, promo ledger, marketplace metrics
+- B2B desk: RFQ, Net-30 credit, team budget, pallet calculator
+- Loyalty, guilds, curations, security-vault UI — all `localStorage`
+- Optional Gemini concierge at `POST /api/gemini/chat` (mock without a key)
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite 8, TypeScript, Tailwind 4 |
+| Data | Seeded in-memory catalog + `localStorage` (not a SQL backend) |
+| Auth | Demo role switcher — not JWT, not NextAuth |
+| Payments | Simulated checkout only |
+| AI | Optional `POST /api/gemini/chat` — mock fallback on Vercel |
+| Hosting | Vercel (static Vite + `/api` function) |
+| CI | GitHub Actions — Vitest, `tsc`, Playwright |
+
+---
+
+## Quick Start
+
 ```bash
+git clone https://github.com/devtechedge/nexus-bazaar.git
+cd nexus-bazaar
 npm install
-```
-
-### 3. Start the Development Server
-Launch the development environment:
-```bash
 npm run dev
 ```
-The server will start on port `3000` (or your platform's mapped port), offering HMR-enabled previewing of the app.
 
-### 4. Build for Production
-To create an optimized production build:
+Open **http://localhost:3000**. Gemini is optional.
+
 ```bash
-npm run build
+npm test
+npm run typecheck
+npx playwright install chromium
+npm run test:e2e
 ```
-The static build outputs will compile into the `dist/` directory, ready for deployment.
 
 ---
 
-## 📜 Development Guidelines & Code Standards
+## Demo notes
 
-- **TypeScript Precision**: Keep complete type definitions. Avoid using loose types or `any`.
-- **Desktop-First & Fluid Layouts**: Design with desktop grid density and screen margins while using Tailwind's mobile prefixes (`sm:`, `md:`, `lg:`) to preserve responsiveness.
-- **User Privacy First**: Keep server and tracking integrations secure, routing operations to client-side sandboxes or local edge processors where possible to protect consumer security.
+| Identity | How |
+|----------|-----|
+| Eager Buyer | Default. Cart, wishlist, orders, loyalty. |
+| Elite Tech Seller | Header avatar → Seller Hub |
+| Platform Admin | Header avatar → Admin Panel |
+
+Promo codes: `NEXUS10` (10%), `ELITEPRO` (20%, Elite only), `BIGSAVER` (15% over $200).
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
