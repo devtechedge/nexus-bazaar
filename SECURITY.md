@@ -19,7 +19,7 @@
 | Payments | **Simulated** | Card fields are UI only. No Stripe, no card vault, no charge. |
 | Gemini | **Optional** | Missing key returns a canned concierge reply. Key stays server-side. |
 
-**Overall (public Vercel demo):** Low residual risk for a hiring-manager walkthrough. Do not treat this as a production marketplace.
+**Overall (public Vercel demo):** Low residual risk for a public demo walkthrough. Do not treat this as a production marketplace.
 
 ---
 

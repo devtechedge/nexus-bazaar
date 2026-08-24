@@ -7,7 +7,7 @@ All notable changes to NexusBazaar are documented in this file.
 ## [1.3.0] - 2026-08-24
 
 ### Added
-- Root MIT `LICENSE`, branded `public/favicon.svg`, hiring-manager README, and `SECURITY.md`.
+- Root MIT `LICENSE`, branded `public/favicon.svg`, product README, and `SECURITY.md`.
 - GitHub Actions CI (Vitest, `tsc`, Playwright) and Dependabot (patch/minor only).
 - Pure helpers for cart/promo math (`src/lib/pricing.ts`) and role gates (`src/lib/rbac.ts`) with unit tests.
 - Chromium smokes for storefront, cart, search, seller hub, admin, and B2B.
