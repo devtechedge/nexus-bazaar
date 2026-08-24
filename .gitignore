@@ -1,7 +1,15 @@
 node_modules/
+dist/
 .next/
 coverage/
 .DS_Store
 *.log
-.env*
+.env
+.env.*
 !.env.example
+playwright-report/
+test-results/
+blob-report/
+*.tsbuildinfo
+.vercel/
+.vite/
