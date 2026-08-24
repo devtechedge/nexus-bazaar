@@ -6,6 +6,7 @@
 import React from 'react';
 import { Heart, ShoppingCart, Star, Crown, Sparkles, Flame, Eye, Scan, Compass } from 'lucide-react';
 import { Product } from '../lib/db';
+import { eliteUnitPrice } from '../lib/pricing';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface ProductCardProps {
@@ -29,9 +30,7 @@ export default function ProductCard({
   const [isHovered, setIsHovered] = React.useState(false);
 
   // Apply a 10% discount on Elite items for Elite members
-  const finalPrice = product.isElite && isEliteUser 
-    ? Math.round(product.price * 0.9) 
-    : product.price;
+  const finalPrice = eliteUnitPrice(product.price, product.isElite, isEliteUser);
 
   // Compute dynamic highlight metrics
   const isBestseller = product.rating >= 4.8 && product.reviewsCount >= 2;
@@ -308,6 +307,7 @@ export default function ProductCard({
 
           <button
             id={`add-to-cart-btn-${product.id}`}
+            data-testid="add-to-cart"
             onClick={(e) => {
               e.stopPropagation();
               onAddToCart(product);

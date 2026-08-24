@@ -132,10 +132,11 @@ export default function EdgeLabView({
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (gl) {
-        const dbgRenderInfo = (gl as any).getExtension('WEBGL_debug_renderer_info');
+      if (gl && 'getParameter' in gl) {
+        const webgl = gl as WebGLRenderingContext;
+        const dbgRenderInfo = webgl.getExtension('WEBGL_debug_renderer_info');
         if (dbgRenderInfo) {
-          gpu = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+          gpu = String(webgl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL));
         }
       }
     } catch(e) {}

@@ -791,7 +791,7 @@ export default function App() {
       </footer>
 
       {/* GLOBAL CONCIERGE CHATBOT ASSISTANT (Feature #9) */}
-      {currentUser.role === 'buyer' && <ConciergeChatbot />}
+      {currentUser.role === UserRole.Buyer && <ConciergeChatbot />}
 
       {/* 40. AUDIO-GUIDED PRODUCT DEEP-DIVE PODCAST MINI-PLAYER */}
       {activePodcastProduct && (

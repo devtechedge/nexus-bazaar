@@ -27,6 +27,15 @@ import {
   Database
 } from 'lucide-react';
 import { Product, PromoCode, User, OrderItem, Order } from '../lib/db';
+import {
+  cartSubtotal,
+  eliteUnitPrice,
+  evaluatePromo,
+  promoDiscount,
+  shippingCost as quoteShipping,
+  taxAmount as quoteTax,
+  taxRateForState,
+} from '../lib/pricing';
 
 interface CartCheckoutViewProps {
   products: Product[];
@@ -240,7 +249,7 @@ export default function CartCheckoutView({
         product: p,
         quantity: item.quantity,
         // Apply 10% elite discount on elite items if user is elite
-        price: p && p.isElite && currentUser.isElite ? Math.round(p.price * 0.9) : p ? p.price : 0,
+        price: p ? eliteUnitPrice(p.price, p.isElite, currentUser.isElite) : 0,
       };
     }).filter(item => item.product !== undefined) as { product: Product; quantity: number; price: number }[];
   }, [cart, products, currentUser.isElite]);
@@ -278,13 +287,11 @@ export default function CartCheckoutView({
   }, [wishlist, products]);
 
   // Financial calculations
-  const subtotal = React.useMemo(() => {
-    return cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  }, [cartItems]);
+  const subtotal = React.useMemo(() => cartSubtotal(cartItems), [cartItems]);
 
   const discountAmount = React.useMemo(() => {
     if (!appliedPromo) return 0;
-    return Math.round((subtotal * appliedPromo.discountPercent) / 100);
+    return promoDiscount(subtotal, appliedPromo.discountPercent);
   }, [appliedPromo, subtotal]);
 
   // Quantum Eco Routing Green Discount (5% on choosing lowest-impact 'drone' route)
@@ -297,24 +304,18 @@ export default function CartCheckoutView({
   // - Elite users get standard and express shipping upgraded to $0!
   // - Standard is free on orders over $150
   const shippingCost = React.useMemo(() => {
-    if (subtotal === 0) return 0;
-    if (currentUser.isElite) return 0; // Free express/standard
-    
-    if (shippingMethod === 'express') return 30;
-    return subtotal > 150 ? 0 : 15;
+    return quoteShipping({
+      subtotal,
+      isElite: currentUser.isElite,
+      method: shippingMethod,
+    });
   }, [subtotal, currentUser.isElite, shippingMethod]);
 
-  // Regional tax rates
-  const taxRate = React.useMemo(() => {
-    if (shippingState === 'CA') return 0.0825; // California: 8.25%
-    if (shippingState === 'NY') return 0.08875; // New York: 8.875%
-    if (shippingState === 'TX') return 0.0625; // Texas: 6.25%
-    return 0.05; // Standard Flat: 5%
-  }, [shippingState]);
+  const taxRate = React.useMemo(() => taxRateForState(shippingState), [shippingState]);
 
   const taxAmount = React.useMemo(() => {
     const taxableSubtotal = Math.max(0, subtotal - discountAmount - greenDiscount);
-    return Number((taxableSubtotal * taxRate).toFixed(2));
+    return quoteTax(taxableSubtotal, taxRate);
   }, [subtotal, discountAmount, greenDiscount, taxRate]);
 
   // --- BATCH 7: DYNAMIC CARBON FOOTPRINT EMISSIONS CALCULATOR ---
@@ -444,7 +445,7 @@ export default function CartCheckoutView({
       if (e.touches.length === 0) return null;
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
-      pressure = e.touches[0].force || 0.5;
+      pressure = (e.touches[0] as Touch & { force?: number }).force || 0.5;
     } else {
       clientX = e.clientX;
       clientY = e.clientY;
@@ -511,28 +512,23 @@ export default function CartCheckoutView({
     e.preventDefault();
     setPromoError(null);
     setPromoSuccess(null);
-    
-    const code = promoInput.trim().toUpperCase();
-    if (!code) return;
 
-    const promo = promoCodes.find((p) => p.code === code);
-    if (!promo) {
-      setPromoError('Voucher code does not match any active record logs.');
+    const result = evaluatePromo({
+      code: promoInput,
+      promos: promoCodes,
+      isElite: currentUser.isElite,
+      subtotal,
+    });
+
+    if (!result.ok) {
+      setPromoError(result.error);
       return;
     }
 
-    if (promo.requiresElite && !currentUser.isElite) {
-      setPromoError('This voucher requires an active Elite Tier Membership.');
-      return;
-    }
-
-    if (promo.minSubtotal && subtotal < promo.minSubtotal) {
-      setPromoError(`Voucher requires a minimum cart subtotal of $${promo.minSubtotal}.`);
-      return;
-    }
-
-    setAppliedPromo(promo);
-    setPromoSuccess(`Voucher successfully applied! Saving ${promo.discountPercent}% on items.`);
+    setAppliedPromo(result.promo);
+    setPromoSuccess(
+      `Voucher successfully applied! Saving ${result.promo.discountPercent}% on items.`,
+    );
   };
 
   const handleRemovePromo = () => {
@@ -660,7 +656,7 @@ export default function CartCheckoutView({
 
   // Step indicator
   return (
-    <div id="cart-checkout-container" className="pb-16 space-y-8">
+    <div id="cart-checkout-container" data-testid="cart" className="pb-16 space-y-8">
       
       {/* STEPS INDICATOR */}
       <div className="flex items-center justify-center gap-2 border-b border-slate-100 pb-5">
@@ -1239,20 +1235,20 @@ export default function CartCheckoutView({
                   <div className="bg-white rounded-xl p-3.5 space-y-3.5 border border-slate-200/50">
                     <span className="text-[9px] font-bold text-teal-700 font-mono uppercase tracking-wide block border-b border-slate-100 pb-1.5">Configure Destination Rerouting</span>
                     {cartItems.map((item) => (
-                      <div key={item.id} className="space-y-1 pb-2 border-b border-slate-100 last:border-0 last:pb-0 last:mb-0">
+                      <div key={item.product.id} className="space-y-1 pb-2 border-b border-slate-100 last:border-0 last:pb-0 last:mb-0">
                         <div className="flex justify-between items-center">
-                          <span className="text-xs font-bold text-slate-700 truncate max-w-[180px]">{item.name}</span>
+                          <span className="text-xs font-bold text-slate-700 truncate max-w-[180px]">{item.product.name}</span>
                           <span className="text-[10px] font-mono text-slate-400">Qty: {item.quantity}</span>
                         </div>
                         <input
                           type="text"
                           required={splitAddressEnabled}
                           placeholder="e.g. 104 Industrial Pkwy, Seattle WA 98101"
-                          value={splitAddresses[item.id] || ''}
+                          value={splitAddresses[item.product.id] || ''}
                           onChange={(e) => {
                             setSplitAddresses({
                               ...splitAddresses,
-                              [item.id]: e.target.value
+                              [item.product.id]: e.target.value
                             });
                           }}
                           className="w-full bg-slate-50 border border-slate-150 rounded-xl px-3 py-2 text-xs outline-none focus:border-teal-500 focus:bg-white"

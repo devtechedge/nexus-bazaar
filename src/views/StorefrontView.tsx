@@ -66,7 +66,7 @@ export default function StorefrontView({
   };
 
   return (
-    <div id="storefront-view-container" className="space-y-12 pb-16">
+    <div id="storefront-view-container" data-testid="storefront" className="space-y-12 pb-16">
       
       {/* 1. HERO BANNER */}
       <section id="storefront-hero" className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 py-16 px-6 sm:px-12 text-white shadow-xl">

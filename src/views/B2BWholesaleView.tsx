@@ -520,9 +520,11 @@ export default function B2BWholesaleView({
         category: rfq.category,
         image: 'https://picsum.photos/seed/rfqwin/300/200',
         sellerId: 'b2b-contract',
+        sellerName: bid.supplierName,
         stock: rfq.quantity,
-        isAuction: false,
-        specs: rfq.specs
+        rating: 0,
+        reviewsCount: 0,
+        isElite: false,
       };
 
       onAddToCart(bidItem, rfq.quantity);
@@ -577,9 +579,11 @@ export default function B2BWholesaleView({
       category: selectedB2bProduct.category,
       image: selectedB2bProduct.image,
       sellerId: 'b2b-warehouse',
+      sellerName: 'Nexus Wholesale',
       stock: b2bOrderQuantity + 1000,
-      isAuction: false,
-      specs: selectedB2bProduct.specs
+      rating: 0,
+      reviewsCount: 0,
+      isElite: false,
     };
 
     onAddToCart(bulkProduct, b2bOrderQuantity);
@@ -826,7 +830,7 @@ export default function B2BWholesaleView({
                 Welcome, {currentUser.name}
               </span>
             </div>
-            <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
+            <h1 id="b2b-heading" data-testid="b2b-heading" className="text-3xl font-black tracking-tight text-white flex items-center gap-2">
               <Building2 className="h-8 w-8 text-teal-400" /> Wholesale & Bulk Orders
             </h1>
             <p className="text-slate-400 text-xs max-w-2xl leading-relaxed">

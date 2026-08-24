@@ -508,7 +508,7 @@ export default function SellerView({
       {/* SELLER HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
-          <h2 id="seller-heading" className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <h2 id="seller-heading" data-testid="seller-heading" className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <TrendingUp className="h-6 w-6 text-teal-600" />
             <span>Merchant Control Hub</span>
           </h2>

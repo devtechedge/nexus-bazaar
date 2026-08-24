@@ -161,7 +161,7 @@ export default function AdminView({
       
       {/* ADMIN HEADER */}
       <div className="border-b border-slate-100 pb-5">
-        <h2 id="admin-heading" className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+        <h2 id="admin-heading" data-testid="admin-heading" className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
           <ShieldCheck className="h-6 w-6 text-teal-600" />
           <span>Platform Administration Workspace</span>
         </h2>
@@ -504,9 +504,9 @@ export default function AdminView({
                       <td className="p-4 font-mono text-slate-500">{order.userName}</td>
                       <td className="p-4 font-mono text-[11px]">{order.date}</td>
                       <td className="p-4">
-                        {order.promoCodeApplied ? (
+                        {order.promoCodeUsed ? (
                           <span className="inline-flex items-center rounded-md bg-teal-50 border border-teal-100/50 px-2 py-0.5 text-[10px] font-mono font-bold text-teal-700">
-                            {order.promoCodeApplied}
+                            {order.promoCodeUsed}
                           </span>
                         ) : (
                           <span className="text-slate-300 font-sans text-[11px] italic">None</span>
