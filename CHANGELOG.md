@@ -12,6 +12,7 @@ All notable changes to NexusBazaar are documented in this file.
 - Pure helpers for cart/promo math (`src/lib/pricing.ts`) and role gates (`src/lib/rbac.ts`) with unit tests.
 - Chromium smokes for storefront, cart, search, seller hub, admin, and B2B.
 - Vercel `/api/gemini/chat` mock fallback so the public demo does not require a key.
+- Public production alias: https://nexusbazaar-market.vercel.app (Git-linked Vercel project `nexusbazaar-market`).
 
 ### Changed
 - Package name `ai-studio-applet` → `nexus-bazaar`. Vite binds port 3000.
