@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { User } from '../lib/db';
 import { canOpenAdminPanel, canOpenSellerHub } from '../lib/rbac';
+import ThemeToggle from './ThemeToggle';
 
 interface HeaderProps {
   currentUser: User;
@@ -356,6 +357,8 @@ export default function Header({
               </>
             )}
           </div>
+
+          <ThemeToggle />
 
         </nav>
       </div>
