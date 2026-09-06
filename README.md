@@ -101,3 +101,9 @@ Promo codes: `NEXUS10` (10%), `ELITEPRO` (20%, Elite only), `BIGSAVER` (15% over
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Security
+
+Threat model, residual risk, and operator secrets: see [SECURITY.md](SECURITY.md).
+This public deploy is a portfolio / demo surface; the GitHub repo may go private
+after review without changing the live site’s required env hygiene.
