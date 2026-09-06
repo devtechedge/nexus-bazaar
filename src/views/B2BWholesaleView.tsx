@@ -885,8 +885,6 @@ export default function B2BWholesaleView({
 
       {/* 3. CORE INTERACTIVE TABS */}
       <div className="grid gap-8 grid-cols-1">
-
-        {/* ==================== TAB: PRICING (82, 85, 86, 90) ==================== */}
         {activeTab === 'pricing' && (
           <div className="grid gap-8 lg:grid-cols-12">
             {/* Catalog Selector */}
@@ -1285,9 +1283,6 @@ export default function B2BWholesaleView({
             </div>
           </div>
         )}
-
-
-        {/* ==================== TAB: RFQ HUB (81, 88) ==================== */}
         {activeTab === 'rfq' && (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
@@ -1666,9 +1661,6 @@ export default function B2BWholesaleView({
             </div>
           </div>
         )}
-
-
-        {/* ==================== TAB: CORPORATE LEDGER NET-30 (83, 84) ==================== */}
         {activeTab === 'finance' && (
           <div className="grid gap-8 lg:grid-cols-12">
             
@@ -1881,9 +1873,6 @@ export default function B2BWholesaleView({
             </div>
           </div>
         )}
-
-
-        {/* ==================== TAB: PALLET FREIGHT LOGISTICS (86, 87) ==================== */}
         {activeTab === 'logistics' && (
           <div className="grid gap-8 lg:grid-cols-12">
             
@@ -2062,9 +2051,6 @@ export default function B2BWholesaleView({
             </div>
           </div>
         )}
-
-
-        {/* ==================== TAB: COMPLIANCE WORKFLOWS (88) ==================== */}
         {activeTab === 'compliance' && (
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
@@ -2192,9 +2178,6 @@ export default function B2BWholesaleView({
             </div>
           </div>
         )}
-
-
-        {/* ==================== TAB: PROCUREMENT API FEEDS (89) ==================== */}
         {activeTab === 'api' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">

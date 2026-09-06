@@ -14,10 +14,7 @@ interface EdgeLabViewProps {
   onAddToCart: (product: Product) => void;
   setActiveView: (view: 'storefront' | 'search' | 'details' | 'cart' | 'seller' | 'admin' | 'orders' | 'wishlist' | 'guilds' | 'styling' | 'curations' | 'loyalty' | 'security' | 'b2b' | 'edge') => void;
 }
-
-// ============================================================================
 // FEATURE 98: CLIENT-SIDE TRIE DATABASE IMPLEMENTATION
-// ============================================================================
 class TrieNode {
   children: { [key: string]: TrieNode } = {};
   isWord = false;
@@ -113,10 +110,7 @@ export default function EdgeLabView({
     };
     setPrefetchLogs(prev => [newLog, ...prev]);
   };
-
-  // ============================================================================
   // FEATURE 100: LOCALIZED DEVICE-SPEC UI OPTIMIZATION STATES
-  // ============================================================================
   const [hardwareProfile, setHardwareProfile] = React.useState<'ultra' | 'snapdragon'>('ultra');
   const [diagnosticsLogs, setDiagnosticsLogs] = React.useState<string[]>([]);
 
@@ -163,10 +157,7 @@ export default function EdgeLabView({
     }
     setDiagnosticsLogs(log);
   }, [hardwareProfile, deviceSpecs]);
-
-  // ============================================================================
   // FEATURE 91: CLIENT-SIDE SEMANTIC RECOMMENDATION ENGINE STATES
-  // ============================================================================
   const [selectedRecommendBaseId, setSelectedRecommendBaseId] = React.useState<string>('prod_1');
 
   // Compute recommendations 100% locally
@@ -196,10 +187,7 @@ export default function EdgeLabView({
       .sort((a, b) => b.score - a.score)
       .slice(0, 3);
   }, [selectedRecommendBaseId, products]);
-
-  // ============================================================================
   // FEATURE 94: SEMANTIC REVIEW SUMMARIZATION STATES
-  // ============================================================================
   const [summarizedProductReviewsId, setSummarizedProductReviewsId] = React.useState<string>('prod_1');
 
   const simulatedReviewSummary = React.useMemo(() => {
@@ -226,10 +214,7 @@ export default function EdgeLabView({
 
     return { sentiment, pros, cons, tldr };
   }, [summarizedProductReviewsId, products]);
-
-  // ============================================================================
   // FEATURE 97: CONTEXTUAL AI SMART DESCRIPTIONS STATES
-  // ============================================================================
   const [smartDescriptionProdId, setSmartDescriptionProdId] = React.useState<string>('prod_1');
   const [smartDescriptionPersona, setSmartDescriptionPersona] = React.useState<'tech' | 'eco' | 'design'>('tech');
 
@@ -245,10 +230,7 @@ export default function EdgeLabView({
       return `🎨 [DESIGN CURATOR FOCUS] Anchored on matte slate dark casings designed with generous negative space and balanced ergonomic weights. Embraces minimal Swiss styling, subtle laser-etched telemetry tracks, and customizable tactile indicators that enrich any professional lookbook setting.`;
     }
   }, [smartDescriptionProdId, smartDescriptionPersona, products]);
-
-  // ============================================================================
   // FEATURE 98: TRIE AUTOCORRECTION playground states
-  // ============================================================================
   const [trieSearchQuery, setTrieSearchQuery] = React.useState('keybord');
   const trieInstance = React.useMemo(() => {
     const t = new Trie();
@@ -314,10 +296,7 @@ export default function EdgeLabView({
 
     return null;
   }, [trieSearchQuery, trieInstance, products]);
-
-  // ============================================================================
   // FEATURE 99: OFFLINE-CAPABLE SEARCH SYNCHRONIZATION STATES
-  // ============================================================================
   const [networkMode, setNetworkMode] = React.useState<'online' | 'offline_sync'>('online');
   const [syncQuery, setSyncQuery] = React.useState('');
   const [syncStatus, setSyncStatus] = React.useState('Indexed DB Sync status: Complete (12 nodes cached)');
@@ -333,10 +312,7 @@ export default function EdgeLabView({
       p.category.toLowerCase().includes(syncQuery.toLowerCase())
     );
   }, [syncQuery, products]);
-
-  // ============================================================================
   // FEATURE 95: ADAPTIVE LAYOUT RENDERING ARCHITECTURE STATES
-  // ============================================================================
   const [layoutMode, setLayoutMode] = React.useState<'speed_matrix' | 'visual_lookbook'>('visual_lookbook');
   const [adaptiveLayoutEnabled, setAdaptiveLayoutEnabled] = React.useState(true);
   const [metricsScrollSpeed, setMetricsScrollSpeed] = React.useState(0);
@@ -360,10 +336,7 @@ export default function EdgeLabView({
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [adaptiveLayoutEnabled]);
-
-  // ============================================================================
   // FEATURE 96: CLIENT-SIDE VECTOR IMAGE MATCHING STATES
-  // ============================================================================
   const [matchingTemplate, setMatchingTemplate] = React.useState<'jacket' | 'keyboard' | 'watch' | null>(null);
   const [isMatchingRunning, setIsMatchingRunning] = React.useState(false);
   const [matcherResult, setMatcherResult] = React.useState<{ product: Product; confidence: number; keypoints: number } | null>(null);
@@ -475,10 +448,7 @@ export default function EdgeLabView({
       setIsMatchingRunning(false);
     }, 1200);
   };
-
-  // ============================================================================
   // FEATURE 93: CLIENT-SIDE LOCAL CHAT ASSISTANT
-  // ============================================================================
   const [chatMessages, setChatMessages] = React.useState<{ role: 'user' | 'assistant'; content: string; localNode?: boolean }[]>([
     { role: 'assistant', content: `🛡️ **Local Open-Source LLM Daemon (Llama-3-8B-WebGPU) Loaded Successfully.**\n\nI am running 100% locally in your browser memory via WebAssembly/WebGPU layers. Absolutely zero text or telemetry data will leave your device.\n\nAsk me about shipping registries, order returns, technical specifications, or troubleshooting!`, localNode: true }
   ]);
