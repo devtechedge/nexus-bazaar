@@ -1,6 +1,6 @@
 # Security Assessment — NexusBazaar
 
-**Date:** 2026-08-24  
+**Date:** 2026-09-06  
 **Scope:** Auth, XSS, injection, CORS, secrets, payments, third-party APIs  
 **Context:** Public deploy is a **client-side marketplace demo** at [https://nexusbazaar-market.vercel.app](https://nexusbazaar-market.vercel.app). Catalog, cart, orders, loyalty, and B2B ledgers live in `localStorage`. Gemini is optional and mocked when `GEMINI_API_KEY` is unset.
 
@@ -97,3 +97,11 @@ Public promo codes (`NEXUS10`, `ELITEPRO`, `BIGSAVER`) are accepted residual ris
 2. `localStorage` is world-writable in that browser — a visitor can edit their own cart/orders.
 3. Public demo promo codes.
 4. Optional Gemini route is unauthenticated; keep the key off the public project.
+
+## Repository visibility
+
+This repository is currently **public** for portfolio review. When the open-source
+build story is no longer needed, **the GitHub repo will go private**. Making the
+repo private reduces source disclosure; it does **not** replace strong production
+secrets, auth allow-lists, webhook signatures, or Vercel/Actions environment
+hygiene. Rotate any credential that was pasted into chat, tickets, or screenshots.
