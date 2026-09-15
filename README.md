@@ -1,6 +1,6 @@
 # NexusBazaar
 
-Client-side multi-role marketplace for buyers, sellers, and admins — storefront, promo checkout, B2B RFQ, and localStorage persistence.
+Client-side multi-role marketplace for buyers, sellers, and admins - storefront, promo checkout, B2B RFQ, and localStorage persistence.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://nexusbazaar-market.vercel.app)
 [![CI](https://github.com/devtechedge/nexus-bazaar/actions/workflows/ci.yml/badge.svg)](https://github.com/devtechedge/nexus-bazaar/actions/workflows/ci.yml)
@@ -18,7 +18,7 @@ Client-side multi-role marketplace for buyers, sellers, and admins — storefron
 
 > **Status:** Public deploy is a **client-side demo**. Catalog, cart, orders, loyalty, and B2B ledgers persist in `localStorage`. There is no production payment backend, JWT, or NextAuth. Switch Buyer / Seller / Admin from the header avatar. `NEXUS10` is a public promo; `ELITEPRO` needs Elite (crown toggle). NexusBot falls back to a mock reply unless `GEMINI_API_KEY` is set locally.
 
-Do **not** use [nexus-bazaar.vercel.app](https://nexus-bazaar.vercel.app) — that hostname is a different lifestyle-blog project.
+Do **not** use [nexus-bazaar.vercel.app](https://nexus-bazaar.vercel.app) - that hostname is a different lifestyle-blog project.
 
 This is the **only** public repo for the marketplace.
 
@@ -43,11 +43,11 @@ This is the **only** public repo for the marketplace.
 ## Features
 
 - Buyer storefront with search, product details, wishlist, live-auction tiles, and promo checkout (`NEXUS10`, `ELITEPRO`, `BIGSAVER`)
-- Header identity switcher for Buyer, Seller, and Admin — seller/admin chrome is role-gated
+- Header identity switcher for Buyer, Seller, and Admin - seller/admin chrome is role-gated
 - Seller hub: listings, inventory, vouchers, broadcast tiles
 - Admin workspace: user flags, promo ledger, marketplace metrics
 - B2B desk: RFQ, Net-30 credit, team budget, pallet calculator
-- Loyalty, guilds, curations, security-vault UI — all `localStorage`
+- Loyalty, guilds, curations, security-vault UI - all `localStorage`
 - Optional Gemini concierge at `POST /api/gemini/chat` (mock without a key)
 
 ---
@@ -58,11 +58,11 @@ This is the **only** public repo for the marketplace.
 |-------|------------|
 | Frontend | React 19, Vite 8, TypeScript, Tailwind 4 |
 | Data | Seeded in-memory catalog + `localStorage` (not a SQL backend) |
-| Auth | Demo role switcher — not JWT, not NextAuth |
+| Auth | Demo role switcher - not JWT, not NextAuth |
 | Payments | Simulated checkout only |
-| AI | Optional `POST /api/gemini/chat` — mock fallback on Vercel |
+| AI | Optional `POST /api/gemini/chat` - mock fallback on Vercel |
 | Hosting | Vercel (static Vite + `/api` function) |
-| CI | GitHub Actions — Vitest, `tsc`, Playwright |
+| CI | GitHub Actions - Vitest, `tsc`, Playwright |
 
 ---
 

@@ -1,4 +1,4 @@
-# Security Assessment — NexusBazaar
+# Security Assessment - NexusBazaar
 
 **Date:** 2026-09-06  
 **Scope:** Auth, XSS, injection, CORS, secrets, payments, third-party APIs  
@@ -70,7 +70,7 @@ The UI hides seller/admin nav for buyers. That is **not** a server boundary.
 |------|------|-------------|
 | `POST /api/gemini/chat` (Vite middleware + Vercel function) | None | Canned NexusBot reply |
 
-Do not put the key in `VITE_*` — it would leak to the browser. The public project should ship **without** `GEMINI_API_KEY`.
+Do not put the key in `VITE_*` - it would leak to the browser. The public project should ship **without** `GEMINI_API_KEY`.
 
 Prompt/history is clipped. Failures return the mock reply instead of a 500 that would break the drawer.
 
@@ -94,7 +94,7 @@ Public promo codes (`NEXUS10`, `ELITEPRO`, `BIGSAVER`) are accepted residual ris
 ## Residual risk (accepted)
 
 1. Anyone can become Admin from the header.
-2. `localStorage` is world-writable in that browser — a visitor can edit their own cart/orders.
+2. `localStorage` is world-writable in that browser - a visitor can edit their own cart/orders.
 3. Public demo promo codes.
 4. Optional Gemini route is unauthenticated; keep the key off the public project.
 

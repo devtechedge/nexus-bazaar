@@ -912,7 +912,7 @@ export default function ProductDetailsView({
       prod_2: {
         minimalist: "Aerospace titanium watch featuring high-accuracy AMOLED biosensors and native offline map navigation.",
         technical: "Casing: Grade-5 surgical-grade Titanium. Bezel: Sapphire Crystal glass, Mohs hardness 9. Display: 1.43\" AMOLED, 466x466 pixels, 326 PPI, peak luminance 1200 nits. Sensors: PPG optical blood oxygen, tri-axis accelerometer, barometric altimeter, dual-frequency multi-constellation GPS.",
-        marketing: "Crafted for the untamable spirit. The Chronos Edition 4 is more than a timepiece—it is a rugged companion built from space-era titanium. Navigate uncharted terrains with military-grade mapping and track your body's vitals with relentless, pinpoint accuracy.",
+        marketing: "Crafted for the untamable spirit. The Chronos Edition 4 is more than a timepiece - it is a rugged companion built from space-era titanium. Navigate uncharted terrains with military-grade mapping and track your body's vitals with relentless, pinpoint accuracy.",
         critique: "An exceptional outdoor tool with a robust GPS lock. Nonetheless, the high-luminance AMOLED panel severely penalizes battery stamina during active tracking sessions, shrinking runtime from 14 days to a mere 18 hours when GPS and Always-On-Display are concurrent. We advise toggling off-line pre-rendering when in remote grids."
       },
       prod_3: {
