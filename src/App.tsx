@@ -20,23 +20,50 @@ import {
 } from './lib/db';
 
 import Header from './components/Header';
-import StorefrontView from './views/StorefrontView';
-import SearchView from './views/SearchView';
-import ProductDetailsView from './views/ProductDetailsView';
-import CartCheckoutView from './views/CartCheckoutView';
-import SellerView from './views/SellerView';
-import AdminView from './views/AdminView';
-import OrdersView from './views/OrdersView';
-import WishlistView from './views/WishlistView';
-import GuildsView from './views/GuildsView';
-import StylingRoomView from './views/StylingRoomView';
-import CurationsView from './views/CurationsView';
-import LoyaltyView from './views/LoyaltyView';
-import SecurityVaultView from './views/SecurityVaultView';
-import B2BWholesaleView from './views/B2BWholesaleView';
-import EdgeLabView from './views/EdgeLabView';
-import ConciergeChatbot from './components/ConciergeChatbot';
+/**
+ * Every view is its own chunk.
+ *
+ * Importing all fifteen eagerly put the whole marketplace (catalog, seller hub,
+ * admin console, B2B desk, loyalty, vault, ...) into the entry bundle, so a
+ * visitor landing on the storefront downloaded screens they might never open.
+ * `React.lazy` splits them and `Suspense` covers the fetch.
+ */
+const StorefrontView = React.lazy(() => import('./views/StorefrontView'));
+const SearchView = React.lazy(() => import('./views/SearchView'));
+const ProductDetailsView = React.lazy(() => import('./views/ProductDetailsView'));
+const CartCheckoutView = React.lazy(() => import('./views/CartCheckoutView'));
+const SellerView = React.lazy(() => import('./views/SellerView'));
+const AdminView = React.lazy(() => import('./views/AdminView'));
+const OrdersView = React.lazy(() => import('./views/OrdersView'));
+const WishlistView = React.lazy(() => import('./views/WishlistView'));
+const GuildsView = React.lazy(() => import('./views/GuildsView'));
+const StylingRoomView = React.lazy(() => import('./views/StylingRoomView'));
+const CurationsView = React.lazy(() => import('./views/CurationsView'));
+const LoyaltyView = React.lazy(() => import('./views/LoyaltyView'));
+const SecurityVaultView = React.lazy(() => import('./views/SecurityVaultView'));
+const B2BWholesaleView = React.lazy(() => import('./views/B2BWholesaleView'));
+const EdgeLabView = React.lazy(() => import('./views/EdgeLabView'));
+const ConciergeChatbot = React.lazy(() => import('./components/ConciergeChatbot'));
 import { ShieldAlert, RefreshCw, Radio, Bell, Volume2, Play, Square, X as CloseIcon } from 'lucide-react';
+
+/**
+ * Shown while a view chunk is in flight. It reserves roughly a screen of height
+ * so the footer does not jump while the chunk loads.
+ */
+function ViewFallback() {
+  return (
+    <div
+      data-testid="view-fallback"
+      className="flex min-h-[60vh] items-center justify-center"
+      role="status"
+      aria-live="polite"
+    >
+      <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">
+        Loading view
+      </span>
+    </div>
+  );
+}
 
 export interface LiveAuction {
   id: string;
@@ -746,7 +773,9 @@ export default function App() {
 
       {/* 2. Main content stage */}
       <main id="nexus-bazaar-main" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderActiveView()}
+        <React.Suspense fallback={<ViewFallback />}>
+          {renderActiveView()}
+        </React.Suspense>
       </main>
 
       {/* 3. Global high-fidelity footer */}
@@ -791,7 +820,11 @@ export default function App() {
       </footer>
 
       {/* GLOBAL CONCIERGE CHATBOT ASSISTANT (Feature #9) */}
-      {currentUser.role === UserRole.Buyer && <ConciergeChatbot />}
+      {currentUser.role === UserRole.Buyer && (
+        <React.Suspense fallback={null}>
+          <ConciergeChatbot />
+        </React.Suspense>
+      )}
 
       {/* 40. AUDIO-GUIDED PRODUCT DEEP-DIVE PODCAST MINI-PLAYER */}
       {activePodcastProduct && (
