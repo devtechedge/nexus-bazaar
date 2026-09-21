@@ -57,22 +57,22 @@ export default function Header({
 
   return (
     <header id="app-header" data-testid="app-header" className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 min-w-0 max-w-7xl items-center justify-between gap-2 px-3 sm:px-6 lg:px-8">
         
         {/* Logo / Brand */}
         <div 
           id="header-brand-container" 
-          className="flex items-center gap-2 cursor-pointer"
+          className="flex min-w-0 items-center gap-2 cursor-pointer"
           onClick={() => { setActiveView('storefront'); setSearchQuery(''); }}
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white shadow-md shadow-teal-600/20">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-md shadow-teal-600/20 sm:h-10 sm:w-10">
             <ShoppingBag id="logo-icon" className="h-5 w-5" />
           </div>
-          <div>
-            <h1 id="brand-title" className="text-xl font-bold tracking-tight text-slate-900">
+          <div className="min-w-0">
+            <h1 id="brand-title" className="truncate text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
               Nexus<span className="text-teal-600">Bazaar</span>
             </h1>
-            <p id="brand-tagline" className="text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none">
+            <p id="brand-tagline" className="hidden text-[10px] font-mono text-slate-400 uppercase tracking-widest leading-none sm:block">
               Role-Led Market
             </p>
           </div>
@@ -264,7 +264,7 @@ export default function Header({
           <button
             id="elite-tier-toggle-btn"
             onClick={onToggleElite}
-            className={`group relative flex h-9 w-9 items-center justify-center rounded-full border transition-all ${
+            className={`group relative hidden h-9 w-9 items-center justify-center rounded-full border transition-all sm:flex ${
               currentUser.isElite 
                 ? 'bg-amber-500 border-amber-600 text-white shadow-sm hover:bg-amber-600' 
                 : 'bg-white border-slate-200 text-slate-400 hover:border-amber-400 hover:text-amber-500'
@@ -342,7 +342,9 @@ export default function Header({
             )}
           </div>
 
-          <ThemeToggle />
+          <div className="hidden sm:block">
+            <ThemeToggle />
+          </div>
 
           {/* Mobile / tablet hamburger - opens sheet with full nav */}
           <button
@@ -378,6 +380,12 @@ export default function Header({
             <button type="button" onClick={() => { setActiveView('styling'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'styling' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Styling Lab</button>
             <button type="button" onClick={() => { setActiveView('b2b'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'b2b' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-50'}`}>🏢 B2B Enterprise</button>
             <button type="button" onClick={() => { setActiveView('edge'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'edge' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>⚡ AI Edge Lab</button>
+            <div className="mt-2 flex items-center justify-between gap-3 border-t border-slate-100 px-1 pt-3 sm:hidden">
+              <button type="button" onClick={() => { onToggleElite(); }} className="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                {currentUser.isElite ? '★ Elite on' : '☆ Enable Elite'}
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       )}
