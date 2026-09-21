@@ -14,7 +14,9 @@ import {
   Sparkles,
   LogOut,
   SlidersHorizontal,
-  Package
+  Package,
+  Menu,
+  X
 } from 'lucide-react';
 import { User } from '../lib/db';
 import { canOpenAdminPanel, canOpenSellerHub } from '../lib/rbac';
@@ -46,6 +48,7 @@ export default function Header({
   setSearchQuery,
 }: HeaderProps) {
   const [showRoleMenu, setShowRoleMenu] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,155 +102,138 @@ export default function Header({
         </form>
 
         {/* Navigation Actions */}
-        <nav id="header-navigation" className="flex items-center gap-2 sm:gap-4">
+        <nav id="header-navigation" className="flex items-center gap-1.5 sm:gap-2">
           
-          {/* Main Store Link */}
-          <button
-            id="nav-storefront-btn"
-            onClick={() => setActiveView('storefront')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              activeView === 'storefront' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Storefront
-          </button>
-
-          <button
-            id="nav-search-btn"
-            onClick={() => setActiveView('search')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors md:hidden ${
-              activeView === 'search' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Browse
-          </button>
-
-          {/* Seller view button */}
-          {(canOpenSellerHub(currentUser.role)) && (
+          {/* Desktop / large-tablet primary links - hidden below xl to stop overflow */}
+          <div className="hidden items-center gap-1 xl:flex">
             <button
-              id="nav-seller-btn"
-              onClick={() => setActiveView('seller')}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                activeView === 'seller' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'
+              id="nav-storefront-btn"
+              onClick={() => setActiveView('storefront')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                activeView === 'storefront' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Seller Hub</span>
+              Storefront
             </button>
-          )}
 
-          {/* Admin view button */}
-          {canOpenAdminPanel(currentUser.role) && (
+            {(canOpenSellerHub(currentUser.role)) && (
+              <button
+                id="nav-seller-btn"
+                onClick={() => setActiveView('seller')}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  activeView === 'seller' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'
+                }`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Seller Hub</span>
+              </button>
+            )}
+
+            {canOpenAdminPanel(currentUser.role) && (
+              <button
+                id="nav-admin-btn"
+                onClick={() => setActiveView('admin')}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  activeView === 'admin' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'
+                }`}
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>Admin Panel</span>
+              </button>
+            )}
+
             <button
-              id="nav-admin-btn"
-              onClick={() => setActiveView('admin')}
+              id="nav-orders-btn"
+              onClick={() => setActiveView('orders')}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                activeView === 'admin' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'
+                activeView === 'orders' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
               }`}
             >
-              <ShieldCheck className="h-4 w-4" />
-              <span className="hidden sm:inline">Admin Panel</span>
+              <Package className="h-4 w-4" />
+              <span>Orders</span>
             </button>
-          )}
 
-          {/* Order history */}
-          <button
-            id="nav-orders-btn"
-            onClick={() => setActiveView('orders')}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              activeView === 'orders' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Package className="h-4 w-4" />
-            <span className="hidden sm:inline">Orders</span>
-          </button>
+            <button
+              id="nav-curations-btn"
+              onClick={() => setActiveView('curations')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                activeView === 'curations' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+              }`}
+            >
+              Curations
+            </button>
 
-          {/* Curations */}
-          <button
-            id="nav-curations-btn"
-            onClick={() => setActiveView('curations')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              activeView === 'curations' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
-            }`}
-          >
-            Curations
-          </button>
+            <button
+              id="nav-loyalty-btn"
+              onClick={() => setActiveView('loyalty')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                activeView === 'loyalty' ? 'text-teal-600 bg-teal-50 font-bold' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+              }`}
+            >
+              Loyalty Hub
+            </button>
 
-          {/* Loyalty Hub */}
-          <button
-            id="nav-loyalty-btn"
-            onClick={() => setActiveView('loyalty')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              activeView === 'loyalty' ? 'text-teal-600 bg-teal-50 font-bold' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
-            }`}
-          >
-            Loyalty Hub
-          </button>
+            <button
+              id="nav-security-btn"
+              onClick={() => setActiveView('security')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                activeView === 'security' ? 'text-teal-600 bg-teal-50 font-bold' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+              }`}
+            >
+              Security Vault
+            </button>
 
-          {/* Security Vault */}
-          <button
-            id="nav-security-btn"
-            onClick={() => setActiveView('security')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              activeView === 'security' ? 'text-teal-600 bg-teal-50 font-bold' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
-            }`}
-          >
-            Security Vault
-          </button>
+            <button
+              id="nav-guilds-btn"
+              onClick={() => setActiveView('guilds')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                activeView === 'guilds' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+              }`}
+            >
+              Guilds
+            </button>
 
-          {/* Guilds */}
-          <button
-            id="nav-guilds-btn"
-            onClick={() => setActiveView('guilds')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              activeView === 'guilds' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
-            }`}
-          >
-            Guilds
-          </button>
+            <button
+              id="nav-styling-btn"
+              onClick={() => setActiveView('styling')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                activeView === 'styling' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+              }`}
+            >
+              Styling Lab
+            </button>
 
-          {/* Styling Lab */}
-          <button
-            id="nav-styling-btn"
-            onClick={() => setActiveView('styling')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              activeView === 'styling' ? 'text-teal-600 bg-teal-50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
-            }`}
-          >
-            Styling Lab
-          </button>
+            <button
+              id="nav-b2b-btn"
+              onClick={() => setActiveView('b2b')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1 ${
+                activeView === 'b2b' ? 'text-indigo-600 bg-indigo-50 font-bold border border-indigo-200/50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+              }`}
+            >
+              🏢 B2B Enterprise
+            </button>
 
-          {/* B2B Wholesale & Enterprise */}
-          <button
-            id="nav-b2b-btn"
-            onClick={() => setActiveView('b2b')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1 ${
-              activeView === 'b2b' ? 'text-indigo-600 bg-indigo-50 font-bold border border-indigo-200/50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
-            }`}
-          >
-            🏢 B2B Enterprise
-          </button>
+            <button
+              id="nav-edge-btn"
+              onClick={() => setActiveView('edge')}
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1 ${
+                activeView === 'edge' ? 'text-teal-600 bg-teal-50 font-bold border border-teal-200/50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+              }`}
+            >
+              ⚡ AI Edge Lab
+            </button>
+          </div>
 
-          {/* AI Edge Lab Button */}
-          <button
-            id="nav-edge-btn"
-            onClick={() => setActiveView('edge')}
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1 ${
-              activeView === 'edge' ? 'text-teal-600 bg-teal-50 font-bold border border-teal-200/50' : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
-            }`}
-          >
-            ⚡ AI Edge Lab
-          </button>
+          <div className="hidden h-4 w-[1px] bg-slate-200 xl:block"></div>
 
-          <div className="h-4 w-[1px] bg-slate-200"></div>
-
-          {/* Wishlist Link */}
+          {/* Always-visible compact actions */}
           <button
             id="nav-wishlist-btn"
             onClick={() => setActiveView('wishlist')}
             className={`relative rounded-lg p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors ${
               activeView === 'wishlist' ? 'text-rose-600 bg-rose-50' : ''
             }`}
+            aria-label="Wishlist"
           >
             <Heart className="h-5 w-5" />
             {wishlistCount > 0 && (
@@ -257,13 +243,13 @@ export default function Header({
             )}
           </button>
 
-          {/* Cart Link */}
           <button
             id="nav-cart-btn"
             onClick={() => setActiveView('cart')}
             className={`relative rounded-lg p-2 text-slate-500 hover:text-teal-600 hover:bg-teal-50 transition-colors ${
               activeView === 'cart' ? 'text-teal-600 bg-teal-50' : ''
             }`}
+            aria-label="Cart"
           >
             <ShoppingCart className="h-5 w-5" />
             {cartCount > 0 && (
@@ -273,9 +259,8 @@ export default function Header({
             )}
           </button>
 
-          <div className="h-4 w-[1px] bg-slate-200"></div>
+          <div className="hidden h-4 w-[1px] bg-slate-200 sm:block"></div>
 
-          {/* Elite Tier Toggle */}
           <button
             id="elite-tier-toggle-btn"
             onClick={onToggleElite}
@@ -295,13 +280,12 @@ export default function Header({
             )}
           </button>
 
-          {/* Role/Session switcher dropdown */}
           <div className="relative">
             <button
               id="role-switcher-toggle"
               data-testid="role-switcher"
               onClick={() => setShowRoleMenu(!showRoleMenu)}
-              className="flex items-center gap-1.5 rounded-full bg-slate-100 p-1 pr-3 hover:bg-slate-200 transition-colors"
+              className="flex items-center gap-1.5 rounded-full bg-slate-100 p-1 pr-1 sm:pr-3 hover:bg-slate-200 transition-colors"
             >
               <img
                 id="active-user-avatar"
@@ -360,8 +344,43 @@ export default function Header({
 
           <ThemeToggle />
 
+          {/* Mobile / tablet hamburger - opens sheet with full nav */}
+          <button
+            id="nav-menu-toggle"
+            type="button"
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 xl:hidden"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </nav>
       </div>
+
+      {/* Mobile nav drawer */}
+      {mobileOpen && (
+        <div id="mobile-nav-sheet" className="border-t border-slate-200 bg-white xl:hidden">
+          <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3 sm:px-6">
+            <button type="button" onClick={() => { setActiveView('storefront'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'storefront' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Storefront</button>
+            <button type="button" onClick={() => { setActiveView('search'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'search' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Browse</button>
+            {(canOpenSellerHub(currentUser.role)) && (
+              <button type="button" onClick={() => { setActiveView('seller'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'seller' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Seller Hub</button>
+            )}
+            {canOpenAdminPanel(currentUser.role) && (
+              <button type="button" onClick={() => { setActiveView('admin'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'admin' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Admin Panel</button>
+            )}
+            <button type="button" onClick={() => { setActiveView('orders'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'orders' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Orders</button>
+            <button type="button" onClick={() => { setActiveView('curations'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'curations' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Curations</button>
+            <button type="button" onClick={() => { setActiveView('loyalty'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'loyalty' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Loyalty Hub</button>
+            <button type="button" onClick={() => { setActiveView('security'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'security' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Security Vault</button>
+            <button type="button" onClick={() => { setActiveView('guilds'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'guilds' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Guilds</button>
+            <button type="button" onClick={() => { setActiveView('styling'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'styling' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>Styling Lab</button>
+            <button type="button" onClick={() => { setActiveView('b2b'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'b2b' ? 'bg-indigo-50 text-indigo-600' : 'text-slate-700 hover:bg-slate-50'}`}>🏢 B2B Enterprise</button>
+            <button type="button" onClick={() => { setActiveView('edge'); setMobileOpen(false); }} className={`rounded-lg px-3 py-2.5 text-left text-sm font-medium ${activeView === 'edge' ? 'bg-teal-50 text-teal-600' : 'text-slate-700 hover:bg-slate-50'}`}>⚡ AI Edge Lab</button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
