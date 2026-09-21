@@ -122,7 +122,7 @@ export default function StorefrontView({
             <ArrowRight className="h-3.5 w-3.5" />
           </button>
         </div>
-        <div id="categories-grid" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div id="categories-grid" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {categories.map((cat, i) => (
             <div
               id={`category-card-${cat}`}
